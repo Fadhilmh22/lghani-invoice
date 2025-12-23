@@ -1,0 +1,70 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Room;
+
+class RoomController extends Controller
+{
+    public function index()
+    {
+    $rooms = Room::orderBy('created_at', 'DESC')->paginate(10);
+        return view('room.index', ['rooms' => $rooms]);
+    }
+
+    public function create()
+    {
+        return view('room.add');
+    }
+
+    public function save(Request $request)
+    {
+        $this->validate($request, [
+            'room_code' => 'nullable|string',
+            'room_name' => 'nullable|string'
+        ]);
+
+        try {
+            $room = Room::create([
+                'room_code' => $request->room_code,
+                'room_name' => $request->room_name
+            ]);
+            return redirect('/room')->with(['success' => '<strong>' . $room->room_name . '</strong>  telah berhasil ditambahkan']);
+        } catch (\Exception $e) {
+            return redirect()->back()->with(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function edit($id)
+    {
+        $room = Room::find($id);
+        return view('room.edit', compact('room'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $this->validate($request, [
+            'room_code' => 'nullable|string',
+            'room_name' => 'nullable|string'
+        ]);
+
+        try {
+            $room = Room::find($id);
+            $room->update([
+                'room_code' => $request->room_code,
+                'room_name' => $request->room_name
+            ]);
+            return redirect('/room')->with(['success' =>  '<strong>' . $room->room_name . '</strong>  telah berhasil diperbaharui']);
+        } catch (\Exception $e) {
+            return redirect()->back()->with(['error' => $e->getMessage()]);
+        }
+    }
+
+    public function destroy($id)
+    {
+        $room = Room::find($id);
+        $room->delete();
+        return redirect()->back()->with(['success' => '<strong>' . $room->room_name . '</strong> telah berhasil dihapus']);
+    }
+}

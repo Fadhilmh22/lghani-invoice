@@ -1,0 +1,94 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Airlines;
+use App\Models\Customer;
+use App\Models\Invoice_detail;
+use App\Models\Invoice;
+use Illuminate\Support\Facades\DB;
+use PDF;
+
+class ReportController extends Controller
+{
+    private $monthName = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    public function index()
+    {
+        $invoices = Invoice_detail::selectRaw("DISTINCT DATE_FORMAT(created_at,'%Y%m') AS monthlydate")->get()->sortBy('monthlydate')->toArray();
+        $months = $this->monthName;
+        return view('report.index', compact('invoices', 'months'));
+    }
+
+    public function generateReport(Request $request)
+    {
+        $validationRule = ['report_type' => 'required|integer'];
+
+        if( $request->report_type == 1 ) {
+            $validationRule['month'] = 'required|integer';
+        } else {
+            $validationRule['start_date'] = 'required|date';
+            $validationRule['end_date'] = 'required|date';
+        }
+
+        $this->validate($request, $validationRule);
+        
+        if ($request->report_type == 2) {
+            if ($request->start_date > $request->end_date) {
+                // Jika tanggal awal > tanggal akhir, tampilkan pesan kesalahan dan arahkan kembali
+                return redirect()->back()->with(['error' => 'Tanggal mulai tidak boleh lebih besar dari tanggal akhir']);
+            }
+        
+            $today = now(); // Mengambil tanggal hari ini
+            if ($request->start_date > $today) {
+                // Jika tanggal awal lebih besar dari hari ini, tampilkan pesan kesalahan dan arahkan kembali
+                return redirect()->back()->with(['error' => 'Data laporan belum ada']);
+            }
+        }
+
+        try {
+            $field = ["invoice_details.*", "invoices.invoiceno", "invoices.status", "customers.booker", "customers.payment", "airlines.airlines_code", "airlines.airlines_name"];
+            $invoices;
+
+            if( $request->report_type == 1 ) {
+                $invoices = DB::table('invoice_details')->select($field)
+                            ->join('invoices', 'invoice_details.invoice_id', '=', 'invoices.id')
+                            ->join('customers', 'invoices.customer_id', '=', 'customers.id')
+                            ->join('airlines', 'invoice_details.airline_id', '=', 'airlines.id')
+                            ->where(DB::raw("DATE_FORMAT(invoice_details.created_at,'%Y%m')"), $request->month)
+                            ->get();
+            } else {
+                $invoices = DB::table('invoice_details')->select($field)
+                            ->join('invoices', 'invoice_details.invoice_id', '=', 'invoices.id')
+                            ->join('customers', 'invoices.customer_id', '=', 'customers.id')
+                            ->join('airlines', 'invoice_details.airline_id', '=', 'airlines.id')
+                            ->where(DB::raw("DATE_FORMAT(invoice_details.created_at,'%Y%m%d')"), ">=", date("Ymd", strtotime($request->start_date)))
+                            ->where(DB::raw("DATE_FORMAT(invoice_details.created_at,'%Y%m%d')"), "<=", date("Ymd", strtotime($request->end_date)))
+                            ->get();
+            }
+
+            $report_type = $request->report_type;
+            $month = $request->month;
+            $start_date = $request->start_date;
+            $end_date = $request->end_date;
+
+            $period = "";
+            if( $report_type == 1 ) {
+                $period = date("M-Y", strtotime($month."01"));
+            } else {
+                if( $start_date == $end_date ) {
+                    $period = date("d-M-Y", strtotime($start_date));
+                } else {
+                    $period = date("d-M-Y", strtotime($start_date)) . " - " . date("d-M-Y", strtotime($end_date));
+                }
+            }
+
+            $filename = "Sales Ticket Period " . $period . "_" . date("YmdHis");
+            $pdf = PDF::loadView('report.print', compact('invoices', 'period'))->setPaper('a4', 'landscape');
+            return $pdf->download($filename.'-report.pdf');
+        } catch(\Exception $e) {
+            return redirect()->back()->with(['error' => $e->getMessage()]);
+        }
+
+    }
+}

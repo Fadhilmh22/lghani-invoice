@@ -1,0 +1,34 @@
+/* Contoh CSS di dalam file eksternal atau internal */
+.container {
+    font-family: 'ar', sans-serif;
+}
+
+/* CSS lainnya */
+
+.judul-dengan-gambar {
+    display: flex; /* Menggunakan flexbox untuk menyusun gambar dan judul */
+    align-items: center; /* Mengatur penempatan vertikal elemen ke tengah */
+  }
+  
+  .judul-dengan-gambar img {
+    width: 100px; /* Sesuaikan lebar gambar sesuai kebutuhan Anda */
+    height: auto; /* Biarkan tinggi gambar disesuaikan secara otomatis */
+    margin-right: 10px; /* Tambahkan margin jika perlu */
+  }
+  
+@import '~@fortawesome/fontawesome-free/css/all.css';
+
+.btn-custom-small {
+  padding: 2px 8px; /* Sesuaikan dengan ukuran yang Anda inginkan */
+  font-size: 8px; /* Sesuaikan dengan ukuran font yang Anda inginkan */
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  }
+
+  .actions .btn {
+  margin-right: 5px;
+  }

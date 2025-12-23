@@ -1,0 +1,14 @@
+[13-Nov-2023 21:50:50 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 458
+[13-Nov-2023 21:51:28 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 458
+[13-Nov-2023 21:52:02 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 81920 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 630
+[13-Nov-2023 21:52:59 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 630
+[13-Nov-2023 22:19:30 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 134217728 bytes exhausted (tried to allocate 20480 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Css/Style.php on line 1845
+[06-Mar-2024 19:04:41 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 20480 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 630
+[31-May-2024 15:13:55 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 163840 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 630
+[31-May-2024 21:44:34 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 20480 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Frame.php on line 434
+[01-Jun-2024 06:53:46 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 20480 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Frame.php on line 488
+[01-Jun-2024 07:30:00 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 163840 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 630
+[01-Jun-2024 15:27:23 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 163840 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 630
+[01-Jun-2024 15:29:15 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 163840 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 630
+[01-Jun-2024 15:30:05 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 163840 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Cellmap.php on line 630
+[01-Jun-2024 15:35:16 Asia/Jakarta] PHP Fatal error:  Allowed memory size of 536870912 bytes exhausted (tried to allocate 20480 bytes) in /home/lghani/lghani/vendor/dompdf/dompdf/src/Frame.php on line 434

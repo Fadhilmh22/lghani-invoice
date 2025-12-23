@@ -1,0 +1,533 @@
+/* PENTING: Perbaikan untuk menghindari pergeseran (shift) modal. */
+body {
+    overflow-y: scroll !important; 
+}
+
+/* ------------------------------------------- */
+/* 1. Tampilan Kontainer & Kartu (Card) */
+/* ------------------------------------------- */
+.elegant-container {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.card-elegant {
+    background-color: #ffffff;
+    border-radius: 16px; 
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+    border: none;
+    padding: 25px;
+}
+
+.page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 25px;
+}
+
+/* ------------------------------------------- */
+/* 2. Filter, Search & Tombol Aksi */
+/* ------------------------------------------- */
+.top-bar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filter-search-group {
+    flex-grow: 1;
+    max-width: 250px;
+}
+
+.search-form {
+    display: flex;
+}
+
+/* Perbaikan Penting: Memastikan input-group menggunakan flex */
+.input-group {
+    display: flex;
+    width: 100%; /* Memastikan mengambil lebar penuh dari parent */
+}
+
+.elegant-input {
+    flex-grow: 1; /* Input mengambil sisa ruang */
+    border-radius: 8px 0 0 8px !important;
+    border: 1px solid #e2e8f0;
+    padding: 10px 15px;
+    box-shadow: none !important;
+    height: 40px;
+}
+
+.btn-search {
+    flex-shrink: 0; /* Mencegah tombol menyusut */
+    background-color: #1e1b4b;
+    color: white;
+    border: 1px solid #1e1b4b;
+    border-left: none; /* Menghilangkan border kiri agar menyambung sempurna dengan input */
+    /* Hanya bagian kanan yang melengkung, menyambung dengan input */
+    border-radius: 0 8px 8px 0 !important;
+    padding: 10px 15px; 
+    width: 40px; /* Lebar ditetapkan agar tombol terlihat kotak */
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-search:hover {
+    background-color: #4338ca;
+}
+
+.btn-primary-elegant {
+    background-color: #10b981;
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+    transition: background-color 0.2s;
+    border: none;
+}
+
+.btn-primary-elegant:hover {
+    background-color: #059669;
+}
+
+/* ------------------------------------------- */
+/* 3. Gaya Tabel Tanpa Border (Elegant Table) */
+/* ------------------------------------------- */
+.elegant-table {
+    width: 100%;
+    border-collapse: separate; 
+    border-spacing: 0 8px;
+}
+
+.elegant-table thead th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    padding: 12px 15px;
+    border: none !important;
+    text-transform: uppercase;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+}
+
+.elegant-table tbody tr {
+    background-color: #ffffff;
+    transition: all 0.2s;
+    border-radius: 8px; 
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.elegant-table tbody tr:hover {
+    background-color: #f1f5f9;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.elegant-table td {
+    padding: 15px 15px;
+    color: #334155;
+    border: none !important;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1.2;
+}
+
+/* ------------------------------------------- */
+/* 4. Status Badge & Aksi Buttons */
+/* ------------------------------------------- */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.status-paid {
+    background-color: #d1fae5;
+    color: #059669;
+}
+
+.status-unpaid {
+    background-color: #fee2e2;
+    color: #ef4444;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.btn-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    font-size: 14px;
+    text-decoration: none;
+    border: none;
+}
+
+.print-action { background-color: #e0f2f1; color: #00897b; }
+.print-action:hover { background-color: #b2dfdb; }
+
+.disc-action { background-color: #e3f2fd; color: #42a5f5; }
+.disc-action:hover { background-color: #90caf9; }
+
+.edit-action { background-color: #fff3e0; color: #ffb300; }
+.edit-action:hover { background-color: #ffe0b2; }
+
+.delete-action { background-color: #ffebee; color: #e53935; border: none; }
+.delete-action:hover { background-color: #ffcdd2; }
+
+/* ------------------------------------------- */
+/* 5. Footer Tabel (Total & Pagination) */
+/* ------------------------------------------- */
+.table-footer-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.total-summary {
+    font-size: 14px;
+    color: #334155;
+}
+
+.pagination-elegant .pagination {
+    margin: 0;
+}
+
+.pagination-elegant .page-link {
+    border-radius: 8px;
+    margin: 0 4px;
+    color: #4f46e5;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+}
+
+.pagination-elegant .page-link:hover {
+    background-color: #eff0ff;
+    border-color: #c7c9ff;
+}
+
+.pagination-elegant .page-item.active .page-link {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: white;
+}
+
+/* --- Override Global Classes --- */
+.wider-column { width: 150px; }
+.uppercase-text { text-transform: capitalize; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+
+/* ------------------------------------------- */
+/* 6. Custom Modal (Delete) Styles */
+/* ------------------------------------------- */
+.custom-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    /* Pastikan overlay tidak menyebabkan scrollbar tambahan */
+    overflow: auto; 
+}
+
+.custom-modal-content {
+    background-color: white;
+    padding: 0;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    animation: fadeIn 0.3s ease-out;
+    /* Tambahkan margin agar konten modal terlihat di tengah vertikal saat overflow auto */
+    margin: auto; 
+}
+
+.modal-header-danger {
+    background-color: #fca5a5;
+    color: #b91c1c;
+    padding: 15px 20px;
+    border-radius: 12px 12px 0 0;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+}
+
+.modal-header-danger .fa {
+    margin-right: 10px;
+}
+
+.modal-body {
+    padding: 20px;
+    font-size: 14px;
+    color: #334155;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 15px 20px;
+    border-top: 1px solid #f1f5f9;
+    gap: 10px;
+}
+
+.btn-secondary-modal, .btn-danger-modal {
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-secondary-modal {
+    background-color: #e2e8f0;
+    color: #475569;
+}
+
+.btn-secondary-modal:hover {
+    background-color: #cbd5e1;
+}
+
+.btn-danger-modal {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-danger-modal:hover {
+    background-color: #dc2626;
+}
+
+/* ------------------------------------------- */
+/* 7. Success Toast (Animasi Checklist) Styles */
+/* ------------------------------------------- */
+.success-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    /* Menggunakan translate untuk centering absolut yang tidak terpengaruh oleh margin atau padding */
+    transform: translate(-50%, -50%); 
+    z-index: 1100;
+    padding: 30px 40px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    display: none; /* Default hidden, controlled by JS */
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.success-toast-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.checkmark-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #10b981; /* Hijau sukses */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    transform: scale(0);
+    animation: scaleIn 0.3s ease-out forwards;
+}
+
+.checkmark-circle .fa {
+    font-size: 30px;
+    color: white;
+    /* Optional: Small checkmark animation */
+    opacity: 0;
+    transform: rotate(-10deg);
+    animation: checkmarkAppear 0.5s ease 0.3s forwards;
+}
+
+.success-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #10b981;
+    margin: 0;
+}
+
+/* Keyframes untuk Animasi */
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes scaleIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+@keyframes checkmarkAppear {
+    0% { opacity: 0; transform: rotate(-10deg); }
+    100% { opacity: 1; transform: rotate(0deg); }
+}
+
+/* Custom Alert untuk Error AJAX */
+.alert-danger {
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    background-color: #fca5a5;
+    color: #b91c1c;
+    border: 1px solid #f87171;
+    font-weight: 500;
+}
+
+/* Custom Alert untuk Info Otomatisasi */
+.alert-info {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    background-color: #bfdbfe; /* Warna biru muda */
+    color: #1e40af; /* Warna biru tua */
+    border: 1px solid #93c5fd;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ------------------------------------------- */
+/* 8. Form Styles untuk Report dan Form Lainnya */
+/* ------------------------------------------- */
+.elegant-form-group {
+    margin-bottom: 20px;
+}
+
+.elegant-form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #334155;
+    font-size: 14px;
+}
+
+.elegant-form-control {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.elegant-form-control:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.elegant-form-control select,
+select.elegant-form-control {
+    height: 40px;
+    padding: 8px 12px;
+    line-height: 24px;
+}
+
+.elegant-form-control.is-invalid {
+    border-color: #ef4444;
+}
+
+.text-danger {
+    color: #ef4444;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+.btn-primary {
+    background-color: #4f46e5;
+    color: white;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: #4338ca;
+}
+
+.btn-primary.btn-sm {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+.invoice-section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.section-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #4f46e5;
+    padding-left: 10px;
+}
+
+.form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.form-control {
+    height: 36px;
+    font-size: 13px;
+}
+
+.invoice-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.table th {
+    font-size: 12px;
+    background: #f8f9fa;
+}
+
+.table td {
+    font-size: 12px;
+    vertical-align: middle;
+}
+

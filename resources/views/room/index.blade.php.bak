@@ -1,0 +1,66 @@
+@extends('master')
+
+@section('konten')
+<div class="container" style="font-family: 'poppins', sans-serif;">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h3 class="card-title">Type Rooms</h3>
+                            </div>
+                            
+                            <div class="col-md-7">
+                                <a href="{{ url('/room/new') }}" class="btn btn-primary btn-sm float-right">Tambah Tipe Kamar</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (session('success'))
+                        <div class="alert alert-success">
+                            {!! session('success') !!}
+                        </div>
+                        @endif
+                        <table class="table table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Kode Kamar</th>
+                                    <th>Nama Kamar</th>
+                                    <th colspan="2">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($rooms as $room)
+                                <tr>
+                                    <td>{{ $room->id }}</td>
+                                    <td>{{ $room->room_code }}</td>
+                                    <td>{{ $room->room_name }}</td>
+                                    <td>
+                                        <form action="{{ url('/room/' . $room->id) }}" method="POST">
+                                            @csrf
+                                            @method('DELETE')
+                                            <a href="{{ url('/room/' . $room->id) }}" class="btn btn-warning btn-sm">Edit</a>
+                                            <button class="btn btn-danger btn-sm" onclick="return confirmDelete()">Hapus</button>
+                                        </form>
+                                    </td>
+                                    <script>
+                                        function confirmDelete() {
+                                            return confirm("Apakah Anda yakin ingin menghapus pelanggan ini?");
+                                        }
+                                    </script>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td class="text-center" colspan="5">Tidak ada data</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
