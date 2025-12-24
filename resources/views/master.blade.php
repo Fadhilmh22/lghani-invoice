@@ -137,6 +137,7 @@
           margin-bottom: 10px;
         }
         .sidebar__user { display: flex; align-items: center; gap: 12px; margin: 24px 0; padding: 12px; background: rgba(255, 255, 255, 0.08); border-radius: 16px; }
+        .sidebar__user { justify-content: flex-start; text-align: left; }
         .avatar { width: 46px; height: 46px; border-radius: 12px; background: rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; }
         .user-name { margin: 0; font-weight: 600; }
         .user-role { margin: 0; font-size: 12px; color: #cbd5f5; }
@@ -183,6 +184,14 @@
                 margin-left: 0;
             }
         }
+        /* Modal and button styles for profile modal */
+        .btn-primary-modal { background: linear-gradient(135deg,#4a6cf7,#7c3aed); color: #fff; border: none; padding: 8px 14px; border-radius: 10px; }
+        .btn-secondary-modal { background: #f1f5f9; color: #475569; border: none; padding: 8px 14px; border-radius: 10px; }
+        .custom-modal-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(2,6,23,0.35); z-index: 1200; }
+        .custom-modal-content { width: 640px; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 60px rgba(2,6,23,0.2); }
+        .modal-header { padding: 14px 18px; font-weight: 700; border-bottom: 1px solid rgba(2,6,23,0.04); }
+        .modal-body { padding: 16px 18px; }
+        .modal-footer { padding: 12px 18px; display:flex; justify-content:flex-end; gap:8px; border-top: 1px solid rgba(2,6,23,0.04); }
     </style>
     <script type="text/javascript">
         function formatRupiah(angka){
@@ -208,13 +217,13 @@
             <div class="sidebar__brand">
                 <img src="{{ asset('logo-lghani.png') }}" alt="Lghani Travel">
             </div>
-            <div class="sidebar__user">
+            <button id="profileToggle" class="sidebar__user" style="border:none;background:transparent;cursor:pointer;">
                 <div class="avatar"><i class="fa fa-user"></i></div>
                 <div>
                     <p class="user-name">{{ Auth::user()->name }}</p>
                     <p class="user-role">{{ Auth::user()->role }}</p>
                 </div>
-            </div>
+            </button>
 
             <nav class="sidebar__menu">
                 <p class="menu-label">Menu</p>
@@ -397,7 +406,80 @@
                     window.location.href = logoutUrl;
                 }
             });
+
+            // Profile modal handlers with client-side validation
+            $('#profileToggle').on('click', function(e){ e.preventDefault(); $('#profileModal').fadeIn(150); $('#profileErrors').hide().text(''); });
+            $('#cancelProfileBtn').on('click', function(){ $('#profileModal').fadeOut(150); $('#profileErrors').hide().text(''); });
+            $('#saveProfileBtn').on('click', function(e){
+                e.preventDefault();
+                var errors = [];
+                var name = $('#profile_name').val().trim();
+                var email = $('#profile_email').val().trim();
+                var pwd = $('#profile_password').val();
+                var pwdc = $('#profile_password_confirmation').val();
+
+                if (!name) errors.push('Nama harus diisi.');
+                if (!email) errors.push('Email harus diisi.');
+                else {
+                    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\\.,;:\s@\"]+\.)+[^<>()[\]\\.,;:\s@\"]{2,})$/i;
+                    if (!re.test(email)) errors.push('Format email tidak valid.');
+                }
+                if (pwd) {
+                    if (pwd.length < 6) errors.push('Password minimal 6 karakter.');
+                    if (pwd !== pwdc) errors.push('Konfirmasi password tidak cocok.');
+                }
+
+                if (errors.length) {
+                    $('#profileErrors').html('<ul style="margin:0;padding-left:18px;">' + errors.map(function(e){ return '<li>'+e+'</li>'; }).join('') + '</ul>').show();
+                    return false;
+                }
+
+                // show confirmation modal before submit
+                $('#confirmSaveModal').fadeIn(120);
+            });
+
+            // confirmation modal handlers
+            $('#confirmCancel').on('click', function(){ $('#confirmSaveModal').fadeOut(120); });
+            $('#confirmSave').on('click', function(){
+                // perform AJAX submit
+                var url = $('#profileForm').attr('action');
+                var data = $('#profileForm').serialize();
+                $('#confirmSaveModal').fadeOut(120);
+                // disable buttons to avoid duplicate clicks
+                $('#confirmSave, #saveProfileBtn').prop('disabled', true).addClass('disabled');
+                $.ajax({
+                    url: url,
+                    method: 'POST',
+                    data: data,
+                    success: function(res) {
+                        $('#profileModal').fadeOut(150);
+                        $('#profileErrors').hide().text('');
+                        // update sidebar name and welcome text
+                        if (res.user && res.user.name) {
+                            $('.user-name').text(res.user.name);
+                            $('.welcome-text').text('Halo, ' + res.user.name);
+                        }
+                        $('#successMessage').text(res.message || 'Perubahan berhasil disimpan.');
+                        $('#successModal').fadeIn(150);
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 422) {
+                            var errors = xhr.responseJSON.errors || {};
+                            var list = Object.keys(errors).map(function(k){ return errors[k].join('<br>'); }).join('<br>');
+                            $('#profileErrors').html(list).show();
+                            $('#confirmSaveModal').fadeOut(120);
+                        } else {
+                            $('#profileErrors').html('Terjadi kesalahan. Silakan coba lagi.').show();
+                        }
+                    },
+                    complete: function(){
+                        $('#confirmSave, #saveProfileBtn').prop('disabled', false).removeClass('disabled');
+                    }
+                });
+            });
         });
+        // success modal ok handler
+        $('#successOk').on('click', function(){ $('#successModal').fadeOut(120); });
     </script>
 
     <!-- LOGOUT CONFIRMATION MODAL (match delete modal style) -->
@@ -412,6 +494,72 @@
             <div class="modal-footer">
                 <button id="cancelLogoutBtn" class="btn btn-secondary-modal">Batal</button>
                 <button id="confirmLogoutBtn" class="btn btn-danger-modal">Ya, Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE EDIT MODAL -->
+    <div id="profileModal" class="custom-modal-overlay" style="display: none;">
+        <div class="custom-modal-content">
+            <div class="modal-header">
+                <i class="fa fa-user"></i> Edit Profile
+            </div>
+            <div class="modal-body">
+                <form id="profileForm" method="POST" action="{{ route('profile.update') }}">
+                    @csrf
+                    <div id="profileErrors" class="alert alert-danger" style="display:none;margin-bottom:12px;"></div>
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="profile_name" name="name" class="form-control" value="{{ Auth::user()->name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="profile_email" name="email" class="form-control" value="{{ Auth::user()->email }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>New Password (leave blank to keep)</label>
+                        <input type="password" id="profile_password" name="password" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="profile_password_confirmation" name="password_confirmation" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelProfileBtn" class="btn btn-secondary-modal">Batal</button>
+                <button id="saveProfileBtn" class="btn btn-primary-modal">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM SAVE MODAL -->
+    <div id="confirmSaveModal" class="custom-modal-overlay" style="display:none;">
+        <div class="custom-modal-content">
+            <div class="modal-header">
+                Konfirmasi Simpan
+            </div>
+            <div class="modal-body">
+                <p>Yakin ingin menyimpan perubahan profile?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmCancel" class="btn btn-secondary-modal">Batal</button>
+                <button id="confirmSave" class="btn btn-primary-modal">Ya, Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUCCESS MODAL -->
+    <div id="successModal" class="custom-modal-overlay" style="display:none;">
+        <div class="custom-modal-content">
+            <div class="modal-header">
+                Berhasil
+            </div>
+            <div class="modal-body">
+                <p id="successMessage">Perubahan berhasil disimpan.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="successOk" class="btn btn-primary-modal">OK</button>
             </div>
         </div>
     </div>

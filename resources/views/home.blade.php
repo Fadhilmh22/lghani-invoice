@@ -275,7 +275,7 @@
                 <i class="fa fa-coins"></i>
             </div>
             <div>
-                <p class="stat-label">Total Revenue</p>
+                <p class="stat-label">Total Revenue Per Month</p>
                 <h3>Rp{{ number_format($totalProfitPerMonth ?? 0) }}</h3>
                 <span class="stat-trend {{ (isset($monthProfitChangePercent) && $monthProfitChangePercent < 0) ? 'down' : 'up' }}">{{ (isset($monthProfitChangePercent) && $monthProfitChangePercent > 0) ? '+' : '' }}{{ isset($monthProfitChangePercent) ? number_format($monthProfitChangePercent, 1) : '0.0' }}%</span>
             </div>

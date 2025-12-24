@@ -66,14 +66,14 @@ class HomeController extends Controller
             ->where('total', '!=', 0)
             ->sum('total');
 
-        // REVISI 7: Total Revenue ambil dari Total Profit per Bulan.
-        // Gunakan kolom `profit` pada `invoice_details` jika tersedia.
+        // REVISI 7: Total Revenue ambil dari Total Profit per Baris ((pax_paid - price) + profit)
         $totalProfitPerMonth = DB::table('invoice_details')
             ->join('invoices', 'invoice_details.invoice_id', '=', 'invoices.id')
             ->whereYear('invoices.created_at', now()->year)
             ->whereMonth('invoices.created_at', now()->month)
             ->where('invoices.total', '!=', 0)
-            ->sum('invoice_details.profit');
+            ->select(DB::raw('COALESCE(SUM((invoice_details.pax_paid - invoice_details.price) + invoice_details.profit),0) as total'))
+            ->value('total');
 
         // previous month comparisons
         $prevMonth = Carbon::now()->subMonth();
@@ -88,7 +88,8 @@ class HomeController extends Controller
             ->whereYear('invoices.created_at', $prevMonth->year)
             ->whereMonth('invoices.created_at', $prevMonth->month)
             ->where('invoices.total', '!=', 0)
-            ->sum('invoice_details.profit');
+            ->select(DB::raw('COALESCE(SUM((invoice_details.pax_paid - invoice_details.price) + invoice_details.profit),0) as total'))
+            ->value('total');
 
         if ($totalPenjualanBulanLalu == 0) {
             $monthSalesChangePercent = ($totalPenjualanBulanIni == 0) ? 0 : 100;

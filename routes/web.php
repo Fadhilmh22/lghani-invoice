@@ -12,6 +12,7 @@ use App\Http\Controllers\HotelController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\HotelVoucherController;
 use App\Http\Controllers\HotelInvoiceController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,6 +31,11 @@ Route::post('/actionlogin', [LoginController::class, 'actionlogin'])->name('acti
 
 Route::get('/home', [HomeController::class, 'index'])->name('home')->middleware('auth');
 Route::get('/actionlogout', [LoginController::class, 'actionlogout'])->name('actionlogout')->middleware('auth');
+
+Route::group(['middleware' => 'auth'], function() {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+});
 
 Route::get('register', [RegisterController::class, 'register'])->name('register');
 Route::post('register/action', [RegisterController::class, 'actionregister'])->name('actionregister')->middleware('auth');
