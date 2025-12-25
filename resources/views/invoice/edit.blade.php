@@ -27,12 +27,13 @@
     margin-bottom: 6px;
 }
 
-.form-control {
+.elegant-form-control {
     height: 40px;
     font-size: 13px;
 }
 
-.invoice-footer {
+/* BUTTON AREA */
+.invoice-action {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -41,17 +42,22 @@
     border-top: 1px solid #eee;
 }
 
-.table th {
+/* TABLE */
+.table-invoice th {
     font-size: 12px;
     background: #f8f9fa;
+    font-weight: 600;
 }
 
-.table td {
+.table-invoice td {
     font-size: 12px;
     vertical-align: middle;
 }
-</style>
 
+.table-invoice tbody tr:hover {
+    background: #fafafa;
+}
+</style>
 
 <div class="elegant-container">
 
@@ -72,21 +78,21 @@
     <div class="section-title">Input Detail Invoice</div>
 
     <div class="row">
-    <div class="col-lg-3 col-md-4 col-sm-6 form-group">
+        <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Gender</label>
-            <input type="text" name="genre" class="elegant-form-control">
+            <input type="text" name="genre" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Name</label>
-            <input type="text" name="name" class="elegant-form-control">
+            <input type="text" name="name" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Booking Code</label>
-            <input type="text" name="booking_code" class="elegant-form-control">
+            <input type="text" name="booking_code" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Airlines</label>
-            <select name="airline_id" class="elegant-form-control">
+            <select name="airline_id" class="elegant-form-control form-control">
                 <option value="">Select Airline</option>
                 @foreach ($airlines as $airline)
                 <option value="{{ $airline->id }}">
@@ -100,53 +106,54 @@
     <div class="row">
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Airlines No</label>
-            <input type="text" name="airlines_no" class="elegant-form-control">
+            <input type="text" name="airlines_no" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Class</label>
-            <input type="text" name="class" class="elegant-form-control">
+            <input type="text" name="class" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Ticket No</label>
-            <input type="text" name="ticket_no" class="elegant-form-control">
+            <input type="text" name="ticket_no" class="elegant-form-control form-control">
         </div>
-            <div class="col-lg-3 col-md-4 col-sm-6 form-group">
+        <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Route</label>
-            <input type="text" name="route" class="elegant-form-control">
+            <input type="text" name="route" class="elegant-form-control form-control">
         </div>
     </div>
 
     <div class="row">
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Depart Date</label>
-            <input type="date" name="depart_date" class="elegant-form-control">
+            <input type="date" name="depart_date" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Return Date</label>
-            <input type="date" name="return_date" class="elegant-form-control">
+            <input type="date" name="return_date" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Pax Paid</label>
-            <input type="text" name="pax_paid" class="elegant-form-control">
+            <input type="text" name="pax_paid" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Price</label>
-            <input type="text" name="price" class="elegant-form-control">
+            <input type="text" name="price" class="elegant-form-control form-control">
         </div>
     </div>
 
     <div class="row">
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Discount</label>
-            <input type="text" name="discount" class="elegant-form-control">
+            <input type="text" name="discount" class="elegant-form-control form-control">
         </div>
-                <div class="col-lg-3 col-md-4 col-sm-6 form-group">
+        <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>NTA</label>
-            <input type="text" name="nta" class="elegant-form-control">
+            <input type="text" name="nta" class="elegant-form-control form-control">
         </div>
     </div>
 
-    <div class="d-flex justify-content-between mt-3">
+    {{-- BUTTON --}}
+    <div class="invoice-action">
         <div>
             <button id="addBtn" class="btn btn-success btn-sm">+ Tambah</button>
             <button id="update-button" class="btn btn-warning btn-sm" style="display:none;">Ubah</button>
@@ -159,97 +166,129 @@
 </div>
 </form>
 
-{{-- INFO --}}
 <div class="row">
-<div class="col-lg-6 col-md-6 col-sm-6">
-<div class="invoice-section">
-<div class="section-title">Customer</div>
-<table class="table table-borderless mb-0">
-<tr><td>Nama Booker</td><td>{{ $invoice->customer->booker }}</td></tr>
-<tr><td>No Telp</td><td>{{ $invoice->customer->phone }}</td></tr>
-<tr><td>Email</td><td>{{ $invoice->customer->email }}</td></tr>
-<tr><td>Payment</td><td>{{ $invoice->customer->payment }}</td></tr>
-</table>
-</div>
-</div>
+    <div class="col-lg-6 col-md-6 col-sm-6">
+        <div class="invoice-section">
+            <div class="section-title">Customer</div>
+            <table class="table table-borderless mb-0">
+                <tr>
+                    <td>Nama Booker</td>
+                    <td>{{ $invoice->customer->booker }}</td>
+                </tr>
+                <tr>
+                    <td>No Telp</td>
+                    <td>{{ $invoice->customer->phone }}</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>{{ $invoice->customer->email }}</td>
+                </tr>
+                <tr>
+                    <td>Payment</td>
+                    <td>{{ $invoice->customer->payment }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
 
-<div class="col-lg-6 col-md-6 col-sm-6">
-<div class="invoice-section">
-<div class="section-title">Company</div>
-<table class="table table-borderless mb-0">
-<tr><td>Perusahaan</td><td>Lghani Tour & Travel</td></tr>
-<tr><td>Alamat</td><td>Komplek Permata 2 Blok M6</td></tr>
-<tr><td>No Telp</td><td>+62 856-2151-280</td></tr>
-<tr><td>Email</td><td>lghani_travel@ymail.com</td></tr>
-</table>
-</div>
-</div>
+    <div class="col-lg-6 col-md-6 col-sm-6">
+        <div class="invoice-section">
+            <div class="section-title">Company</div>
+            <table class="table table-borderless mb-0">
+                <tr>
+                    <td>Perusahaan</td>
+                    <td>Lghani Tour & Travel</td>
+                </tr>
+                <tr>
+                    <td>Alamat</td>
+                    <td>Komplek Permata 2 Blok M6</td>
+                </tr>
+                <tr>
+                    <td>No Telp</td>
+                    <td>+62 856-2151-280</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>lghani_travel@ymail.com</td>
+                </tr>
+            </table>
+        </div>
+    </div>
 </div>
 
 {{-- TABLE DETAIL --}}
 <div class="invoice-section">
-<div class="section-title">Detail Invoice</div>
+    <div class="section-title">Detail Invoice</div>
 
-<table class="table table-bordered table-hover">
-<thead>
-<tr>
-<th>#</th>
-<th>Gender</th>
-<th>Name</th>
-<th>Booking Code</th>
-<th>Airlines</th>
-<th>Route</th>
-<th>Pax Paid</th>
-<th>Price</th>
-<th>NTA</th>
-<th>Profit</th>
-<th width="120">Action</th>
-</tr>
-</thead>
-<tbody>
-@php $no=1; $totalPaxPaid=0; @endphp
-@foreach ($invoice->detail as $detail)
-@php $totalPaxPaid += $detail->pax_paid; @endphp
-<tr>
-<td>{{ $no++ }}</td>
-<td>{{ $detail->genre }}</td>
-<td>{{ $detail->name }}</td>
-<td>{{ $detail->booking_code }}</td>
-<td>{{ $comboAirline[$detail->airline_id]['airlines_code'] }}</td>
-<td>{{ $detail->route }}</td>
-<td>Rp {{ number_format($detail->pax_paid) }}</td>
-<td>Rp {{ number_format($detail->price) }}</td>
-<td>Rp {{ number_format($detail->nta) }}</td>
-<td>Rp {{ number_format($detail->profit) }}</td>
-<td class="text-center">
-<a href="#" class="btn btn-warning btn-sm edit-button"
-data-genre="{{ $detail->genre }}"
-data-name="{{ $detail->name }}"
-data-booking-code="{{ $detail->booking_code }}"
-data-airline-id="{{ $detail->airline_id }}"
-data-airlines-no="{{ $detail->airlines_no }}"
-data-class="{{ $detail->class }}"
-data-ticket-no="{{ $detail->ticket_no }}"
-data-route="{{ $detail->route }}"
-data-depart-date="{{ $detail->depart_date }}"
-data-return-date="{{ $detail->return_date }}"
-data-pax-paid="{{ $detail->pax_paid }}"
-data-price="{{ $detail->price }}"
-data-discount="{{ $detail->discount }}"
-data-nta="{{ $detail->nta }}">Ubah</a>
+    <div class="table-responsive">
+        <table class="table elegant-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Gender</th>
+                    <th>Name</th>
+                    <th>Booking Code</th>
+                    <th>Airlines</th>
+                    <th>Route</th>
+                    <th>Pax Paid</th>
+                    <th>Price</th>
+                    <th>NTA</th>
+                    <th>Profit</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $no = 1; @endphp
+                @foreach ($invoice->detail as $detail)
+                <tr class="table-row-hover">
+                    <td>{{ $no++ }}</td>
+                    <td>{{ $detail->genre }}</td>
+                    <td class="uppercase-text">{{ $detail->name }}</td>
+                    <td>{{ $detail->booking_code }}</td>
+                    <td>{{ $comboAirline[$detail->airline_id]['airlines_code'] }}</td>
+                    <td>{{ $detail->route }}</td>
+                    <td>Rp {{ number_format($detail->pax_paid) }}</td>
+                    <td>Rp {{ number_format($detail->price) }}</td>
+                    <td>Rp {{ number_format($detail->nta) }}</td>
+                    <td>Rp {{ number_format($detail->profit) }}</td>
 
-<form action="{{ route('invoice.delete_product', ['id' => $detail->id]) }}"
-method="post" class="d-inline">
-@csrf
-@method('DELETE')
-<button class="btn btn-danger btn-sm"
-onclick="return confirm('Yakin hapus?')">Hapus</button>
-</form>
-</td>
-</tr>
-@endforeach
-</tbody>
-</table>
+                    <td class="action-buttons">
+                        <a href="#"
+                           class="btn-action edit-action edit-button"
+                           title="Ubah"
+                           data-genre="{{ $detail->genre }}"
+                           data-name="{{ $detail->name }}"
+                           data-booking-code="{{ $detail->booking_code }}"
+                           data-airline-id="{{ $detail->airline_id }}"
+                           data-airlines-no="{{ $detail->airlines_no }}"
+                           data-class="{{ $detail->class }}"
+                           data-ticket-no="{{ $detail->ticket_no }}"
+                           data-route="{{ $detail->route }}"
+                           data-depart-date="{{ $detail->depart_date }}"
+                           data-return-date="{{ $detail->return_date }}"
+                           data-pax-paid="{{ $detail->pax_paid }}"
+                           data-price="{{ $detail->price }}"
+                           data-discount="{{ $detail->discount }}"
+                           data-nta="{{ $detail->nta }}">
+                            <i class="fa fa-pencil"></i>
+                        </a>
+
+                        <form action="{{ route('invoice.delete_product', ['id' => $detail->id]) }}"
+                              method="post" style="display:inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button class="btn-action delete-action"
+                                    onclick="return confirm('Yakin hapus?')"
+                                    title="Hapus">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
 </div>
 
 {{-- SCRIPT EDIT (ASLI, TIDAK DIUBAH) --}}
