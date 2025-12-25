@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Invoice App</title>
-    <link rel="icon" type="image/x-icon" href="{{ asset('lghani-fit.png') }}" height="15px">
+    <title>Login - LGhani Tour & Travel</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('logo-lghani.png') }}" height="15px">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
