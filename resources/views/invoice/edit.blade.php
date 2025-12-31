@@ -159,7 +159,7 @@
             <button id="update-button" class="btn btn-warning btn-sm" style="display:none;">Ubah</button>
         </div>
         <div>
-            <a href="{{ url()->previous() }}" class="btn btn-light btn-sm">Batal</a>
+            <button type="button" id="cancelInvoiceBtn" class="btn btn-light btn-sm" data-href="{{ url()->previous() }}">Batal</button>
             <button name="redirect" value="true" class="btn btn-primary btn-sm">Simpan Invoice</button>
         </div>
     </div>
@@ -273,12 +273,12 @@
                             <i class="fa fa-pencil"></i>
                         </a>
 
-                        <form action="{{ route('invoice.delete_product', ['id' => $detail->id]) }}"
+                        <form id="delete-detail-form-{{ $detail->id }}" action="{{ route('invoice.delete_product', ['id' => $detail->id]) }}"
                               method="post" style="display:inline;">
                             @csrf
                             @method('DELETE')
-                            <button class="btn-action delete-action"
-                                    onclick="return confirm('Yakin hapus?')"
+                            <button type="button" class="btn-action delete-action delete-detail-btn"
+                                    data-detail-id="{{ $detail->id }}"
                                     title="Hapus">
                                 <i class="fa fa-trash"></i>
                             </button>
@@ -313,6 +313,135 @@ $('input[name=nta]').val($(this).data('nta'));
 $('#addBtn').hide();
 $('#update-button').show();
 });
+});
+</script>
+
+<!-- GENERIC CONFIRM MODAL -->
+<div id="confirmModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content">
+        <div class="modal-header-danger">
+            <i class="fa fa-exclamation-triangle"></i> Konfirmasi
+        </div>
+        <div class="modal-body">
+            <span id="confirmMessage">Apakah Anda yakin?</span>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelConfirmBtn" class="btn btn-secondary-modal">Batal</button>
+            <button id="confirmBtn" class="btn btn-danger-modal">Ya</button>
+        </div>
+    </div>
+</div>
+
+<!-- ALERT MODAL (single OK) -->
+<div id="alertModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content">
+        <div class="modal-header-danger">
+            <i class="fa fa-exclamation-circle"></i> Peringatan
+        </div>
+        <div class="modal-body">
+            <span id="alertMessage">Pesan</span>
+        </div>
+        <div class="modal-footer">
+            <button id="okAlertBtn" class="btn btn-primary btn-sm">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function(){
+    var targetFormSelector = '';
+    var cancelHref = null;
+
+    // Delete detail confirmation
+    $('.delete-detail-btn').on('click', function(e){
+        e.preventDefault();
+        var id = $(this).data('detail-id');
+        targetFormSelector = '#delete-detail-form-' + id;
+        cancelHref = null;
+        $('#confirmMessage').text('Apakah Anda yakin ingin menghapus detail invoice ini?');
+        $('#confirmBtn').text('Ya, Hapus').removeClass('btn-primary').addClass('btn-danger-modal');
+        $('#confirmModal').fadeIn(200);
+    });
+
+    $('#cancelConfirmBtn').on('click', function(){
+        $('#confirmModal').fadeOut(200);
+        targetFormSelector = '';
+        cancelHref = null;
+    });
+
+    // Central confirm handler: either perform delete (submit form) or navigate for cancel
+    $('#confirmBtn').on('click', function(){
+        if(cancelHref){
+            $('#confirmModal').fadeOut(150, function(){
+                window.location = cancelHref;
+            });
+        } else if(targetFormSelector){
+            $('#confirmModal').fadeOut(150, function(){
+                $(targetFormSelector).submit();
+            });
+        } else {
+            $('#confirmModal').fadeOut(150);
+        }
+        // reset
+        targetFormSelector = '';
+        cancelHref = null;
+    });
+
+    // Cancel invoice button - check if any input/select/textarea in the same form has a value
+    $('#cancelInvoiceBtn').on('click', function(e){
+        e.preventDefault();
+        var href = $(this).data('href');
+        var $form = $(this).closest('form');
+        var hasData = false;
+
+        $form.find('input:not([type=hidden]), select, textarea').each(function(){
+            var val = $(this).val();
+            if(val !== null && val.toString().trim() !== ''){
+                hasData = true;
+                return false; // break
+            }
+        });
+
+        if(hasData){
+            targetFormSelector = '';
+            cancelHref = href;
+            $('#confirmMessage').text('Anda yakin ingin membatalkan data yang sudah terisi/terubah?');
+            $('#confirmBtn').text('Ya, Batal').removeClass('btn-danger-modal').addClass('btn-primary');
+            $('#confirmModal').fadeIn(200);
+        } else {
+            window.location = href;
+        }
+    });
+
+    // Alert modal OK
+    $('#okAlertBtn').on('click', function(){
+        $('#alertModal').fadeOut(150);
+    });
+
+    // Date validation: Depart Date must not be greater than Return Date
+    function validateDates(){
+        var depart = $('input[name=depart_date]').val();
+        var ret = $('input[name=return_date]').val();
+        if(depart && ret){
+            var d = new Date(depart);
+            var r = new Date(ret);
+            if(d > r){
+                $('#alertMessage').text('Depart Date tidak boleh lebih dari Return Date.');
+                $('#alertModal').fadeIn(200);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    $('input[name=depart_date], input[name=return_date]').on('change', function(){
+        var ok = validateDates();
+        if(!ok){
+            // clear the changed value and focus
+            $(this).val('');
+            $(this).focus();
+        }
+    });
 });
 </script>
 
