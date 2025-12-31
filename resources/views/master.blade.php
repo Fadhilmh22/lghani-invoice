@@ -479,7 +479,7 @@
             });
         });
         // success modal ok handler
-        $('#successOk').on('click', function(){ $('#successModal').fadeOut(120); });
+        $(document).on('click','#successOk',function(){$('#successModal').fadeOut(150);});
     </script>
 
     <!-- LOGOUT CONFIRMATION MODAL (match delete modal style) -->
@@ -563,5 +563,151 @@
             </div>
         </div>
     </div>
+
+    <!-- PRINT LOADING OVERLAY -->
+<div id="printLoadingOverlay"
+     style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.6); z-index:2000; align-items:center; justify-content:center;">
+        <div style="width:360px; background:#fff; border-radius:12px; padding:22px; text-align:center; box-shadow:0 20px 60px rgba(2,6,23,0.25);">
+            <div style="font-weight:700; margin-bottom:12px;">Mencetak...</div>
+            <div style="height:120px; display:flex; align-items:center; justify-content:center;">
+                <div id="printLoaderIcon" style="font-size:60px; color:#4f46e5; transition:opacity .2s;"></div>
+            </div>
+            <div style="margin-top:8px; color:#64748b;">Tunggu sebentar, menyiapkan dokumen untuk dicetak.</div>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:14px;">
+                <div class="small-logo" data-icon="fa-plane" style="width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;color:#0f172a;"></div>
+                <div class="small-logo" data-icon="fa-train" style="width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;color:#0f172a;"></div>
+                <div class="small-logo" data-icon="fa-bed" style="width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;color:#0f172a;"></div>
+                <div class="small-logo" data-icon="fa-suitcase" style="width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;color:#0f172a;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        var icons = ['fa-plane','fa-train','fa-bed','fa-suitcase'];
+        var current = 0;
+        var intervalId = null;
+
+        function showPrintLoader(){
+            var $overlay = $('#printLoadingOverlay');
+            $('#printLoaderIcon').attr('class', 'fa ' + icons[current]);
+                // set initial small logos immediately
+                $('.small-logo').each(function(i){
+                    var idx = (current + i) % icons.length;
+                    $(this).html('<i class="fa ' + icons[idx] + '"></i>');
+                });
+                $overlay.stop(true,true).css('opacity',0).show().animate({opacity:1},160);
+            // animate central icon by cycling
+            intervalId = setInterval(function(){
+                current = (current + 1) % icons.length;
+                    $('#printLoaderIcon').fadeOut(120, function(){
+                        $(this).attr('class', 'fa ' + icons[current]).fadeIn(120);
+                    });
+                // animate small logos glow
+                $('.small-logo').each(function(i){
+                    var idx = (current + i) % icons.length;
+                    $(this).html('<i class="fa ' + icons[idx] + '"></i>');
+                });
+            }, 450);
+        }
+
+        function hidePrintLoader(){
+            $('#printLoadingOverlay').stop(true,true).animate({opacity:0},120, function(){ $(this).hide(); });
+            if(intervalId) { clearInterval(intervalId); intervalId = null; }
+        }
+
+        // intercept anchor print actions and fetch the file to detect download completion
+        $(document).on('click', 'a.print-action', function(e){
+            e.preventDefault();
+            var href = $(this).attr('href');
+            showPrintLoader();
+
+            fetch(href, { method: 'GET', credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function(response){
+                if(!response.ok) throw new Error('Server error');
+                var disposition = response.headers.get('content-disposition') || '';
+                var filename = 'download.pdf';
+                var match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+                if(match && match[1]) filename = decodeURIComponent(match[1]);
+                return response.blob().then(function(blob){ return { blob: blob, filename: filename }; });
+            })
+            .then(function(result){
+                var url = window.URL.createObjectURL(result.blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = result.filename || 'download.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                hidePrintLoader();
+                $('#successMessage').text('Berhasil di Download');
+                $('#successModal').fadeIn(200);
+            })
+            .catch(function(err){
+                hidePrintLoader();
+                alert('Terjadi kesalahan saat mengunduh.');
+            });
+        });
+
+        // intercept forms that call print (action contains 'print') and submit via fetch to capture file
+        $(document).on('submit', "form[action*='print']", function(e){
+            e.preventDefault();
+            var $form = $(this);
+            var action = $form.attr('action');
+            var method = ($form.attr('method') || 'GET').toUpperCase();
+            showPrintLoader();
+
+            var fetchOptions = { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } };
+
+            if(method === 'GET'){
+                var params = new URLSearchParams(new FormData($form)).toString();
+                action = action + (action.indexOf('?') === -1 ? '?' : '&') + params;
+                fetchOptions.method = 'GET';
+            } else {
+                fetchOptions.method = method;
+                fetchOptions.body = new FormData($form[0]);
+                var token = $('meta[name="csrf-token"]').attr('content');
+                if(token) fetchOptions.headers['X-CSRF-TOKEN'] = token;
+            }
+
+            fetch(action, fetchOptions)
+            .then(function(response){
+                if(!response.ok) throw new Error('Server error');
+                var disposition = response.headers.get('content-disposition') || '';
+                var filename = 'download.pdf';
+                var match = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+                if(match && match[1]) filename = decodeURIComponent(match[1]);
+                return response.blob().then(function(blob){ return { blob: blob, filename: filename }; });
+            })
+            .then(function(result){
+                var url = window.URL.createObjectURL(result.blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = result.filename || 'download.pdf';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                hidePrintLoader();
+                $('#successMessage').text('Berhasil di Download');
+                $('#successModal').fadeIn(200);
+            })
+            .catch(function(err){
+                hidePrintLoader();
+                alert('Terjadi kesalahan saat mengunduh.');
+            });
+        });
+
+        // also intercept button with print icon — show loader if standalone
+        $(document).on('click', 'button:has(i.fa-print), .btn-print', function(e){
+            var $form = $(this).closest('form');
+            if(!$form.length){
+                showPrintLoader();
+                setTimeout(function(){ hidePrintLoader(); $('#successMessage').text('Berhasil di Download'); $('#successModal').fadeIn(200); }, 1500);
+            }
+        });
+    })();
+    </script>
 
     </html>
