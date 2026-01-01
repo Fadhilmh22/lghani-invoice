@@ -167,11 +167,11 @@
         $hotelYearly[] = (float) $h;
     }
 
-        // Totals for UI summary (monthly default)
-        $ticketMonthlyTotal = array_sum($ticketMonthly);
-        $hotelMonthlyTotal = array_sum($hotelMonthly);
-        $ticketYearlyTotal = array_sum($ticketYearly);
-        $hotelYearlyTotal = array_sum($hotelYearly);
+        // Totals for UI summary: show current month / current year value (not sum)
+        $ticketMonthlyTotal = count($ticketMonthly) ? (float)$ticketMonthly[count($ticketMonthly) - 1] : 0;
+        $hotelMonthlyTotal = count($hotelMonthly) ? (float)$hotelMonthly[count($hotelMonthly) - 1] : 0;
+        $ticketYearlyTotal = count($ticketYearly) ? (float)$ticketYearly[count($ticketYearly) - 1] : 0;
+        $hotelYearlyTotal = count($hotelYearly) ? (float)$hotelYearly[count($hotelYearly) - 1] : 0;
 
     // Top customers (monthly & yearly) based on invoices total
     $monthStart = Carbon::now()->startOfMonth();
@@ -413,7 +413,7 @@
                     <div style="flex:1;">
                         <div style="font-size:12px;color:#64748b">Ticket Income</div>
                         <div id="ticketTotal" style="font-weight:700; margin-top:6px; font-size:18px;">Rp{{ number_format($ticketMonthlyTotal ?? 0) }}</div>
-                        <small style="color:#6b7280">Monthly</small>
+                        <small id="ticketRangeLabel" style="color:#6b7280">Monthly</small>
                     </div>
                 </div>
                 <div class="stat-card" style="flex:1; display:flex; align-items:center; gap:12px; padding:12px;">
@@ -423,7 +423,7 @@
                     <div style="flex:1;">
                         <div style="font-size:12px;color:#92400e">Hotel Income</div>
                         <div id="hotelTotal" style="font-weight:700; margin-top:6px; font-size:18px;">Rp{{ number_format($hotelMonthlyTotal ?? 0) }}</div>
-                        <small style="color:#6b7280">Monthly</small>
+                        <small id="hotelRangeLabel" style="color:#6b7280">Monthly</small>
                     </div>
                 </div>
             </div>
@@ -810,6 +810,8 @@
         const airlineTotalsMonthly = @json(array_column($airlinesMonthly, 'total'));
         const airlinesYearly = @json(array_column($airlinesYearly, 'label'));
         const airlineTotalsYearly = @json(array_column($airlinesYearly, 'total'));
+        const ticketRangeLabelEl = document.getElementById('ticketRangeLabel');
+        const hotelRangeLabelEl = document.getElementById('hotelRangeLabel');
 
         if (incomeCanvas) {
             const incomeCtx = incomeCanvas.getContext('2d');
@@ -862,7 +864,7 @@
                     // indicator box
                     const ticketVal = chart.data.datasets[0].data[index] || 0;
                     const hotelVal = chart.data.datasets[1].data[index] || 0;
-                    const boxWidth = 200;
+                    const boxWidth = 160;
                     const boxHeight = 56;
                     const boxX = chart.chartArea.right - boxWidth - 12;
                     const boxY = chart.chartArea.top + 12;
@@ -873,11 +875,11 @@
                     ctx.lineWidth = 1;
                     roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 8);
 
-                    ctx.fillStyle = '#111827';
-                    ctx.font = '600 13px sans-serif';
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = '600 12px/1 sans-serif';
                     ctx.fillText('Ticket: Rp ' + Number(ticketVal || 0).toLocaleString(), boxX + 12, boxY + 20);
-                    ctx.fillStyle = '#111827';
-                    ctx.font = '600 13px sans-serif';
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = '600 12px/1 sans-serif';
                     ctx.fillText('Hotel:  Rp ' + Number(hotelVal || 0).toLocaleString(), boxX + 12, boxY + 40);
                     ctx.restore();
                 }
@@ -927,20 +929,41 @@
                     ]
                 },
                 options: {
-                    plugins: { legend: { display: true }, tooltip: { enabled: false } },
+                    maintainAspectRatio: false,
+                    layout: { padding: { top: 12, right: 18, bottom: 8, left: 6 } },
+                    plugins: {
+                        legend: { display: true, position: 'bottom', labels: { boxWidth: 12, padding: 12, color: '#6b7280', font: { size: 12 } } },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: '#0f172a',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            padding: 10,
+                            cornerRadius: 8,
+                            callbacks: {
+                                label: function(context) {
+                                    const v = context.parsed && context.parsed.y ? Number(context.parsed.y) : 0;
+                                    return context.dataset.label + ': Rp ' + v.toLocaleString();
+                                }
+                            }
+                        }
+                    },
                     interaction: { mode: 'index', intersect: false },
+                    elements: { line: { tension: 0.4, borderWidth: 3 }, point: { radius: 4, hoverRadius: 6, borderWidth: 2 } },
                     scales: {
                         y: {
                             beginAtZero: true,
                             grid: { color: '#e2e8f0' },
                             ticks: {
+                                color: '#64748b',
+                                padding: 6,
                                 callback: function(value) {
                                     if (!value) return 'Rp0';
                                     return 'Rp' + Number(value).toLocaleString();
                                 }
                             }
                         },
-                        x: { grid: { display: false } }
+                        x: { grid: { display: false }, ticks: { color: '#64748b', padding: 6 } }
                     }
                 },
                 plugins: [indexPlugin]
@@ -963,6 +986,8 @@
                             const hTot = document.getElementById('hotelTotal');
                             if (tTot) tTot.textContent = 'Rp' + (ticketYearlyTotal || 0).toLocaleString();
                             if (hTot) hTot.textContent = 'Rp' + (hotelYearlyTotal || 0).toLocaleString();
+                            if (ticketRangeLabelEl) ticketRangeLabelEl.textContent = 'Yearly';
+                            if (hotelRangeLabelEl) hotelRangeLabelEl.textContent = 'Yearly';
                         } else {
                             incomeChart.data.labels = monthsLabels;
                             incomeChart.data.datasets[0].data = ticketMonthlyData;
@@ -971,6 +996,8 @@
                             const hTot = document.getElementById('hotelTotal');
                             if (tTot) tTot.textContent = 'Rp' + (ticketMonthlyTotal || 0).toLocaleString();
                             if (hTot) hTot.textContent = 'Rp' + (hotelMonthlyTotal || 0).toLocaleString();
+                            if (ticketRangeLabelEl) ticketRangeLabelEl.textContent = 'Monthly';
+                            if (hotelRangeLabelEl) hotelRangeLabelEl.textContent = 'Monthly';
                         }
                         incomeChart.update();
                         incomeMenu.style.display = 'none';
