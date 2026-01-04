@@ -274,11 +274,10 @@
                         </a>
 
                         <form id="delete-detail-form-{{ $detail->id }}" action="{{ route('invoice.delete_product', ['id' => $detail->id]) }}"
-                              method="post" style="display:inline;">
+                            method="post" style="display:inline;" onsubmit="return showCustomConfirm(this);">
                             @csrf
                             @method('DELETE')
-                            <button type="button" class="btn-action delete-action delete-detail-btn"
-                                    data-detail-id="{{ $detail->id }}"
+                            <button type="submit" class="btn-action delete-action"
                                     title="Hapus">
                                 <i class="fa fa-trash"></i>
                             </button>
@@ -351,21 +350,14 @@ $('#update-button').show();
 $(document).ready(function(){
     var targetFormSelector = '';
     var cancelHref = null;
+    var deleteUrl = null; // store delete form action for AJAX fallback
 
-    // Delete detail confirmation
-    $('.delete-detail-btn').on('click', function(e){
-        e.preventDefault();
-        var id = $(this).data('detail-id');
-        targetFormSelector = '#delete-detail-form-' + id;
-        cancelHref = null;
-        $('#confirmMessage').text('Apakah Anda yakin ingin menghapus detail invoice ini?');
-        $('#confirmBtn').text('Ya, Hapus').removeClass('btn-primary').addClass('btn-danger-modal');
-        $('#confirmModal').fadeIn(200);
-    });
+    // showCustomConfirm(form) will set pending form and open modal (used by form onsubmit)
 
     $('#cancelConfirmBtn').on('click', function(){
         $('#confirmModal').fadeOut(200);
-        targetFormSelector = '';
+        // clear any pending native form submit
+        window._pendingConfirmForm = null;
         cancelHref = null;
     });
 
@@ -375,10 +367,52 @@ $(document).ready(function(){
             $('#confirmModal').fadeOut(150, function(){
                 window.location = cancelHref;
             });
-        } else if(targetFormSelector){
+        } else if(window._pendingConfirmForm){
+            // submit the pending form natively to avoid JS interceptions
             $('#confirmModal').fadeOut(150, function(){
-                $(targetFormSelector).submit();
+                try{
+                    var f = window._pendingConfirmForm;
+                    window._pendingConfirmForm = null;
+                    if(f && typeof f.submit === 'function'){
+                        f.submit();
+                    }
+                }catch(e){
+                    $('#alertMessage').text('Gagal men-submit form: ' + (e.message || e));
+                    $('#alertModal').fadeIn(200);
+                }
             });
+        } else if(deleteUrl){
+            // Attempt AJAX delete as a more robust fallback
+            $('#confirmModal').fadeOut(150, function(){
+                fetch(deleteUrl, {
+                    method: 'DELETE',
+                    credentials: 'same-origin',
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(function(resp){
+                    if(resp.ok){
+                        if(resp.redirected){
+                            window.location = resp.url;
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        resp.text().then(function(text){
+                            var msg = 'Gagal menghapus data. Status: ' + resp.status + '\n' + (text || '');
+                            $('#alertMessage').text(msg);
+                            $('#alertModal').fadeIn(200);
+                        });
+                    }
+                }).catch(function(err){
+                    $('#alertMessage').text('Terjadi kesalahan saat menghapus: ' + (err && err.message ? err.message : err));
+                    $('#alertModal').fadeIn(200);
+                });
+            });
+            // reset deleteUrl
+            deleteUrl = null;
+            targetFormSelector = '';
         } else {
             $('#confirmModal').fadeOut(150);
         }
@@ -443,6 +477,20 @@ $(document).ready(function(){
         }
     });
 });
+</script>
+
+<script>
+function showCustomConfirm(form){
+    // store pending form for native submit on confirmation
+    window._pendingConfirmForm = form;
+    // also capture deleteUrl for AJAX fallback
+    try{ window.deleteUrl = form.action || null; }catch(e){ window.deleteUrl = null; }
+    // set modal text & styles
+    $('#confirmMessage').text('Apakah Anda yakin ingin menghapus detail invoice ini?');
+    $('#confirmBtn').text('Ya, Hapus').removeClass('btn-primary').addClass('btn-danger-modal');
+    $('#confirmModal').fadeIn(200);
+    return false; // prevent the form from submitting now
+}
 </script>
 
 </div>
