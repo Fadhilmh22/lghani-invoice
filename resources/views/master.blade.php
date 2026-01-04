@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
-    <title>Login - LGhani Tour & Travel</title>
+    <title>Invoice Web App - LGhani Tour & Travel</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('logo-lghani.png') }}" height="15px">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
