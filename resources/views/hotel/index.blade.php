@@ -59,7 +59,19 @@
                                 <td>{{ $hotel->hotel_name }}</td>
                                 <td>{{ $hotel->region }}</td>
                                 <td>{{ $hotel->address }}</td>
-                                <td>{{ $hotel->phone }}</td>
+                                <td>
+                                    @php 
+                                    
+                                        $phones = explode(', ', $hotel->phone); 
+                                    @endphp
+
+                                    @foreach($phones as $index => $p)
+                                        {{ $p }} 
+                                        @if(!$loop->last) 
+                                            <span style="color: #cbd5e1; margin: 0 5px;">/</span> 
+                                        @endif
+                                    @endforeach
+                                </td>
                                 <td>{{ $hotel->fax ?: '-' }}</td>
                                 
                                 <!-- Kolom Aksi -->

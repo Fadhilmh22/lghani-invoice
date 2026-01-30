@@ -26,7 +26,7 @@
 
                     <div class="elegant-form-group" id="report_month" style="display: none;">
                         <label for="month">Bulan</label>
-                        <select name="month" id="month" class="elegant-form-control {{ $errors->has('month') ? 'is-invalid':'' }}">
+                        <select name="month" id="month" class="elegant-form-control select2 {{ $errors->has('month') ? 'is-invalid':'' }}">
                             <option value="">Pilih</option>
                             @foreach ($invoices as $invoice) 
                             <option value="{{ $invoice['monthlydate'] }}">{{ $months[ intval(substr($invoice['monthlydate'], 4, 2)) - 1 ] }} - {{ substr($invoice['monthlydate'], 0, 4) }}</option>
@@ -49,7 +49,7 @@
 
                     <div class="elegant-form-group">
                         <label for="hotel_id">Filter Hotel (opsional)</label>
-                        <select name="hotel_id" id="hotel_id" class="elegant-form-control">
+                        <select name="hotel_id" id="hotel_id" class="elegant-form-control select2">
                             <option value="">Semua Hotel</option>
                             @foreach($hotels ?? [] as $hotel)
                                 <option value="{{ $hotel->id }}">{{ $hotel->hotel_name }}</option>
@@ -59,7 +59,7 @@
 
                     <div class="elegant-form-group">
                         <label for="customer_id">Filter Pelanggan (opsional)</label>
-                        <select name="customer_id" id="customer_id" class="elegant-form-control">
+                        <select name="customer_id" id="customer_id" class="elegant-form-control select2">
                             <option value="">Semua Pelanggan</option>
                             @foreach($customers ?? [] as $customer)
                                 <option value="{{ $customer->id }}">{{ $customer->booker }} - {{ $customer->company }}</option>

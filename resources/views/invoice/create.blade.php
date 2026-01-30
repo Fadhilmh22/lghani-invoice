@@ -24,14 +24,13 @@
                 <form action="{{ route('invoice.store') }}" method="post">
                     @csrf
                     <div class="elegant-form-group">
-                        <label for="customer_id">Pelanggan</label>
-                        <select name="customer_id" id="customer_id" class="elegant-form-control select2 {{ $errors->has('customer_id') ? 'is-invalid':'' }}" required>
-                            <option value="">Pilih</option>
-                            @foreach ($customers as $customer) 
-                            <option value="{{ $customer->id }}">{{ $customer->gender }} - {{ $customer->booker }} - {{ $customer->company }}</option>
+                        <label for="customer_id">Filter Pelanggan (opsional)</label>
+                        <select name="customer_id" id="customer_id" class="elegant-form-control select2">
+                            <option value="">Semua Pelanggan</option>
+                            @foreach($customers ?? [] as $customer)
+                                <option value="{{ $customer->id }}">{{ $customer->booker }} - {{ $customer->company }}</option>
                             @endforeach
                         </select>
-                        <span class="text-danger">{{ $errors->first('customer_id') }}</span>
                     </div>
                     
                     <div class="elegant-form-group">

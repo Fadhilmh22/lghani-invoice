@@ -68,9 +68,9 @@
 
                     <div class="elegant-form-group">
                         <label for="customer_id">Filter Pelanggan (opsional)</label>
-                        <select name="customer_id" id="customer_id" class="elegant-form-control">
+                        <select name="customer_id" id="customer_id" class="elegant-form-control select2">
                             <option value="">Semua Pelanggan</option>
-                            @foreach($customers as $customer)
+                            @foreach($customers ?? [] as $customer)
                                 <option value="{{ $customer->id }}">{{ $customer->booker }} - {{ $customer->company }}</option>
                             @endforeach
                         </select>

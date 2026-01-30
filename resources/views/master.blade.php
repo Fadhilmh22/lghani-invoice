@@ -8,7 +8,10 @@
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <title>Invoice Web App - LGhani Tour & Travel</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('logo-lghani.png') }}" height="15px">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css">
@@ -252,6 +255,9 @@
                     <div class="submenu" id="ticketingSubmenu">
                         <a href="{{ url('/airline') }}" class="menu-link {{ request()->is('airline*') ? 'active' : '' }}">
                             <i class="fa fa-plane"></i> <span>Airlines</span>
+                        </a>
+                        <a href="{{ route('ticket.index') }}" class="menu-link {{ request()->is('ticket') ? 'active' : '' }}">
+                            <i class="fa fa-plane-departure"></i> <span>Ticket Issued</span>
                         </a>
                         <a href="{{ route('invoice.create') }}" class="menu-link {{ request()->is('invoice/new') ? 'active' : '' }}">
                             <i class="fa fa-pencil-alt"></i> <span>Create Invoice</span>
@@ -565,7 +571,7 @@
     </div>
 
     <!-- PRINT LOADING OVERLAY -->
-<div id="printLoadingOverlay"
+<!--<div id="printLoadingOverlay"
      style="display:none; position:fixed; inset:0; background:rgba(2,6,23,0.6); z-index:2000; align-items:center; justify-content:center;">
         <div style="width:360px; background:#fff; border-radius:12px; padding:22px; text-align:center; box-shadow:0 20px 60px rgba(2,6,23,0.25);">
             <div style="font-weight:700; margin-bottom:12px;">Mencetak...</div>
@@ -708,6 +714,6 @@
             }
         });
     })();
-    </script>
+    </script>-->
 
     </html>

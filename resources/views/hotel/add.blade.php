@@ -44,8 +44,16 @@
                 
                 <div class="elegant-form-group">
                     <label for="phone">Phone</label>
-                    <input type="text" name="phone" id="phone" class="elegant-form-control {{ $errors->has('phone') ? 'is-invalid':'' }}" placeholder="Masukkan Nomor Telepon (Maks. 13 angka)" value="{{ old('phone') }}">
+                    <div id="phone-container">
+                        <div class="input-group" style="margin-bottom: 10px; display: flex; gap: 5px;">
+                            <input type="text" name="phone[]" class="elegant-form-control {{ $errors->has('phone') ? 'is-invalid':'' }}" placeholder="Contoh: 022-86619006" required>
+                            <button type="button" class="btn btn-primary" id="add-phone" style="height: 40px; border-radius: 8px;">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
                     <span class="text-danger">{{ $errors->first('phone') }}</span>
+                    <small class="text-muted">Klik tombol + untuk menambah nomor telepon.</small>
                 </div>
                 
                 <div class="elegant-form-group">
@@ -54,7 +62,7 @@
                     <span class="text-danger">{{ $errors->first('fax') }}</span>
                 </div>
                 
-                <div class="elegant-form-group">
+                <div class="elegant-form-group" style="margin-top: 20px;">
                     <button type="submit" class="btn-primary btn-sm">
                         <i class="fa fa-save"></i> Simpan
                     </button>
@@ -66,4 +74,48 @@
         </div>
     </div>
 </div>
+
+{{-- SCRIPT UNTUK TAMBAH/HAPUS INPUT TELEPON --}}
+<script>
+    document.getElementById('add-phone').addEventListener('click', function() {
+        var container = document.getElementById('phone-container');
+        var div = document.createElement('div');
+        div.className = 'input-group';
+        div.style.marginBottom = '10px';
+        div.style.display = 'flex';
+        div.style.gap = '5px';
+        div.innerHTML = `
+            <input type="text" name="phone[]" class="elegant-form-control" placeholder="Nomor tambahan" required>
+            <button type="button" class="btn btn-danger remove-phone" style="height: 40px; border-radius: 8px; background-color: #ef4444; color: white; border: none; padding: 0 15px;">
+                <i class="fa fa-minus"></i>
+            </button>
+        `;
+        container.appendChild(div);
+    });
+
+    // Menghapus input tambahan
+    document.addEventListener('click', function(e) {
+        if (e.target && (e.target.classList.contains('remove-phone') || e.target.parentElement.classList.contains('remove-phone'))) {
+            var targetBtn = e.target.classList.contains('remove-phone') ? e.target : e.target.parentElement;
+            targetBtn.closest('.input-group').remove();
+        }
+    });
+</script>
+
+<style>
+    /* Menambahkan sedikit style agar input-group terlihat rapi di dalam form elegant */
+    .input-group input {
+        flex: 1;
+    }
+    .btn-primary {
+        background-color: #4f46e5;
+        border: none;
+        color: white;
+        padding: 0 15px;
+        transition: 0.3s;
+    }
+    .btn-primary:hover {
+        background-color: #4338ca;
+    }
+</style>
 @endsection

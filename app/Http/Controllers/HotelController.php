@@ -34,24 +34,26 @@ class HotelController extends Controller
     public function save(Request $request)
     {
         $this->validate($request, [
-            'hotel_code' => 'required|nullable|string',
-            'hotel_name' => 'required|nullable|string',
-            'region' => 'nullable|string',
-            'address' => 'required|nullable|string',
-            'phone' => 'required|max:13',
-            'fax' => 'nullable|string'
+            'hotel_code' => 'required|string',
+            'hotel_name' => 'required|string',
+            'address'    => 'required|string',
+            'phone'      => 'required|array', // Validasi input harus array
+            'phone.*'    => 'required|string',
         ]);
-
+    
         try {
-            $hotel = Hotel::create([
+            // Gabungkan array [081, 082] jadi string "081, 082"
+            $phoneString = implode(', ', $request->phone);
+    
+            Hotel::create([
                 'hotel_code' => $request->hotel_code,
                 'hotel_name' => $request->hotel_name,
-                'region' => $request->region,
-                'address' => $request->address,
-                'phone' => $request->phone,
-                'fax' => $request->fax
+                'region'     => $request->region,
+                'address'    => $request->address,
+                'phone'      => $phoneString,
+                'fax'        => $request->fax
             ]);
-            return redirect('/hotel')->with(['success' => '<strong>' . $hotel->hotel_name . '</strong>  telah berhasil ditambahkan']);
+            return redirect('/hotel')->with(['success' => 'Berhasil ditambahkan']);
         } catch (\Exception $e) {
             return redirect()->back()->with(['error' => $e->getMessage()]);
         }
@@ -66,25 +68,23 @@ class HotelController extends Controller
     public function update(Request $request, $id)
     {
         $this->validate($request, [
-            'hotel_code' => 'nullable|string',
-            'hotel_name' => 'nullable|string',
-            'region' => 'nullable|string',
-            'address' => 'nullable|string',
-            'phone' => 'required|max:13',
-            'fax' => 'nullable|string'
+            'phone'      => 'required|array',
+            'phone.*'    => 'required|string',
         ]);
-
+    
         try {
             $hotel = Hotel::find($id);
+            $phoneString = implode(', ', $request->phone);
+    
             $hotel->update([
                 'hotel_code' => $request->hotel_code,
                 'hotel_name' => $request->hotel_name,
-                'region' => $request->region,
-                'address' => $request->address,
-                'phone' => $request->phone,
-                'fax' => $request->fax
+                'region'     => $request->region,
+                'address'    => $request->address,
+                'phone'      => $phoneString,
+                'fax'        => $request->fax
             ]);
-            return redirect('/hotel')->with(['success' =>  '<strong>' . $hotel->hotel_name . '</strong>  telah berhasil diperbaharui']);
+            return redirect('/hotel')->with(['success' => 'Berhasil diperbaharui']);
         } catch (\Exception $e) {
             return redirect()->back()->with(['error' => $e->getMessage()]);
         }

@@ -48,8 +48,14 @@
             </div>
 
             <div class="input-group">
-                <input type="password" name="password" placeholder="Password" required>
-                <i class="fas fa-lock input-icon"></i>
+                <div class="password-wrapper" style="position: relative; width: 100%;">
+                    <input type="password" name="password" id="password-field" placeholder="Password" required style="width: 100%;">
+                    <i class="fas fa-lock input-icon"></i>
+                </div>
+                
+                <div id="caps-warning" style="display: none; color: #ff4d4d; font-size: 11px; font-weight: 600; margin-top: 5px; position: absolute; bottom: -18px; left: 0;">
+                    <i class="fas fa-exclamation-triangle"></i> Caps Lock is ON
+                </div>
             </div>
 
             <button type="submit" class="btn-login">Login</button>
@@ -60,4 +66,28 @@
 </div>
 
 </body>
+
+<script>
+    const passwordField = document.getElementById('password-field');
+    const capsWarning = document.getElementById('caps-warning');
+
+    function checkCapsLock(event) {
+        if (event.getModifierState('CapsLock')) {
+            capsWarning.style.display = 'block';
+        } else {
+            capsWarning.style.display = 'none';
+        }
+    }
+
+    // Cek saat mengetik
+    passwordField.addEventListener('keyup', checkCapsLock);
+    
+    // Cek saat klik input (kalau capslock sudah nyala dari awal)
+    passwordField.addEventListener('click', checkCapsLock);
+    
+    // Sembunyikan jika kursor keluar dari input password (opsional)
+    passwordField.addEventListener('blur', function() {
+        capsWarning.style.display = 'none';
+    });
+</script>
 </html>

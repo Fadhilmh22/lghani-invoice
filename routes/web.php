@@ -13,6 +13,7 @@ use App\Http\Controllers\RoomController;
 use App\Http\Controllers\HotelVoucherController;
 use App\Http\Controllers\HotelInvoiceController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TicketController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -74,6 +75,18 @@ Route::group(['middleware' => 'auth','AdminMiddleware:Admin,Staff'], function() 
         Route::get('/{id}/printdisc', [InvoiceController::class, 'generateInvoicedisc'])->name('invoice.printdisc');
         Route::post('/ubah-status/{id}', [InvoiceController::class, 'ubahStatus'])->name('invoice.ubah-status');
         Route::post('/getInvoiceDetail', [InvoiceController::class, 'getInvoiceDetail'])->name('invoice.invoice_detail');
+    });
+
+    Route::group(['prefix' => 'ticket'], function() {
+        Route::get('/', [TicketController::class, 'index'])->name('ticket.index');
+        Route::get('/create', [TicketController::class, 'create'])->name('ticket.create'); 
+        Route::post('/', [TicketController::class, 'store'])->name('ticket.store');
+        Route::get('/{id}/edit', [TicketController::class, 'edit'])->name('ticket.edit');
+        Route::get('/{id}/print', [TicketController::class, 'print'])->name('ticket.print');
+        Route::put('/{id}', [TicketController::class, 'update'])->name('ticket.update');
+        Route::delete('/{id}', [TicketController::class, 'destroy'])->name('ticket.destroy');
+        Route::get('/{id}/passengers', [TicketController::class, 'getPassengers']); // Untuk ambil list nama di modal
+        Route::get('/print-split/{ticket_id}/{passenger_id}', [TicketController::class, 'printSplit'])->name('ticket.print_split');
     });
 
     Route::group(['prefix' => 'report'], function() {

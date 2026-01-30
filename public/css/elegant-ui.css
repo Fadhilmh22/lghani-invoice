@@ -530,4 +530,17 @@ select.elegant-form-control {
     font-size: 12px;
     vertical-align: middle;
 }
+.input-group {
+    position: relative;
+    margin-bottom: 25px; /* Tambah margin bawah agar tulisan Caps Lock punya ruang */
+}
+
+/* Pastikan ikon tetap di posisi yang benar */
+.input-icon {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+}
 
