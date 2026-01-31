@@ -158,43 +158,48 @@
         </tr>
     </thead>
     <tbody id="passenger-container">
-        @foreach($passengers as $index => $pax)
-        @php
-            $splitName = explode('. ', $pax->name, 2);
-            $title = $splitName[0] ?? 'MR';
-            $realName = $splitName[1] ?? $pax->name;
-            
-            // Cek apakah orang ini sudah punya bagasi di database
-            $hasBaggage = \DB::table('invoice_details')
-                            ->where('invoice_id', $ticket->invoice_id)
-                            ->where('class', 'BAGASI_ONLY')
-                            ->where('ticket_no', $pax->id)
-                            ->exists();
-        @endphp
-        <tr>
-            <td>
-                <select name="passengers[{{ $index }}][title]" class="form-control">
-                    <option {{ $title == 'MR' ? 'selected' : '' }}>MR</option>
-                    <option {{ $title == 'MRS' ? 'selected' : '' }}>MRS</option>
-                    <option {{ $title == 'MS' ? 'selected' : '' }}>MS</option>
-                    <option {{ $title == 'MSTR' ? 'selected' : '' }}>MSTR</option>
-                    <option {{ $title == 'MISS' ? 'selected' : '' }}>MISS</option>
-                </select>
-            </td>
-            <td><input type="text" name="passengers[{{ $index }}][name]" class="form-control" value="{{ $realName }}" required></td>
-            <td><input type="text" name="passengers[{{ $index }}][ticket_num]" class="form-control" value="{{ $pax->ticket_no }}"></td>
-            
-            <td class="text-center">
-                <input type="checkbox" name="passengers[{{ $index }}][has_baggage]" value="1" {{ $hasBaggage ? 'checked' : '' }} style="width: 20px; height: 20px; cursor: pointer;">
-                <br><small class="text-muted">Munculkan Bagasi</small>
-            </td>
-
-            <td class="text-center">
-                <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button>
-            </td>
-        </tr>
-        @endforeach
-    </tbody>
+    @foreach($passengers as $index => $pax)
+    @php
+        // Memisahkan Title (MR.) dan Nama (JHON) jika tersimpan gabung "MR. JHON"
+        $splitName = explode('. ', $pax->name, 2);
+        
+        // Cek apakah $pax->genre ada di database, jika tidak pakai hasil split, jika tidak ada juga default MR
+        $currentTitle = $pax->genre ?? ($splitName[0] ?? 'MR');
+        $realName = isset($splitName[1]) ? $splitName[1] : $pax->name;
+        
+        $hasBaggage = \DB::table('invoice_details')
+                        ->where('invoice_id', $ticket->invoice_id)
+                        ->where('class', 'BAGASI_ONLY')
+                        ->where('ticket_no', $pax->id)
+                        ->exists();
+    @endphp
+    <tr>
+        <td>
+            {{-- PERHATIKAN: name harus title agar tidak error Undefined index --}}
+            <select name="passengers[{{ $index }}][title]" class="form-control">
+                <option value="MR" {{ $currentTitle == 'MR' ? 'selected' : '' }}>MR</option>
+                <option value="MRS" {{ $currentTitle == 'MRS' ? 'selected' : '' }}>MRS</option>
+                <option value="MS" {{ $currentTitle == 'MS' ? 'selected' : '' }}>MS</option>
+                <option value="MSTR" {{ $currentTitle == 'MSTR' ? 'selected' : '' }}>MSTR</option>
+                <option value="MISS" {{ $currentTitle == 'MISS' ? 'selected' : '' }}>MISS</option>
+            </select>
+        </td>
+        <td>
+            <input type="text" name="passengers[{{ $index }}][name]" class="form-control" value="{{ $realName }}" required>
+        </td>
+        <td>
+            <input type="text" name="passengers[{{ $index }}][ticket_num]" class="form-control" value="{{ $pax->ticket_no }}">
+        </td>
+        <td class="text-center">
+            <input type="checkbox" name="passengers[{{ $index }}][has_baggage]" value="1" {{ $hasBaggage ? 'checked' : '' }} style="width: 20px; height: 20px; cursor: pointer;">
+            <br><small class="text-muted">Munculkan Bagasi</small>
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button>
+        </td>
+    </tr>
+    @endforeach
+</tbody>
 </table>
             <button type="button" class="btn btn-default btn-sm" id="add-passenger"><i class="fa fa-plus"></i> Tambah Penumpang</button>
         </div>
