@@ -57,6 +57,16 @@
 .table-invoice tbody tr:hover {
     background: #fafafa;
 }
+
+/* FOOTER TOTAL STYLE */
+.footer-total {
+    background-color: #f1f5f9 !important;
+    font-weight: 700;
+    color: #1e293b;
+}
+.footer-total td {
+    border-top: 2px solid #e2e8f0 !important;
+}
 </style>
 
 <div class="elegant-container">
@@ -221,7 +231,7 @@
     <div class="section-title">Detail Invoice</div>
 
     <div class="table-responsive">
-        <table class="table elegant-table">
+        <table class="table elegant-table table-invoice">
             <thead>
                 <tr>
                     <th>#</th>
@@ -238,8 +248,20 @@
                 </tr>
             </thead>
             <tbody>
-                @php $no = 1; @endphp
+                @php 
+                    $no = 1; 
+                    $totalPaxPaid = 0;
+                    $totalPrice = 0;
+                    $totalNta = 0;
+                    $totalProfit = 0;
+                @endphp
                 @foreach ($invoice->detail as $detail)
+                @php
+                    $totalPaxPaid += $detail->pax_paid;
+                    $totalPrice += $detail->price;
+                    $totalNta += $detail->nta;
+                    $totalProfit += $detail->profit;
+                @endphp
                 <tr class="table-row-hover">
                     <td>{{ $no++ }}</td>
                     <td>{{ $detail->genre }}</td>
@@ -250,9 +272,9 @@
                     <td>Rp {{ number_format($detail->pax_paid) }}</td>
                     <td>Rp {{ number_format($detail->price) }}</td>
                     <td>Rp {{ number_format($detail->nta) }}</td>
-                    <td>Rp {{ number_format($detail->profit) }}</td>
+                    <td class="text-success font-weight-bold">Rp {{ number_format($detail->profit) }}</td>
 
-                    <td class="action-buttons">
+                    <td class="action-buttons text-center">
                         <a href="#"
                            class="btn-action edit-action edit-button"
                            title="Ubah"
@@ -286,11 +308,21 @@
                 </tr>
                 @endforeach
             </tbody>
+            <tfoot>
+                <tr class="footer-total">
+                    <td colspan="6" class="text-center">TOTAL KESELURUHAN</td>
+                    <td>Rp {{ number_format($totalPaxPaid) }}</td>
+                    <td>Rp {{ number_format($totalPrice) }}</td>
+                    <td>Rp {{ number_format($totalNta) }}</td>
+                    <td class="text-success">Rp {{ number_format($totalProfit) }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
         </table>
     </div>
 </div>
 
-{{-- SCRIPT EDIT (ASLI, TIDAK DIUBAH) --}}
+{{-- SCRIPT EDIT --}}
 <script>
 $(document).ready(function(){
 $('.edit-button').click(function(){
@@ -315,7 +347,6 @@ $('#update-button').show();
 });
 </script>
 
-<!-- GENERIC CONFIRM MODAL -->
 <div id="confirmModal" class="custom-modal-overlay" style="display: none;">
     <div class="custom-modal-content">
         <div class="modal-header-danger">
@@ -331,7 +362,6 @@ $('#update-button').show();
     </div>
 </div>
 
-<!-- ALERT MODAL (single OK) -->
 <div id="alertModal" class="custom-modal-overlay" style="display: none;">
     <div class="custom-modal-content">
         <div class="modal-header-danger">
@@ -350,25 +380,20 @@ $('#update-button').show();
 $(document).ready(function(){
     var targetFormSelector = '';
     var cancelHref = null;
-    var deleteUrl = null; // store delete form action for AJAX fallback
-
-    // showCustomConfirm(form) will set pending form and open modal (used by form onsubmit)
+    var deleteUrl = null;
 
     $('#cancelConfirmBtn').on('click', function(){
         $('#confirmModal').fadeOut(200);
-        // clear any pending native form submit
         window._pendingConfirmForm = null;
         cancelHref = null;
     });
 
-    // Central confirm handler: either perform delete (submit form) or navigate for cancel
     $('#confirmBtn').on('click', function(){
         if(cancelHref){
             $('#confirmModal').fadeOut(150, function(){
                 window.location = cancelHref;
             });
         } else if(window._pendingConfirmForm){
-            // submit the pending form natively to avoid JS interceptions
             $('#confirmModal').fadeOut(150, function(){
                 try{
                     var f = window._pendingConfirmForm;
@@ -382,7 +407,6 @@ $(document).ready(function(){
                 }
             });
         } else if(deleteUrl){
-            // Attempt AJAX delete as a more robust fallback
             $('#confirmModal').fadeOut(150, function(){
                 fetch(deleteUrl, {
                     method: 'DELETE',
@@ -410,18 +434,15 @@ $(document).ready(function(){
                     $('#alertModal').fadeIn(200);
                 });
             });
-            // reset deleteUrl
             deleteUrl = null;
             targetFormSelector = '';
         } else {
             $('#confirmModal').fadeOut(150);
         }
-        // reset
         targetFormSelector = '';
         cancelHref = null;
     });
 
-    // Cancel invoice button - check if any input/select/textarea in the same form has a value
     $('#cancelInvoiceBtn').on('click', function(e){
         e.preventDefault();
         var href = $(this).data('href');
@@ -432,7 +453,7 @@ $(document).ready(function(){
             var val = $(this).val();
             if(val !== null && val.toString().trim() !== ''){
                 hasData = true;
-                return false; // break
+                return false;
             }
         });
 
@@ -447,12 +468,10 @@ $(document).ready(function(){
         }
     });
 
-    // Alert modal OK
     $('#okAlertBtn').on('click', function(){
         $('#alertModal').fadeOut(150);
     });
 
-    // Date validation: Depart Date must not be greater than Return Date
     function validateDates(){
         var depart = $('input[name=depart_date]').val();
         var ret = $('input[name=return_date]').val();
@@ -471,7 +490,6 @@ $(document).ready(function(){
     $('input[name=depart_date], input[name=return_date]').on('change', function(){
         var ok = validateDates();
         if(!ok){
-            // clear the changed value and focus
             $(this).val('');
             $(this).focus();
         }
@@ -481,15 +499,12 @@ $(document).ready(function(){
 
 <script>
 function showCustomConfirm(form){
-    // store pending form for native submit on confirmation
     window._pendingConfirmForm = form;
-    // also capture deleteUrl for AJAX fallback
     try{ window.deleteUrl = form.action || null; }catch(e){ window.deleteUrl = null; }
-    // set modal text & styles
     $('#confirmMessage').text('Apakah Anda yakin ingin menghapus detail invoice ini?');
     $('#confirmBtn').text('Ya, Hapus').removeClass('btn-primary').addClass('btn-danger-modal');
     $('#confirmModal').fadeIn(200);
-    return false; // prevent the form from submitting now
+    return false;
 }
 </script>
 

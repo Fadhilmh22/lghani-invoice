@@ -23,4 +23,8 @@ class Invoice extends Model
     {
         return $this->hasMany(Invoice_detail::class);
     }
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class, 'invoice_id');
+    }
 }

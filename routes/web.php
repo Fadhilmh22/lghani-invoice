@@ -87,6 +87,7 @@ Route::group(['middleware' => 'auth','AdminMiddleware:Admin,Staff'], function() 
         Route::delete('/{id}', [TicketController::class, 'destroy'])->name('ticket.destroy');
         Route::get('/{id}/passengers', [TicketController::class, 'getPassengers']); // Untuk ambil list nama di modal
         Route::get('/print-split/{ticket_id}/{passenger_id}', [TicketController::class, 'printSplit'])->name('ticket.print_split');
+        Route::post('/tickets/bulk-invoice', [TicketController::class, 'bulkInvoice'])->name('ticket.bulkInvoice');
     });
 
     Route::group(['prefix' => 'report'], function() {

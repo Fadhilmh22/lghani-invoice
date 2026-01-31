@@ -3,6 +3,42 @@
 @section('konten')
     <!-- Elegant UI CSS -->
     <link href="{{ asset('css/elegant-ui.css') }}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+
+
+    <style>
+    .select2-container--default .select2-selection--single {
+        height: 45px; /* Sesuaikan dengan tinggi input Abang */
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding-top: 8px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 43px;
+    }
+
+        #month_picker {
+        background-color: #fff !important;
+        cursor: pointer;
+    }
+    .input-with-icon {
+        position: relative;
+    }
+    .icon-inside {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        pointer-events: none;
+    }
+    </style>
 
     <div class="elegant-container">
         <div class="row mb-4">
@@ -34,13 +70,11 @@
                     </div>
 
                     <div class="elegant-form-group" id="report_month" style="display: none;">
-                        <label for="month">Bulan</label>
-                        <select name="month" id="month" class="elegant-form-control {{ $errors->has('month') ? 'is-invalid':'' }}">
-                            <option value="">Pilih</option>
-                            @foreach ($invoices as $invoice) 
-                            <option value="{{ $invoice['monthlydate'] }}">{{ $months[ intval(substr($invoice['monthlydate'], 4, 2)) - 1 ] }} - {{ substr($invoice['monthlydate'], 0, 4) }}</option>
-                            @endforeach
-                        </select>
+                        <label for="month">Pilih Bulan Laporan</label>
+                        <div class="input-with-icon">
+                            <input type="text" name="month" id="month_picker" class="elegant-form-control" placeholder="Klik untuk pilih bulan..." readonly>
+                            <i class="fa fa-calendar-alt icon-inside"></i>
+                        </div>
                         <span class="text-danger">{{ $errors->first('month') }}</span>
                     </div>
 
@@ -58,10 +92,13 @@
 
                     <div class="elegant-form-group">
                         <label for="airline_id">Filter Maskapai (opsional)</label>
-                        <select name="airline_id" id="airline_id" class="elegant-form-control">
+                        {{-- Tambahkan class 'select2' di sini --}}
+                        <select name="airline_id" id="airline_id" class="elegant-form-control select2">
                             <option value="">Semua Maskapai</option>
                             @foreach($airlines as $airline)
-                                <option value="{{ $airline->id }}">{{ $airline->airlines_code }} - {{ $airline->airlines_name }}</option>
+                                <option value="{{ $airline->id }}" {{ request('airline_id') == $airline->id ? 'selected' : '' }}>
+                                    {{ $airline->airlines_code }} - {{ $airline->airlines_name }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -71,7 +108,9 @@
                         <select name="customer_id" id="customer_id" class="elegant-form-control select2">
                             <option value="">Semua Pelanggan</option>
                             @foreach($customers ?? [] as $customer)
-                                <option value="{{ $customer->id }}">{{ $customer->booker }} - {{ $customer->company }}</option>
+                                <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
+                                    {{ $customer->booker }} - {{ $customer->company }}
+                                </option>
                             @endforeach
                         </select>
                     </div>
@@ -87,5 +126,49 @@
     </div>
 
     <!-- JavaScript untuk Report -->
-    <script src="{{ asset('js/report.js') }}"></script>
+    <script src="{{ asset('js/report.js') }}">
+    </script>
+
+<script>
+    $(document).ready(function() {
+        // Pastikan JQuery sudah loading sebelum ini
+        $('.select2').select2({
+            placeholder: "Pilih...",
+            allowClear: true,
+            width: '100%' 
+        });
+    });
+
+
+    $(document).ready(function() {
+    // Inisialisasi Select2 yang sudah ada
+    $('.select2').select2({
+        placeholder: "Pilih...",
+        allowClear: true,
+        width: '100%'
+    });
+
+    // Inisialisasi Month Picker
+    flatpickr("#month_picker", {
+        disableMobile: "true",
+        plugins: [
+            new monthSelectPlugin({
+                shorthand: false, // Set false agar nama bulan lengkap (Januari)
+                dateFormat: "Ym", // Nilai asli yang dikirim ke database (202601)
+                altFormat: "F - Y", // Tampilan yang dilihat user (Januari - 2026)
+                theme: "light" 
+            })
+        ],
+        altInput: true, // Membuat input bayangan untuk tampilan estetik
+        altInputClass: "elegant-form-control", // Menyamakan style dengan input asli
+        // Kita paksa menggunakan bahasa Indonesia untuk nama bulan
+        locale: {
+            months: {
+                shorthand: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+                longhand: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+            }
+        }
+    });
+});
+</script>
 @endsection

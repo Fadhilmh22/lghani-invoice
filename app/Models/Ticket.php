@@ -15,4 +15,11 @@ class Ticket extends Model
     public function airline() {
         return $this->belongsTo(Airlines::class, 'airline_id');
     }
+    public function passengers() { 
+        return $this->hasMany(Passenger::class); 
+    }
+    public function details()
+    {
+        return $this->hasMany(Invoice_detail::class, 'ticket_id', 'id');
+    }
 }

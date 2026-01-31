@@ -16,13 +16,16 @@ class InvoiceController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-
-        // Query untuk pencarian
-        $invoice = Invoice::has('detail')->whereHas('customer', function ($query) use ($search) {
-            $query->where('booker', 'like', '%' . $search . '%')
-            ->orWhere('company', 'like', '%' . $search . '%');
-        })->orderBy('created_at', 'DESC')
+    
+        // Hapus filter has('detail') agar invoice gabungan baru bisa muncul
+        $invoice = Invoice::with(['customer', 'tickets']) // pastikan relasi tickets ada di model
+          ->whereHas('customer', function ($query) use ($search) {
+              $query->where('booker', 'like', '%' . $search . '%')
+              ->orWhere('company', 'like', '%' . $search . '%');
+          })
+          ->orderBy('created_at', 'DESC')
           ->paginate(10);    
+    
         return view('invoice.index', compact('invoice'));
     }
 

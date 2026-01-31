@@ -59,111 +59,104 @@
     </table>
 
     <div class="section-header">Flight Details</div>
-<table class="flight-table">
-    <thead>
-        <tr>
-            <th width="35%">FLIGHT</th>
-            <th width="32.5%">DEPARTING</th>
-            <th width="32.5%">ARRIVING</th>
-        </tr>
-    </thead>
-    <tbody>
-        @php
-        $getLogo = function($name) {
-            $name = strtolower($name);
-            
-            // List Maskapai (Lama & Baru)
-            if (str_contains($name, 'airasia')) return 'airasia.png';
-            if (str_contains($name, 'batik')) return 'batik.png';
-            if (str_contains($name, 'citilink')) return 'citilink.png';
-            if (str_contains($name, 'garuda')) return 'garuda.png';
-            if (str_contains($name, 'lion')) return 'lion.png';
-            if (str_contains($name, 'super air jet')) return 'Super Air Jet.png';
-            if (str_contains($name, 'wings')) return 'wings.png';
-            
-            // Tambahan Maskapai Baru
-            if (str_contains($name, 'scoot')) return 'scoot.png';
-            if (str_contains($name, 'flyjaya') || str_contains($name, 'fly jaya')) return 'flyjaya.png';
-            if (str_contains($name, 'xpress') || str_contains($name, 'express')) return 'xpressair.png';
-            if (str_contains($name, 'qatar')) return 'qatar.png';
-            if (str_contains($name, 'sriwijaya')) return 'sriwijaya.png';
-            if (str_contains($name, 'nam air') || str_contains($name, 'namair')) return 'namair.png';
-            if (str_contains($name, 'trigana')) return 'triganaair.png';
-            if (str_contains($name, 'transnusa')) return 'transnusa.png';
-            if (str_contains($name, 'pelita')) return 'pelitaair.png';
-            
-            return null;
-        };
+    <table class="flight-table">
+        <thead>
+            <tr>
+                <th width="35%">FLIGHT</th>
+                <th width="32.5%">DEPARTING</th>
+                <th width="32.5%">ARRIVING</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                function getAirlineLogo($name) {
+                    $name = strtolower($name);
+                    if (str_contains($name, 'air asia')) return 'airasia.png';
+                    if (str_contains($name, 'batik')) return 'batik.png';
+                    if (str_contains($name, 'citilink')) return 'citilink.png';
+                    if (str_contains($name, 'garuda')) return 'garuda.png';
+                    if (str_contains($name, 'lion')) return 'lion.png';
+                    if (str_contains($name, 'nam')) return 'nam.png';
+                    if (str_contains($name, 'super air jet')) return 'Super Air Jet.png';
+                    if (str_contains($name, 'wings')) return 'wings.png';
+                    if (str_contains($name, 'scoot')) return 'scoot.png';
+                    if (str_contains($name, 'sriwijaya')) return 'sriwijaya.png';
+                    if (str_contains($name, 'transnusa')) return 'transnusa.png';
+                    if (str_contains($name, 'trigana air')) return 'triganaair.png';
+                    if (str_contains($name, 'xpress air')) return 'xpressair.png';
+                    if (str_contains($name, 'qatar airways')) return 'qatar.png';
+                    if (str_contains($name, 'pelita air')) return 'pelitaair.png';
+                    if (str_contains($name, 'fly jaya')) return 'flyjaya.png';
+                    return null;
+                }
+                $logoOut = getAirlineLogo($ticket->airline->airlines_name);
+            @endphp
 
-        $logoName = $getLogo($ticket->airline->airlines_name);
-        $logoPath = $logoName ? public_path('airlines-logo/' . $logoName) : null;
-        $showLogo = ($logoPath && file_exists($logoPath));
-    @endphp
-        <tr>
-            <td>
-                <table width="100%" style="border:none;">
-                    <tr>
-                        @if($logoOut)
-                        <td width="50px" style="border:none; padding:0;">
-                            <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 40px; height: auto;">
-                        </td>
-                        @endif
-                        <td style="border:none; padding:0; padding-left: 5px;">
-                            <strong>{{ $ticket->airline->airlines_name }}</strong><br>
-                            <span style="font-size: 11px; font-weight: bold; color: #1e40af;">
-                                {{ $ticket->airline->airlines_code }} - {{ $ticket->flight_out }}
-                            </span>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-            <td>
-                <div class="city-name">{{ $ticket->route_out }}</div>
-                {{ \Carbon\Carbon::parse($ticket->dep_time_out)->format('D, d M Y') }}<br>
-                <strong>{{ \Carbon\Carbon::parse($ticket->dep_time_out)->format('H:i') }}</strong>
-            </td>
-            <td>
-                <div class="city-name">
-                    {{ $ticket->route_in ? explode(' - ', $ticket->route_out)[1] ?? $ticket->route_out : $ticket->route_out }}
-                </div>
-                {{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('D, d M Y') }}<br>
-                <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('H:i') }}</strong>
-            </td>
-        </tr>
-        
-        @if($ticket->route_in)
-        <tr>
-            <td>
-                <table width="100%" style="border:none;">
-                    <tr>
-                        @if($logoOut) {{-- Menggunakan logo yang sama untuk pulang --}}
-                        <td width="50px" style="border:none; padding:0;">
-                            <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 40px; height: auto;">
-                        </td>
-                        @endif
-                        <td style="border:none; padding:0; padding-left: 5px;">
-                            <strong>{{ $ticket->airline->airlines_name }}</strong><br>
-                            <span style="font-size: 11px; font-weight: bold; color: #1e40af;">
-                                {{ $ticket->airline->airlines_code }} - {{ $ticket->flight_in ?? $ticket->flight_out }}
-                            </span>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-            <td>
-                <div class="city-name">{{ $ticket->route_in }}</div>
-                {{ \Carbon\Carbon::parse($ticket->dep_time_in)->format('D, d M Y') }}<br>
-                <strong>{{ \Carbon\Carbon::parse($ticket->dep_time_in)->format('H:i') }}</strong>
-            </td>
-            <td>
-                <div class="city-name">{{ explode(' - ', $ticket->route_in)[1] ?? $ticket->route_in }}</div>
-                {{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('D, d M Y') }}<br>
-                <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('H:i') }}</strong>
-            </td>
-        </tr>
-        @endif
-    </tbody>
-</table>
+            <tr>
+                <td>
+                    <table width="100%" style="border:none;">
+                        <tr>
+                            @if($logoOut)
+                            <td width="50px" style="border:none; padding:0;">
+                                <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 40px; height: auto;">
+                            </td>
+                            @endif
+                            <td style="border:none; padding:0; padding-left: 5px;">
+                                <strong>{{ $ticket->airline->airlines_name }}</strong><br>
+                                <span style="font-size: 11px; font-weight: bold; color: #1e40af;">
+                                    {{ $ticket->airline->airlines_code }} - {{ $ticket->flight_out }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <div class="city-name">{{ $ticket->route_out }}</div>
+                    {{ \Carbon\Carbon::parse($ticket->dep_time_out)->format('D, d M Y') }}<br>
+                    <strong>{{ \Carbon\Carbon::parse($ticket->dep_time_out)->format('H:i') }}</strong>
+                </td>
+                <td>
+                    <div class="city-name">
+                        {{ $ticket->route_in ? explode(' - ', $ticket->route_out)[1] ?? $ticket->route_out : $ticket->route_out }}
+                    </div>
+                    {{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('D, d M Y') }}<br>
+                    <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('H:i') }}</strong>
+                </td>
+            </tr>
+            
+            @if($ticket->route_in)
+            <tr>
+                <td>
+                    <table width="100%" style="border:none;">
+                        <tr>
+                            @if($logoOut)
+                            <td width="50px" style="border:none; padding:0;">
+                                <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 40px; height: auto;">
+                            </td>
+                            @endif
+                            <td style="border:none; padding:0; padding-left: 5px;">
+                                <strong>{{ $ticket->airline->airlines_name }}</strong><br>
+                                <span style="font-size: 11px; font-weight: bold; color: #1e40af;">
+                                    {{ $ticket->airline->airlines_code }} - {{ $ticket->flight_in ?? $ticket->flight_out }}
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td>
+                    <div class="city-name">{{ $ticket->route_in }}</div>
+                    {{ \Carbon\Carbon::parse($ticket->dep_time_in)->format('D, d M Y') }}<br>
+                    <strong>{{ \Carbon\Carbon::parse($ticket->dep_time_in)->format('H:i') }}</strong>
+                </td>
+                <td>
+                    <div class="city-name">{{ explode(' - ', $ticket->route_in)[1] ?? $ticket->route_in }}</div>
+                    {{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('D, d M Y') }}<br>
+                    <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('H:i') }}</strong>
+                </td>
+            </tr>
+            @endif
+        </tbody>
+    </table>
 
     <div class="section-header">Passenger(s) Details</div>
     <table class="pax-table">
@@ -177,6 +170,7 @@
             </tr>
         </thead>
         <tbody>
+            {{-- PERBAIKAN: Menggunakan variabel $passengers agar tidak bercampur dengan tiket lain --}}
             @foreach($passengers as $index => $pax)
             <tr>
                 <td>{{ $index + 1 }}</td>

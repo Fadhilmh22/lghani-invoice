@@ -200,31 +200,35 @@
         </div>
 
         <div class="invoice-section">
+    <div class="row">
+        <div class="col-md-6" style="border-right: 1px solid #f1f5f9;">
+            <div class="section-title" style="border-left-color: #6366f1;">Detail Keuangan (Invoice)</div>
             <div class="row">
-                <div class="col-md-6" style="border-right: 1px solid #f1f5f9;">
-                    <div class="section-title" style="border-left-color: #6366f1;">Detail Keuangan (Invoice)</div>
-                    <div class="row">
-                    <div class="col-md-6 form-group">
-                        <label>Pax Paid (Harga Jual Akhir)</label>
-                        <input type="number" name="pax_paid" id="pax_paid" class="form-control" value="{{ (int)($passengers->first()->pax_paid * $passengers->count()) }}" required>
-                    </div>
-                    <div class="col-md-6 form-group">
-                        <label>Price (Harga Dasar di Invoice)</label>
-                        <input type="number" name="price" id="price" class="form-control" value="{{ (int)($passengers->first()->price * $passengers->count()) }}">
-                    </div>
-                        <div class="col-md-6 form-group">
-                            <label>Discount</label>
-                            <input type="number" name="discount" id="discount" class="form-control" value="{{ (int)($passengers->first()->discount * $passengers->count()) }}">
-                        </div>
-                        <div class="col-md-6 form-group">
-                            <label>NTA (Modal)</label>
-                            <input type="number" name="nta_price" id="nta_price" class="form-control" value="{{ (int)$passengers->first()->nta * $passengers->count() }}" required>
-                        </div>
-                        <input type="hidden" name="publish_price" id="publish_price" value="{{ (int)$ticket->total_publish }}">
-                    </div>
+                <div class="col-md-6 form-group">
+                    <label>Pax Paid (Harga Jual Akhir)</label>
+                    <input type="number" name="pax_paid" id="pax_paid" class="form-control" 
+                           value="{{ (int)$passengers->sum('pax_paid') }}" required>
                 </div>
+                <div class="col-md-6 form-group">
+                    <label>Price (Harga Dasar di Invoice)</label>
+                    <input type="number" name="price" id="price" class="form-control" 
+                           value="{{ (int)$passengers->sum('price') }}">
+                </div>
+                <div class="col-md-6 form-group">
+                    <label>Discount</label>
+                    <input type="number" name="discount" id="discount" class="form-control" 
+                           value="{{ (int)$passengers->sum('discount') }}">
+                </div>
+                <div class="col-md-6 form-group">
+                    <label>NTA (Modal)</label>
+                    <input type="number" name="nta_price" id="nta_price" class="form-control" 
+                           value="{{ (int)$passengers->sum('nta') }}" required>
+                </div>
+                <input type="hidden" name="publish_price" id="publish_price" value="{{ (int)$ticket->total_publish }}">
+            </div>
+        </div>
 
-                <div class="col-md-6">
+ <div class="col-md-6">
     <div class="section-title" style="border-left-color: #f59e0b;">Rincian Tiket (Airfare PDF)</div>
     
     <div class="row">

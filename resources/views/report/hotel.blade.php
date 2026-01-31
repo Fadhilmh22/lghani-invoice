@@ -9,7 +9,7 @@
         </div>
         
         <div class="card-elegant">
-            <div class="card-body">
+            <div class="card-body" id="formContainer"> {{-- ID tambahan untuk parent Select2 --}}
                 <form action="{{ route('report.printhotel') }}" method="post">
                     @csrf
                     <input type="hidden" name="_method" value="GET" class="form-control">
@@ -24,14 +24,16 @@
                         <span class="text-danger">{{ $errors->first('report_type') }}</span>
                     </div>
 
+                    {{-- Month Picker dengan format estetik --}}
                     <div class="elegant-form-group" id="report_month" style="display: none;">
-                        <label for="month">Bulan</label>
-                        <select name="month" id="month" class="elegant-form-control select2 {{ $errors->has('month') ? 'is-invalid':'' }}">
-                            <option value="">Pilih</option>
-                            @foreach ($invoices as $invoice) 
-                            <option value="{{ $invoice['monthlydate'] }}">{{ $months[ intval(substr($invoice['monthlydate'], 4, 2)) - 1 ] }} - {{ substr($invoice['monthlydate'], 0, 4) }}</option>
-                            @endforeach
-                        </select>
+                        <label for="month">Pilih Bulan Laporan</label>
+                        <div class="input-with-icon">
+                            {{-- Input ini hanya untuk tampilan (Januari - 2026) --}}
+                            <input type="text" id="month_picker_display" class="elegant-form-control" placeholder="Pilih Bulan..." readonly style="background: #fff; cursor: pointer;">
+                            {{-- Input hidden ini yang mengirim data asli (202601) ke Controller --}}
+                            <input type="hidden" name="month" id="month_actual_value">
+                            <i class="fa fa-calendar-alt icon-inside"></i>
+                        </div>
                         <span class="text-danger">{{ $errors->first('month') }}</span>
                     </div>
 
@@ -77,47 +79,77 @@
         </div>
     </div>
 
-    <!-- JavaScript untuk Report Hotel -->
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-    <script src="{{ asset('js/report-hotel.js') }}"></script>
-
-    <!-- Include Select2 but style it to match native elegant-form-control appearance -->
-    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    {{-- CSS tetap di bawah sesuai permintaan --}}
     <style>
-        /* Make Select2 single selection look like .elegant-form-control */
+        .input-with-icon { position: relative; }
+        .icon-inside { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #94a3b8; pointer-events: none; }
+        
+        /* Mengunci agar dropdown Select2 selalu muncul di bawah input */
         .select2-container--default .select2-selection--single {
-            height: 40px;
-            padding: 8px 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            box-shadow: none;
+            height: 40px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            padding-top: 5px !important;
+            position: relative;
         }
-        .select2-container--default .select2-selection--single .select2-selection__rendered {
-            line-height: 24px;
-            color: #334155;
-            padding-right: 20px;
-        }
-        .select2-container--default .select2-selection--single .select2-selection__arrow {
-            height: 40px;
-        }
-        .select2-container--default.select2-container--open .select2-selection--single {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
-        }
-        .select2-container--default .select2-selection__placeholder {
-            color: #334155; /* match elegant-form-control text color */
-        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow { height: 38px !important; }
         .select2-container { width: 100% !important; }
+        
+        /* Memaksa list dropdown berada di bawah */
+        .select2-dropdown {
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+            z-index: 9999 !important;
+        }
     </style>
+
+    {{-- ASSETS --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/monthSelect/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    {{-- Script Report Hotel Asli --}}
+    <script src="{{ asset('js/report-hotel.js') }}"></script>
 
     <script type="text/javascript">
         $(document).ready(function(){
-            $('#hotel_id, #customer_id').select2({
+            // 1. Perbaikan Select2: Menggunakan dropdownParent agar posisi tidak berantakan
+            $('.select2').select2({
                 placeholder: 'Pilih opsi',
+                allowClear: true,
                 width: '100%',
-                minimumResultsForSearch: 0
+                dropdownParent: $('#formContainer') 
+            });
+
+            // 2. Perbaikan Flatpickr: Format "Januari - 2026"
+            flatpickr("#month_picker_display", {
+                disableMobile: "true",
+                plugins: [
+                    new monthSelectPlugin({
+                        shorthand: false,
+                        dateFormat: "Ym", // Data asli untuk Controller (202601)
+                        altFormat: "F - Y", // Tampilan User (Januari - 2026)
+                        theme: "light"
+                    })
+                ],
+                altInput: true, // Mengaktifkan input tampilan
+                altInputClass: "elegant-form-control",
+                locale: {
+                    months: {
+                        shorthand: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+                        longhand: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+                    }
+                },
+                onChange: function(selectedDates, dateStr) {
+                    // Update input hidden saat user memilih bulan
+                    $('#month_actual_value').val(dateStr);
+                }
             });
         });
     </script>
