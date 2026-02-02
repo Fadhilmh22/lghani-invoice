@@ -86,7 +86,7 @@
                     if (str_contains($name, 'xpress air')) return 'xpressair.png';
                     if (str_contains($name, 'qatar airways')) return 'qatar.png';
                     if (str_contains($name, 'pelita air')) return 'pelitaair.png';
-                    if (str_contains($name, 'fly jaya')) return 'flyjaya.png';
+                    if (str_contains($name, 'flyjaya')) return 'flyjaya.png';
                     return null;
                 }
                 $logoOut = getAirlineLogo($ticket->airline->airlines_name);
