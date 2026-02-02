@@ -80,13 +80,13 @@
 
                     <div class="elegant-form-group" id="report_start_date" style="display: none;">
                         <label for="start_date">Tanggal Mulai</label>
-                        <input type="date" name="start_date" id="start_date" class="elegant-form-control {{ $errors->has('start_date') ? 'is-invalid':'' }}">
+                        <input type="text" name="start_date" id="start_date" class="elegant-form-control {{ $errors->has('start_date') ? 'is-invalid':'' }}">
                         <span class="text-danger">{{ $errors->first('start_date') }}</span>
                     </div>
 
                     <div class="elegant-form-group" id="report_end_date" style="display: none;">
                         <label for="end_date">Tanggal Akhir</label>
-                        <input type="date" name="end_date" id="end_date" class="elegant-form-control {{ $errors->has('end_date') ? 'is-invalid':'' }}">
+                        <input type="text" name="end_date" id="end_date" class="elegant-form-control {{ $errors->has('end_date') ? 'is-invalid':'' }}">
                         <span class="text-danger">{{ $errors->first('end_date') }}</span>
                     </div>
 
@@ -141,34 +141,42 @@
 
 
     $(document).ready(function() {
-    // Inisialisasi Select2 yang sudah ada
-    $('.select2').select2({
-        placeholder: "Pilih...",
-        allowClear: true,
-        width: '100%'
-    });
+        // Inisialisasi Select2 yang sudah ada
+        $('.select2').select2({
+            placeholder: "Pilih...",
+            allowClear: true,
+            width: '100%'
+        });
 
-    // Inisialisasi Month Picker
-    flatpickr("#month_picker", {
-        disableMobile: "true",
-        plugins: [
-            new monthSelectPlugin({
-                shorthand: false, // Set false agar nama bulan lengkap (Januari)
-                dateFormat: "Ym", // Nilai asli yang dikirim ke database (202601)
-                altFormat: "F - Y", // Tampilan yang dilihat user (Januari - 2026)
-                theme: "light" 
-            })
-        ],
-        altInput: true, // Membuat input bayangan untuk tampilan estetik
-        altInputClass: "elegant-form-control", // Menyamakan style dengan input asli
-        // Kita paksa menggunakan bahasa Indonesia untuk nama bulan
-        locale: {
-            months: {
-                shorthand: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
-                longhand: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+        // Inisialisasi Month Picker (Bulanan)
+        flatpickr("#month_picker", {
+            disableMobile: "true",
+            plugins: [
+                new monthSelectPlugin({
+                    shorthand: false, // Set false agar nama bulan lengkap (Januari)
+                    dateFormat: "Ym", // Nilai asli yang dikirim ke database (202601)
+                    altFormat: "F - Y", // Tampilan yang dilihat user (Januari - 2026)
+                    theme: "light" 
+                })
+            ],
+            altInput: true, // Membuat input bayangan untuk tampilan estetik
+            altInputClass: "elegant-form-control", // Menyamakan style dengan input asli
+            // Kita paksa menggunakan bahasa Indonesia untuk nama bulan
+            locale: {
+                months: {
+                    shorthand: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"],
+                    longhand: ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+                }
             }
-        }
+        });
+
+        // Inisialisasi Date Picker (Periode Tanggal)
+        flatpickr('#start_date', {
+            dateFormat: 'Y-m-d'
+        });
+        flatpickr('#end_date', {
+            dateFormat: 'Y-m-d'
+        });
     });
-});
 </script>
 @endsection

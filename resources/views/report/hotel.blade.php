@@ -39,13 +39,13 @@
 
                     <div class="elegant-form-group" id="report_start_date" style="display: none;">
                         <label for="start_date">Tanggal Mulai</label>
-                        <input type="date" name="start_date" id="start_date" class="elegant-form-control {{ $errors->has('start_date') ? 'is-invalid':'' }}">
+                        <input type="text" name="start_date" id="start_date" class="elegant-form-control {{ $errors->has('start_date') ? 'is-invalid':'' }}">
                         <span class="text-danger">{{ $errors->first('start_date') }}</span>
                     </div>
 
                     <div class="elegant-form-group" id="report_end_date" style="display: none;">
                         <label for="end_date">Tanggal Akhir</label>
-                        <input type="date" name="end_date" id="end_date" class="elegant-form-control {{ $errors->has('end_date') ? 'is-invalid':'' }}">
+                        <input type="text" name="end_date" id="end_date" class="elegant-form-control {{ $errors->has('end_date') ? 'is-invalid':'' }}">
                         <span class="text-danger">{{ $errors->first('end_date') }}</span>
                     </div>
 
@@ -150,6 +150,14 @@
                     // Update input hidden saat user memilih bulan
                     $('#month_actual_value').val(dateStr);
                 }
+            });
+
+            // Inisialisasi Date Picker (Periode Tanggal)
+            flatpickr('#start_date', {
+                dateFormat: 'Y-m-d'
+            });
+            flatpickr('#end_date', {
+                dateFormat: 'Y-m-d'
             });
         });
     </script>

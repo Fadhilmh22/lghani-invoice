@@ -175,7 +175,8 @@
             <tr>
                 <td>{{ $index + 1 }}</td>
                 <td>
-                    <strong>{{ strtoupper($pax->genre ?? '') }} {{ $pax->name }}</strong> (Adult)
+                    <strong>{{ strtoupper($pax->genre ?? '') }} {{ $pax->name }}</strong> 
+                    ({{ $pax->type ?? 'Adult' }})
                 </td>
                 <td style="color:#d97706; font-weight:bold;">{{ $ticket->booking_code }}</td>
                 <td>{{ $pax->ticket_no ?? '-' }}</td>

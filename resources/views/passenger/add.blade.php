@@ -43,7 +43,7 @@
             <div class="elegant-form-group">
                 <label>Date Birth</label>
                 <input 
-                    type="date" 
+                    type="text" 
                     name="date_birth"
                     class="form-control elegant-form-control {{ $errors->has('date_birth') ? 'is-invalid' : '' }}"
                 >
@@ -83,4 +83,14 @@
 
     </div>
 </div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.flatpickr) {
+            flatpickr('input[name="date_birth"]', { dateFormat: 'Y-m-d' });
+        }
+    });
+</script>
 @endsection

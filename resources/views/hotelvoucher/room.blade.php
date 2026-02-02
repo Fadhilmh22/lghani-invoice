@@ -5,8 +5,132 @@
     .mb-0 {
         margin-bottom: 0;
     }
+
+    /* Wrapper khusus halaman Room Voucher agar tidak mengganggu halaman lain */
+    .hotelvoucher-room-wrapper {
+        background-color: #f1f5f9;
+        min-height: 100vh;
+        padding: 30px;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .hotelvoucher-room-wrapper .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+        margin-bottom: 10px;
+    }
+
+    .hotelvoucher-room-wrapper .card {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .hotelvoucher-room-wrapper .card-body {
+        padding: 24px 24px 28px;
+    }
+
+    .hotelvoucher-room-wrapper .panel {
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+        margin-bottom: 18px;
+    }
+
+    .hotelvoucher-room-wrapper .panel-heading {
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+        border-radius: 12px 12px 0 0;
+        font-weight: 600;
+        color: #0f172a;
+        padding: 10px 14px;
+    }
+
+    .hotelvoucher-room-wrapper .panel-body {
+        padding: 14px 16px 16px;
+    }
+
+    .hotelvoucher-room-wrapper table.table {
+        background: #ffffff;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .hotelvoucher-room-wrapper table.table thead tr {
+        background: #f8fafc;
+    }
+
+    .hotelvoucher-room-wrapper table.table th,
+    .hotelvoucher-room-wrapper table.table td {
+        vertical-align: middle;
+        font-size: 13px;
+    }
+
+    .hotelvoucher-room-wrapper .form-group label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 4px;
+    }
+
+    .hotelvoucher-room-wrapper .form-control {
+        border-radius: 8px;
+        font-size: 13px;
+        border: 1px solid #cbd5e1;
+    }
+
+    .hotelvoucher-room-wrapper .btn-success.btn-sm {
+        background: #22c55e;
+        border: none;
+        border-radius: 8px;
+        font-size: 12px;
+        padding: 6px 14px;
+        font-weight: 600;
+    }
+
+    .hotelvoucher-room-wrapper .btn-warning.btn-sm {
+        background: #f59e0b;
+        border: none;
+        border-radius: 8px;
+        font-size: 12px;
+        padding: 6px 14px;
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .hotelvoucher-room-wrapper .btn-info.btn-xs,
+    .hotelvoucher-room-wrapper .btn-danger.btn-xs {
+        border-radius: 6px;
+        font-size: 11px;
+        padding: 4px 10px;
+        font-weight: 500;
+    }
+
+    .hotelvoucher-room-wrapper .table-hover>tbody>tr:hover {
+        background-color: #f9fafb;
+    }
+
+    /* Presisi kolom Age (umur) + tulisan "tahun" */
+    .hotelvoucher-room-wrapper #guest-detail .age-wrapper {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .hotelvoucher-room-wrapper #guest-detail .age-wrapper .guest_age {
+        max-width: 60px;
+        padding-right: 6px;
+        text-align: right;
+    }
+
+    .hotelvoucher-room-wrapper #guest-detail .age-wrapper .age-unit {
+        font-size: 11px;
+        color: #64748b;
+    }
 </style>
-    <div class="container">
+
+    <div class="elegant-container hotelvoucher-room-wrapper">
         <div class="row">
             <div class="col-md-16">
                 <div class="card">
@@ -18,6 +142,8 @@
                         @endif
                         <div class="row">
                             <div class="col-md-16">
+                                <h1 class="page-title">Room & Guest Detail - Hotel Voucher</h1>
+                                <p style="color:#64748b; margin-bottom:18px;">Atur detail kamar dan tamu untuk voucher hotel ini.</p>
                                 <form id="form-detail" action="{{ route('hotelvoucher.updateRoom', ['id' => $voucher->id]) }}" method="post">
                                     @csrf
                                     <input type="hidden" name="_method" value="PUT" class="form-control">
@@ -123,9 +249,9 @@
                                                                 <input name="guest_last_name[]" type="text" class="form-control guest_last_name" readonly>
                                                             </td>
                                                             <td>
-                                                                <div class="input-group">
+                                                                <div class="age-wrapper">
                                                                     <input name="guest_age[]" type="number" class="form-control guest_age" min="0" readonly>
-                                                                    <div class="input-group-addon">tahun</div>
+                                                                    <span class="age-unit">tahun</span>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -149,9 +275,9 @@
                                                                 <input name="guest_last_name[]" type="text" class="form-control guest_last_name" readonly >
                                                             </td>
                                                             <td>
-                                                                <div class="input-group">
+                                                                <div class="age-wrapper">
                                                                     <input name="guest_age[]" type="number" class="form-control guest_age" min="0" readonly >
-                                                                    <div class="input-group-addon">tahun</div>
+                                                                    <span class="age-unit">tahun</span>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -175,9 +301,9 @@
                                                                 <input name="guest_last_name[]" type="text" class="form-control guest_last_name" readonly>
                                                             </td>
                                                             <td>
-                                                                <div class="input-group">
+                                                                <div class="age-wrapper">
                                                                     <input name="guest_age[]" type="number" class="form-control guest_age" min="0" readonly>
-                                                                    <div class="input-group-addon">tahun</div>
+                                                                    <span class="age-unit">tahun</span>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -201,9 +327,9 @@
                                                                 <input name="guest_last_name[]" type="text" class="form-control guest_last_name" readonly>
                                                             </td>
                                                             <td>
-                                                                <div class="input-group">
+                                                                <div class="age-wrapper">
                                                                     <input name="guest_age[]" type="number" class="form-control guest_age" min="0" readonly>
-                                                                    <div class="input-group-addon">tahun</div>
+                                                                    <span class="age-unit">tahun</span>
                                                                 </div>
                                                             </td>
                                                         </tr>
@@ -227,9 +353,9 @@
                                                                 <input name="guest_last_name[]" type="text" class="form-control guest_last_name" readonly>
                                                             </td>
                                                             <td>
-                                                                <div class="input-group">
+                                                                <div class="age-wrapper">
                                                                     <input name="guest_age[]" type="number" class="form-control guest_age" min="0" readonly>
-                                                                    <div class="input-group-addon">tahun</div>
+                                                                    <span class="age-unit">tahun</span>
                                                                 </div>
                                                             </td>
                                                         </tr>

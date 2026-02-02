@@ -49,13 +49,13 @@
                 
                 <div class="elegant-form-group">
                     <label for="hotel_due_date">Due Date Hotel</label>
-                    <input type="date" id="hotel_due_date" name="hotel_due_date" class="elegant-form-control" value="{{ $invoice->hotel_due_date }}" required>
+                    <input type="text" id="hotel_due_date" name="hotel_due_date" class="elegant-form-control" value="{{ $invoice->hotel_due_date }}" required>
                     <span class="text-danger" id="error-hotel_due_date"></span>
                 </div>
                 
                 <div class="elegant-form-group">
                     <label for="payment_date">Date Payment</label>
-                    <input type="date" id="payment_date" name="payment_date" class="elegant-form-control" value="{{ $invoice->payment_date }}" required>
+                    <input type="text" id="payment_date" name="payment_date" class="elegant-form-control" value="{{ $invoice->payment_date }}" required>
                     <span class="text-danger" id="payment_date-error"></span>
                 </div>
                 
@@ -83,4 +83,15 @@
         </div>
     </div>
 </div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.flatpickr) {
+            flatpickr('#hotel_due_date', { dateFormat: 'Y-m-d' });
+            flatpickr('#payment_date', { dateFormat: 'Y-m-d' });
+        }
+    });
+</script>
 @endsection

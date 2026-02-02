@@ -1,6 +1,8 @@
 @extends('master')
 
 @section('konten')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 @php
     $latestInvoices = \App\Models\Invoice::with('customer')
         ->whereHas('detail', function($q) {
@@ -226,11 +228,11 @@
             <form action="{{ route('home') }}" method="GET" class="filter-form">
                 <div class="form-field">
                     <label for="start_date">Start Date</label>
-                    <input type="date" id="start_date" name="start_date" value="{{ $startDate }}">
+                    <input type="text" id="start_date" name="start_date" value="{{ $startDate }}">
                 </div>
                 <div class="form-field">
                     <label for="end_date">End Date</label>
-                    <input type="date" id="end_date" name="end_date" value="{{ $endDate }}">
+                    <input type="text" id="end_date" name="end_date" value="{{ $endDate }}">
                 </div>
                 <button type="submit" class="filter-btn">
                     <i class="fa fa-search"></i>
@@ -833,57 +835,37 @@
 
             // plugin draws vertical hover line and indicator box (index indicator)
             const indexPlugin = {
-                id: 'indexPlugin',
-                afterInit(chart) {
-                    chart._activeIndex = chart.data.labels.length - 1;
-                },
-                afterEvent(chart, args) {
-                    const e = args.event;
-                    const points = chart.getElementsAtEventForMode(e, 'nearest', {intersect: false}, false);
-                    if (points.length) {
-                        chart._activeIndex = points[0].index;
-                        chart.draw();
-                    }
-                },
-                afterDraw(chart) {
-                    const ctx = chart.ctx;
-                    const index = (chart._activeIndex != null) ? chart._activeIndex : (chart.data.labels.length - 1);
-                    if (!chart.scales.x) return;
-                    const x = chart.scales.x.getPixelForValue(index);
+    id: 'indexPlugin',
+    afterInit(chart) {
+        chart._activeIndex = chart.data.labels.length - 1;
+    },
+    afterEvent(chart, args) {
+        const e = args.event;
+        const points = chart.getElementsAtEventForMode(e, 'nearest', {intersect: false}, false);
+        if (points.length) {
+            chart._activeIndex = points[0].index;
+            chart.draw();
+        }
+    },
+    afterDraw(chart) {
+        const ctx = chart.ctx;
+        const index = (chart._activeIndex != null) ? chart._activeIndex : (chart.data.labels.length - 1);
+        if (!chart.scales.x) return;
+        const x = chart.scales.x.getPixelForValue(index);
 
-                    // vertical line
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.moveTo(x + 0.5, chart.chartArea.top);
-                    ctx.lineTo(x + 0.5, chart.chartArea.bottom);
-                    ctx.strokeStyle = 'rgba(99,102,241,0.16)';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                    ctx.restore();
+        // --- HANYA MENGGAMBAR GARIS VERTIKAL ---
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x + 0.5, chart.chartArea.top);
+        ctx.lineTo(x + 0.5, chart.chartArea.bottom);
+        ctx.strokeStyle = 'rgba(99,102,241,0.16)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
 
-                    // indicator box
-                    const ticketVal = chart.data.datasets[0].data[index] || 0;
-                    const hotelVal = chart.data.datasets[1].data[index] || 0;
-                    const boxWidth = 160;
-                    const boxHeight = 56;
-                    const boxX = chart.chartArea.right - boxWidth - 12;
-                    const boxY = chart.chartArea.top + 12;
-
-                    ctx.save();
-                    ctx.fillStyle = 'rgba(255,255,255,0.98)';
-                    ctx.strokeStyle = 'rgba(2,6,23,0.06)';
-                    ctx.lineWidth = 1;
-                    roundRect(ctx, boxX, boxY, boxWidth, boxHeight, 8);
-
-                    ctx.fillStyle = '#0f172a';
-                    ctx.font = '600 12px/1 sans-serif';
-                    ctx.fillText('Ticket: Rp ' + Number(ticketVal || 0).toLocaleString(), boxX + 12, boxY + 20);
-                    ctx.fillStyle = '#0f172a';
-                    ctx.font = '600 12px/1 sans-serif';
-                    ctx.fillText('Hotel:  Rp ' + Number(hotelVal || 0).toLocaleString(), boxX + 12, boxY + 40);
-                    ctx.restore();
-                }
-            };
+        // Bagian "indicator box" (kotak putih) sudah dibuang agar tampilan bersih
+    }
+};
 
             const incomeChart = new Chart(incomeCtx, {
                 type: 'line',
@@ -1099,6 +1081,15 @@
 
             // initial customers render
             renderCustomers(customersMonthly);
+    });
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.flatpickr) {
+            flatpickr('#start_date', { dateFormat: 'Y-m-d' });
+            flatpickr('#end_date', { dateFormat: 'Y-m-d' });
+        }
     });
 </script>
 @endsection

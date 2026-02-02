@@ -124,6 +124,7 @@ class TicketController extends Controller
                     'airline_id'   => $request->airline_id,
                     'booking_code' => strtoupper($request->pnr),
                     'name'         => strtoupper($paxData['name']),
+                    'type'         => $paxData['type'] ?? 'Adult',
                     'genre'        => $paxData['title'],
                     'ticket_no'    => $paxData['ticket_num'] ?? '-',
                     'price'        => $price_per_pax,    
@@ -278,6 +279,7 @@ class TicketController extends Controller
                     'airline_id'   => $request->airline_id,
                     'booking_code' => strtoupper($request->pnr),
                     'name'         => strtoupper($paxData['name']),
+                    'type'         => $paxData['type'] ?? 'Adult',
                     'genre'        => $paxData['title'],
                     'ticket_no'    => $paxData['ticket_num'] ?? '-',
                     'price'        => $price_per_pax,    
@@ -512,4 +514,5 @@ class TicketController extends Controller
             return redirect()->back()->with('error', 'Gagal menghapus: ' . $e->getMessage());
         }
     }
+    
 }

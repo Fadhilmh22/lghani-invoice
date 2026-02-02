@@ -7,22 +7,21 @@
     .form-group label { font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 5px; }
     .form-control { font-size: 13px; border-radius: 6px; }
     
-    /* Styling Input Group Baggage */
-    .input-group { display: flex !important; width: 100%; }
-    .input-group-addon {
-        display: flex;
+    /* Styling Input Baggage + Unit (KG/Rp) */
+    .ticket-unit-wrapper {
+        display: inline-flex;
         align-items: center;
-        padding: 6px 12px;
-        font-size: 13px;
+        gap: 6px;
+        width: 100%;
+    }
+    .ticket-unit-input {
+        max-width: 110px;
+    }
+    .ticket-unit-label {
+        font-size: 11px;
         color: #64748b;
-        background-color: #f1f5f9;
-        border: 1px solid #cbd5e1;
         white-space: nowrap;
     }
-    .input-group .form-control:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-    .input-group-addon:last-child { border-left: 0; border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
-    .input-group-addon:first-child { border-right: 0; border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
-    .input-group .form-control:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 
     /* CSS Select2 dengan Search Icon */
     .select2-container--default .select2-selection--single { height: 34px !important; border: 1px solid #cbd5e1 !important; border-radius: 6px !important; }
@@ -85,8 +84,8 @@
                     <div class="row">
                         <div class="col-md-6 form-group"><label>No. Flight</label><input type="text" name="flight_out" class="form-control" placeholder="GA-123"></div>
                         <div class="col-md-6 form-group"><label>Rute</label><input type="text" name="route_out" class="form-control" placeholder="CGK-DPS"></div>
-                        <div class="col-md-6 form-group"><label>Berangkat</label><input type="datetime-local" name="dep_out" class="form-control"></div>
-                        <div class="col-md-6 form-group"><label>Tiba</label><input type="datetime-local" name="arr_out" class="form-control"></div>
+                        <div class="col-md-6 form-group"><label>Berangkat</label><input type="text" name="dep_out" class="form-control"></div>
+                        <div class="col-md-6 form-group"><label>Tiba</label><input type="text" name="arr_out" class="form-control"></div>
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -94,8 +93,8 @@
                     <div class="row">
                         <div class="col-md-6 form-group"><label>No. Flight</label><input type="text" name="flight_in" class="form-control"></div>
                         <div class="col-md-6 form-group"><label>Rute</label><input type="text" name="route_in" class="form-control"></div>
-                        <div class="col-md-6 form-group"><label>Berangkat</label><input type="datetime-local" name="dep_in" class="form-control"></div>
-                        <div class="col-md-6 form-group"><label>Tiba</label><input type="datetime-local" name="arr_in" class="form-control"></div>
+                        <div class="col-md-6 form-group"><label>Berangkat</label><input type="text" name="dep_in" class="form-control"></div>
+                        <div class="col-md-6 form-group"><label>Tiba</label><input type="text" name="arr_in" class="form-control"></div>
                     </div>
                 </div>
             </div>
@@ -180,23 +179,23 @@
     <div class="row">
         <div class="col-md-4 form-group">
             <label>Free Baggage</label>
-            <div class="input-group">
-                <input type="number" name="free_baggage" class="form-control" placeholder="0">
-                <span class="input-group-addon">KG</span>
+            <div class="ticket-unit-wrapper">
+                <input type="number" name="free_baggage" class="form-control ticket-unit-input" placeholder="0">
+                <span class="ticket-unit-label">KG</span>
             </div>
         </div>
         <div class="col-md-4 form-group">
             <label>Add On (Qty)</label>
-            <div class="input-group">
-                <input type="number" name="baggage_kg" id="baggage_kg" class="form-control" value="0">
-                <span class="input-group-addon">KG</span>
+            <div class="ticket-unit-wrapper">
+                <input type="number" name="baggage_kg" id="baggage_kg" class="form-control ticket-unit-input" value="0">
+                <span class="ticket-unit-label">KG</span>
             </div>
         </div>
         <div class="col-md-4 form-group">
             <label>Add On Price</label>
-            <div class="input-group">
-                <span class="input-group-addon">Rp</span>
-                <input type="number" name="baggage_price" id="baggage_price" class="form-control" value="0">
+            <div class="ticket-unit-wrapper">
+                <span class="ticket-unit-label">Rp</span>
+                <input type="number" name="baggage_price" id="baggage_price" class="form-control ticket-unit-input" value="0">
             </div>
         </div>
     </div>
@@ -210,7 +209,7 @@
             <p class="text-muted" style="font-size: 11px; margin-top: -5px;">*Inputan ini khusus untuk tampilan rincian harga di file PDF tiket.</p>
         </div>
     </div>
-</div>
+    </div>
 
             <div class="text-right" style="margin-top: 20px;">
                 <hr>
@@ -222,6 +221,8 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
 $(document).ready(function() {
@@ -235,6 +236,21 @@ $(document).ready(function() {
         $('#total_ticket_display').text('Rp ' + totalPDF.toLocaleString('id-ID'));
         $('#publish_price').val(totalPDF);
     });
+
+    // DateTime picker untuk jadwal penerbangan
+    if (window.flatpickr) {
+        const dateTimeConfig = {
+            enableTime: true,
+            dateFormat: 'Y-m-d\\TH:i',
+            altInput: true,
+            altFormat: 'd-m-Y H:i',
+            time_24hr: true
+        };
+        flatpickr('input[name="dep_out"]', dateTimeConfig);
+        flatpickr('input[name="arr_out"]', dateTimeConfig);
+        flatpickr('input[name="dep_in"]', dateTimeConfig);
+        flatpickr('input[name="arr_in"]', dateTimeConfig);
+    }
 
     // Tambah Penumpang
     let rowIdx = 1;

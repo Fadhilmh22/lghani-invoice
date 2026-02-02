@@ -135,11 +135,11 @@
     <div class="row">
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Depart Date</label>
-            <input type="date" name="depart_date" class="elegant-form-control form-control">
+            <input type="text" name="depart_date" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Return Date</label>
-            <input type="date" name="return_date" class="elegant-form-control form-control">
+            <input type="text" name="return_date" class="elegant-form-control form-control">
         </div>
         <div class="col-lg-3 col-md-4 col-sm-6 form-group">
             <label>Pax Paid</label>
@@ -345,6 +345,17 @@ $('#addBtn').hide();
 $('#update-button').show();
 });
 });
+</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.flatpickr) {
+            flatpickr('input[name="depart_date"]', { dateFormat: 'Y-m-d' });
+            flatpickr('input[name="return_date"]', { dateFormat: 'Y-m-d' });
+        }
+    });
 </script>
 
 <div id="confirmModal" class="custom-modal-overlay" style="display: none;">

@@ -1,8 +1,6 @@
 @extends('master')
 
 @section('konten')
-    <script type="text/javascript" src="{{ asset('js/datepicker.min.js') }}"></script>
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/datepicker.min.css') }}">
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css">
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 
@@ -47,16 +45,6 @@
         $(document).ready(function() {
             // Initialize Select2
             $('.select2').select2();
-
-            $('[name=depart_date]').datepicker({
-                format: 'dd-mm-yyyy',
-                startDate: new Date()
-            });
-
-            $('[name=return_date]').datepicker({
-                format: 'dd-mm-yyyy',
-                startDate: new Date()
-            });
         });
     </script>
 @endsection

@@ -19,10 +19,9 @@
 
     <div class="card-elegant">
         <div class="card-body">
-            @if(session('success'))
-            <div class="alert alert-success d-none" data-message="{!! session('success') !!}"></div>
-            @endif
-
+        @if (session('info'))
+            <div class="alert-data-source" data-message="{{ session('info') }}" style="display: none;"></div>
+        @endif
             <div class="top-bar-controls">
                 <div class="filter-search-group">
                     <form action="{{ route('ticket.index') }}" method="GET" class="search-form">
@@ -172,28 +171,53 @@
     </div>
 </div>
 
+<div id="successToast" class="success-toast" style="display: none;">
+    <div class="success-toast-content">
+        <div class="checkmark-circle">
+            <i class="fa fa-check"></i>
+        </div>
+        <p class="success-text" id="successMessageText">Berhasil!</p>
+    </div>
+</div>
+
+<div id="warningToast" class="warning-toast" style="display: none;">
+    <div class="warning-toast-content">
+        <div class="warning-circle">
+            <i class="fa fa-exclamation"></i>
+        </div>
+        <p class="warning-text" id="warningMessageText">Pilih minimal 2 tiket!</p>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
-    // Checkbox Select All
-    $('#selectAll').on('click', function() {
-        $('.ticket-checkbox').prop('checked', this.checked);
-    });
+// Validasi Bulk Invoice dengan Pop-up Oranye
+$('#bulkInvoiceForm').on('submit', function(e) {
+    let selected = $('.ticket-checkbox:checked');
+    
+    if (selected.length < 2) { // Minimal 2 tiket untuk digabung
+        e.preventDefault();
+        
+        // Munculkan toast oranye
+        $('#warningMessageText').text('Pilih minimal 2 tiket untuk digabungkan!');
+        const wToast = $('#warningToast');
+        wToast.css('display', 'flex').hide().fadeIn(300);
 
-    // Validasi Bulk Invoice & Memindahkan Checkbox ke Form
-    $('#bulkInvoiceForm').on('submit', function(e) {
-        let selected = $('.ticket-checkbox:checked');
-        if (selected.length === 0) {
-            e.preventDefault();
-            alert('Pilih minimal 2 tiket untuk digabungkan!');
-        } else {
-            $('#bulkCheckboxesContainer').html('');
-            selected.each(function() {
-                $('#bulkCheckboxesContainer').append('<input type="hidden" name="ticket_ids[]" value="'+$(this).val()+'">');
-            });
-            $('#loadingOverlay').fadeIn(200);
-        }
-    });
+        // Hilangkan otomatis setelah 3 detik
+        setTimeout(function() {
+            wToast.fadeOut(500);
+        }, 3000);
+        
+    } else {
+        // Jika valid, lanjutkan proses
+        $('#bulkCheckboxesContainer').html('');
+        selected.each(function() {
+            $('#bulkCheckboxesContainer').append('<input type="hidden" name="ticket_ids[]" value="'+$(this).val()+'">');
+        });
+        $('#loadingOverlay').fadeIn(200);
+    }
+});
 
     // Tombol Split Sesuai Logika Notepad
     $('.btn-split-print').on('click', function() {
@@ -249,6 +273,34 @@ $(document).ready(function() {
 });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function() {
+    // 1. Logika Notifikasi Sukses
+    const successAlert = $('.alert-success[data-message]');
+    if (successAlert.length > 0) {
+        const message = successAlert.data('message');
+        
+        // Masukkan teks & tampilkan toast
+        $('#successMessageText').text(message);
+        $('#successToast').css('display', 'flex').hide().fadeIn(400);
+
+        // Hilangkan otomatis setelah 3 detik
+        setTimeout(function() {
+            $('#successToast').fadeOut(500);
+        }, 3000);
+    }
+
+    // 2. Tambahan: Pastikan Session 'success' juga tertangkap kalau controller kirim 'success'
+    // (Opsional, tapi bagus buat jaga-jaga)
+    @if(session('success'))
+        $('#successMessageText').text("{{ session('success') }}");
+        $('#successToast').css('display', 'flex').hide().fadeIn(400);
+        setTimeout(function() { $('#successToast').fadeOut(500); }, 3000);
+    @endif
+});
+</script>
+
 <style>
 .elegant-container { max-width: 1400px; margin: 0 auto; padding: 20px; font-family: 'Poppins', sans-serif; }
 .card-elegant { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
@@ -269,5 +321,92 @@ $(document).ready(function() {
 .spinner-elegant { width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid #4338ca; border-radius:50%; animation:spin 1s linear infinite; }
 @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
 .pagination-wrapper .pagination { margin-bottom: 0; }
-</style>
+
+/* Success Toast Styles */
+.success-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); 
+    z-index: 11000;
+    padding: 30px 40px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.checkmark-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #10b981;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    animation: scaleIn 0.3s ease-out forwards;
+}
+
+.checkmark-circle .fa {
+    font-size: 30px;
+    color: white;
+}
+
+.success-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #10b981;
+    margin: 0;
+}
+
+@keyframes scaleIn {
+    0% { transform: scale(0); }
+    100% { transform: scale(1); }
+}
+
+/* Warning Toast Styles (Persis Success tapi Oranye) */
+.warning-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); 
+    z-index: 11000;
+    padding: 30px 40px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    display: none; /* Default sembunyi */
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 300px;
+}
+
+.warning-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #f59e0b; /* Warna Oranye Amber */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 15px;
+    animation: scaleIn 0.3s ease-out forwards;
+}
+
+.warning-circle .fa {
+    font-size: 30px;
+    color: white;
+}
+
+.warning-text {
+    font-size: 18px;
+    font-weight: 600;
+    color: #f59e0b;
+    margin: 0;
+}
 @endsection

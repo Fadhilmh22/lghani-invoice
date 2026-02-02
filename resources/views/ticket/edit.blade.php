@@ -6,21 +6,22 @@
     .section-title { font-weight: 600; font-size: 15px; margin-bottom: 15px; border-left: 5px solid #4f46e5; padding-left: 12px; color: #1e293b; }
     .form-group label { font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 5px; }
     .form-control { font-size: 13px; border-radius: 6px; }
-    .input-group { display: flex !important; width: 100%; }
-    .input-group-addon {
-        display: flex;
+    
+    /* Styling Input Baggage + Unit (KG/Rp) */
+    .ticket-unit-wrapper {
+        display: inline-flex;
         align-items: center;
-        padding: 6px 12px;
-        font-size: 13px;
+        gap: 6px;
+        width: 100%;
+    }
+    .ticket-unit-input {
+        max-width: 110px;
+    }
+    .ticket-unit-label {
+        font-size: 11px;
         color: #64748b;
-        background-color: #f1f5f9;
-        border: 1px solid #cbd5e1;
         white-space: nowrap;
     }
-    .input-group .form-control:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
-    .input-group-addon:last-child { border-left: 0; border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
-    .input-group-addon:first-child { border-right: 0; border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
-    .input-group .form-control:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; }
 
     /* CSS TAMBAHAN UNTUK SELECT2 & SEARCH ICON */
     .select2-container--default .select2-selection--single {
@@ -114,11 +115,11 @@
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Berangkat</label>
-                            <input type="datetime-local" name="dep_out" class="form-control" value="{{ $ticket->dep_time_out ? date('Y-m-d\TH:i', strtotime($ticket->dep_time_out)) : '' }}">
+                            <input type="text" name="dep_out" class="form-control" value="{{ $ticket->dep_time_out ? date('Y-m-d\TH:i', strtotime($ticket->dep_time_out)) : '' }}">
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Tiba</label>
-                            <input type="datetime-local" name="arr_out" class="form-control" value="{{ $ticket->arr_time_out ? date('Y-m-d\TH:i', strtotime($ticket->arr_time_out)) : '' }}">
+                            <input type="text" name="arr_out" class="form-control" value="{{ $ticket->arr_time_out ? date('Y-m-d\TH:i', strtotime($ticket->arr_time_out)) : '' }}">
                         </div>
                     </div>
                 </div>
@@ -135,11 +136,11 @@
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Berangkat</label>
-                            <input type="datetime-local" name="dep_in" class="form-control" value="{{ $ticket->dep_time_in ? date('Y-m-d\TH:i', strtotime($ticket->dep_time_in)) : '' }}">
+                            <input type="text" name="dep_in" class="form-control" value="{{ $ticket->dep_time_in ? date('Y-m-d\TH:i', strtotime($ticket->dep_time_in)) : '' }}">
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Tiba</label>
-                            <input type="datetime-local" name="arr_in" class="form-control" value="{{ $ticket->arr_time_in ? date('Y-m-d\TH:i', strtotime($ticket->arr_time_in)) : '' }}">
+                            <input type="text" name="arr_in" class="form-control" value="{{ $ticket->arr_time_in ? date('Y-m-d\TH:i', strtotime($ticket->arr_time_in)) : '' }}">
                         </div>
                     </div>
                 </div>
@@ -153,6 +154,7 @@
         <tr class="active">
             <th width="12%">Title</th>
             <th>Nama Lengkap</th>
+            <th width="12%">Tipe</th>
             <th width="20%">No. Tiket</th>
             <th width="15%" class="text-center">Baggage?</th> <th width="50px"></th>
         </tr>
@@ -166,6 +168,8 @@
         // Cek apakah $pax->genre ada di database, jika tidak pakai hasil split, jika tidak ada juga default MR
         $currentTitle = $pax->genre ?? ($splitName[0] ?? 'MR');
         $realName = isset($splitName[1]) ? $splitName[1] : $pax->name;
+
+        $currentType = $pax->type ?? 'Adult';
         
         $hasBaggage = \DB::table('invoice_details')
                         ->where('invoice_id', $ticket->invoice_id)
@@ -186,6 +190,13 @@
         </td>
         <td>
             <input type="text" name="passengers[{{ $index }}][name]" class="form-control" value="{{ $realName }}" required>
+        </td>
+        <td>
+            <select name="passengers[{{ $index }}][type]" class="form-control">
+                <option value="Adult" {{ $currentType == 'Adult' ? 'selected' : '' }}>Adult</option>
+                <option value="Child" {{ $currentType == 'Child' ? 'selected' : '' }}>Child</option>
+                <option value="Infant" {{ $currentType == 'Infant' ? 'selected' : '' }}>Infant</option>
+            </select>
         </td>
         <td>
             <input type="text" name="passengers[{{ $index }}][ticket_num]" class="form-control" value="{{ $pax->ticket_no }}">
@@ -254,23 +265,23 @@
     <div class="row">
         <div class="col-md-4 form-group">
             <label>Free Baggage</label>
-            <div class="input-group">
-                <input type="number" name="free_baggage" class="form-control" value="{{ $ticket->free_baggage ?? 0 }}">
-                <span class="input-group-addon">KG</span>
+            <div class="ticket-unit-wrapper">
+                <input type="number" name="free_baggage" class="form-control ticket-unit-input" value="{{ $ticket->free_baggage ?? 0 }}">
+                <span class="ticket-unit-label">KG</span>
             </div>
         </div>
         <div class="col-md-4 form-group">
             <label>Add On (Qty)</label>
-            <div class="input-group">
-                <input type="number" name="baggage_kg" id="baggage_kg" class="form-control" value="{{ $ticket->baggage_kg }}">
-                <span class="input-group-addon">KG</span>
+            <div class="ticket-unit-wrapper">
+                <input type="number" name="baggage_kg" id="baggage_kg" class="form-control ticket-unit-input" value="{{ $ticket->baggage_kg }}">
+                <span class="ticket-unit-label">KG</span>
             </div>
         </div>
         <div class="col-md-4 form-group">
             <label>Add On Price</label>
-            <div class="input-group">
-                <span class="input-group-addon">Rp</span>
-                <input type="number" name="baggage_price" id="baggage_price" class="form-control" value="{{ (int)$ticket->baggage_price }}">
+            <div class="ticket-unit-wrapper">
+                <span class="ticket-unit-label">Rp</span>
+                <input type="number" name="baggage_price" id="baggage_price" class="form-control ticket-unit-input" value="{{ (int)$ticket->baggage_price }}">
             </div>
         </div>
     </div>
@@ -298,6 +309,8 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
 <script>
 $(document).ready(function() {
@@ -325,19 +338,49 @@ $(document).ready(function() {
         $('#publish_price').val(totalPDF);
     });
 
+    // DateTime picker untuk jadwal penerbangan
+    if (window.flatpickr) {
+        const dateTimeConfig = {
+            enableTime: true,
+            dateFormat: 'Y-m-d\\TH:i',
+            altInput: true,
+            altFormat: 'd-m-Y H:i',
+            time_24hr: true
+        };
+        flatpickr('input[name="dep_out"]', dateTimeConfig);
+        flatpickr('input[name="arr_out"]', dateTimeConfig);
+        flatpickr('input[name="dep_in"]', dateTimeConfig);
+        flatpickr('input[name="arr_in"]', dateTimeConfig);
+    }
+
     // Fitur Tambah Penumpang
     let rowIdx = {{ count($passengers) }};
     $('#add-passenger').click(function() {
         let html = `<tr>
-            <td><select name="passengers[${rowIdx}][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option></select></td>
-            <td><input type="text" name="passengers[${rowIdx}][name]" class="form-control" required></td>
-            <td><input type="text" name="passengers[${rowIdx}][ticket_num]" class="form-control"></td>
-            <td class="text-center">
-                <input type="checkbox" name="passengers[${rowIdx}][has_baggage]" value="1" style="width: 20px; height: 20px; cursor: pointer;">
-                <br><small class="text-muted">Munculkan Bagasi</small>
-            </td>
-            <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button></td>
-        </tr>`;
+        <td>
+            <select name="passengers[${rowIdx}][title]" class="form-control">
+                <option value="MR">MR</option>
+                <option value="MRS">MRS</option>
+                <option value="MS">MS</option>
+                <option value="MSTR">MSTR</option>
+                <option value="MISS">MISS</option>
+            </select>
+        </td>
+        <td><input type="text" name="passengers[${rowIdx}][name]" class="form-control" required></td>
+        <td>
+            <select name="passengers[${rowIdx}][type]" class="form-control">
+                <option value="Adult">Adult</option>
+                <option value="Child">Child</option>
+                <option value="Infant">Infant</option>
+            </select>
+        </td>
+        <td><input type="text" name="passengers[${rowIdx}][ticket_num]" class="form-control"></td>
+        <td class="text-center">
+            <input type="checkbox" name="passengers[${rowIdx}][has_baggage]" value="1" style="width: 20px; height: 20px; cursor: pointer;">
+            <br><small class="text-muted">Munculkan Bagasi</small>
+        </td>
+        <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button></td>
+    </tr>`;
         $('#passenger-container').append(html);
         rowIdx++;
     });

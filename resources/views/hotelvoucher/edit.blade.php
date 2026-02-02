@@ -54,13 +54,13 @@
                     
                     <div class="elegant-form-group">
                         <label for="hotel_due_date">Due Date Hotel</label>
-                        <input type="date" id="hotel_due_date" name="hotel_due_date" class="elegant-form-control" required value="{{ !empty($invoice) ? $invoice->hotel_due_date : '' }}">
+                        <input type="text" id="hotel_due_date" name="hotel_due_date" class="elegant-form-control" required value="{{ !empty($invoice) ? $invoice->hotel_due_date : '' }}">
                         <span class="text-danger" id="error-hotel_due_date"></span>
                     </div>
                     
                     <div class="elegant-form-group">
                         <label for="payment_date">Date Payment</label>
-                        <input type="date" id="payment_date" name="payment_date" class="elegant-form-control" required value="{{ !empty($invoice) ? $invoice->payment_date : '' }}">
+                        <input type="text" id="payment_date" name="payment_date" class="elegant-form-control" required value="{{ !empty($invoice) ? $invoice->payment_date : '' }}">
                         <span class="text-danger" id="payment_date-error"></span>
                     </div>
                     
@@ -138,13 +138,13 @@
                     
                     <div class="elegant-form-group">
                         <label for="check_in">Check In</label>
-                        <input type="date" id="check_in" name="check_in" class="elegant-form-control" value="{{ $voucher->check_in }}" required>
+                        <input type="text" id="check_in" name="check_in" class="elegant-form-control" value="{{ $voucher->check_in }}" required>
                         <span class="text-danger" id="error-check_in"></span>
                     </div>
                     
                     <div class="elegant-form-group">
                         <label for="check_out">Check Out</label>
-                        <input type="date" id="check_out" name="check_out" class="elegant-form-control" value="{{ $voucher->check_out }}" required>
+                        <input type="text" id="check_out" name="check_out" class="elegant-form-control" value="{{ $voucher->check_out }}" required>
                         <span class="text-danger" id="error-check_out"></span>
                     </div>
                     
@@ -228,5 +228,28 @@
     
     $('#hotel_id').trigger('change');
     $('#check_out').trigger('change');
+</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (window.flatpickr) {
+            flatpickr('#hotel_due_date', { dateFormat: 'Y-m-d' });
+            flatpickr('#payment_date', { dateFormat: 'Y-m-d' });
+            flatpickr('#check_in', {
+                dateFormat: 'Y-m-d',
+                onChange: function(selectedDates, dateStr, instance) {
+                    instance._input.dispatchEvent(new Event('change'));
+                }
+            });
+            flatpickr('#check_out', {
+                dateFormat: 'Y-m-d',
+                onChange: function(selectedDates, dateStr, instance) {
+                    instance._input.dispatchEvent(new Event('change'));
+                }
+            });
+        }
+    });
 </script>
 @endsection
