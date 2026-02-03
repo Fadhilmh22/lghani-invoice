@@ -18,7 +18,7 @@ class InvoiceController extends Controller
         $search = $request->input('search');
     
         // Hapus filter has('detail') agar invoice gabungan baru bisa muncul
-        $invoice = Invoice::with(['customer', 'tickets']) // pastikan relasi tickets ada di model
+        $invoice = Invoice::with(['customer', 'tickets', 'detail']) // pastikan relasi tickets dan detail ada di model
           ->whereHas('customer', function ($query) use ($search) {
               $query->where('booker', 'like', '%' . $search . '%')
               ->orWhere('company', 'like', '%' . $search . '%');

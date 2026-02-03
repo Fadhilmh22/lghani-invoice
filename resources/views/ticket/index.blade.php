@@ -6,7 +6,7 @@
 <div id="loadingOverlay" class="loading-overlay" style="display: none;">
     <div class="loading-content">
         <div class="spinner-elegant"></div>
-        <p>Processing...</p>
+        <p style="margin-top: 15px; font-weight: 500; color: #4338ca;">Processing...</p>
     </div>
 </div>
 
@@ -99,8 +99,7 @@
                             <td style="color: #475569;">{{ $t->route_out }}</td>
                             <td class="text-center">
                                 <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-weight: bold;">
-                                    {{-- Jika total_pax ada pakai itu, jika tidak coba hitung manual dari relasi details --}}
-                                    {{ $t->total_pax ?? $t->details->where('class', '!=', 'BAGASI_ONLY')->count() }} Pax                                </span>
+                                    {{ $t->total_pax ?? $t->details->where('class', '!=', 'BAGASI_ONLY')->count() }} Pax </span>
                             </td>
                             <td class="text-right">
                                 <strong class="text-primary">IDR {{ number_format($t->total_publish ?? 0) }}</strong>
@@ -139,8 +138,10 @@
                 </table>
             </div>
             <div class="table-footer-controls">
+                @if($tickets->count() > 0)
                 <div>Showing {{ $tickets->firstItem() }} to {{ $tickets->lastItem() }} of {{ $tickets->total() }} entries</div>
                 <div class="pagination-wrapper">{{ $tickets->links() }}</div>
+                @endif
             </div>
         </div>
     </div>
@@ -165,7 +166,7 @@
         <h3>Yakin Hapus Data?</h3>
         <p id="infoPlaceholder" style="color: #64748b; margin-bottom: 25px;"></p>
         <div style="display: flex; gap: 10px; justify-content: center;">
-            <button type="button" id="cancelDeleteBtn" class="btn-secondary-elegant">Batal</button>
+            <button type="button" id="cancelDeleteBtn" class="btn-secondary-elegant" style="padding: 8px 20px; border-radius: 8px; border: 1px solid #ccc; background: #fff;">Batal</button>
             <button type="button" id="confirmDeleteBtn" class="btn-danger-elegant" style="background: #ef4444; color: #fff; border: none; padding: 8px 20px; border-radius: 8px;">Hapus</button>
         </div>
     </div>
@@ -192,34 +193,39 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(document).ready(function() {
-// Validasi Bulk Invoice dengan Pop-up Oranye
-$('#bulkInvoiceForm').on('submit', function(e) {
-    let selected = $('.ticket-checkbox:checked');
-    
-    if (selected.length < 2) { // Minimal 2 tiket untuk digabung
-        e.preventDefault();
-        
-        // Munculkan toast oranye
-        $('#warningMessageText').text('Pilih minimal 2 tiket untuk digabungkan!');
-        const wToast = $('#warningToast');
-        wToast.css('display', 'flex').hide().fadeIn(300);
-
-        // Hilangkan otomatis setelah 3 detik
-        setTimeout(function() {
-            wToast.fadeOut(500);
-        }, 3000);
-        
-    } else {
-        // Jika valid, lanjutkan proses
-        $('#bulkCheckboxesContainer').html('');
-        selected.each(function() {
-            $('#bulkCheckboxesContainer').append('<input type="hidden" name="ticket_ids[]" value="'+$(this).val()+'">');
-        });
-        $('#loadingOverlay').fadeIn(200);
+    // Fungsi Helper Tampilkan Loading
+    function showLoading() {
+        $('#loadingOverlay').css('display', 'flex').hide().fadeIn(200);
     }
-});
 
-    // Tombol Split Sesuai Logika Notepad
+    function hideLoading() {
+        $('#loadingOverlay').fadeOut(300);
+    }
+
+    // 1. Select All Checkbox
+    $('#selectAll').on('click', function() {
+        $('.ticket-checkbox').prop('checked', this.checked);
+    });
+
+    // 2. Validasi Bulk Invoice
+    $('#bulkInvoiceForm').on('submit', function(e) {
+        let selected = $('.ticket-checkbox:checked');
+        if (selected.length < 2) {
+            e.preventDefault();
+            $('#warningMessageText').text('Pilih minimal 2 tiket untuk digabungkan!');
+            const wToast = $('#warningToast');
+            wToast.css('display', 'flex').hide().fadeIn(300);
+            setTimeout(function() { wToast.fadeOut(500); }, 3000);
+        } else {
+            $('#bulkCheckboxesContainer').html('');
+            selected.each(function() {
+                $('#bulkCheckboxesContainer').append('<input type="hidden" name="ticket_ids[]" value="'+$(this).val()+'">');
+            });
+            showLoading();
+        }
+    });
+
+    // 3. Split Passenger Modal
     $('.btn-split-print').on('click', function() {
         let ticketId = $(this).data('id');
         let pnr = $(this).data('pnr');
@@ -227,19 +233,15 @@ $('#bulkInvoiceForm').on('submit', function(e) {
         $('#passengerList').html('<p class="text-center" style="padding: 20px;">Loading passengers...</p>');
         $('#splitModal').fadeIn(200);
 
-        // Ambil data penumpang via AJAX (Sesuai Notepad)
         $.get('/ticket/' + ticketId + '/passengers', function(data) {
             let html = '';
             if(Array.isArray(data) && data.length > 0) {
                 data.forEach(function(pax) {
-                    let namaPenumpang = pax.name ? pax.name : 'Nama Tidak Terdeteksi';
-                    let tipePenumpang = pax.genre ? pax.genre : 'Pax';
-
                     html += `
                     <div class="pax-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #f1f5f9;">
-                        <div>
-                            <div style="font-weight:600; color:#1e293b; text-transform: uppercase;">${namaPenumpang}</div>
-                            <small style="color:#64748b;">${tipePenumpang}</small>
+                        <div style="text-align: left;">
+                            <div style="font-weight:600; color:#1e293b; text-transform: uppercase;">${pax.name || 'Nama Tidak Terdeteksi'}</div>
+                            <small style="color:#64748b;">${pax.genre || 'Pax'}</small>
                         </div>
                         <a href="/ticket/print-split/${ticketId}/${pax.id}" target="_blank" class="btn-print-sm" style="background: #4338ca; color: white; padding: 5px 12px; border-radius: 6px; text-decoration: none; font-size: 11px;">
                             <i class="fa fa-print"></i> Cetak
@@ -251,11 +253,11 @@ $('#bulkInvoiceForm').on('submit', function(e) {
             }
             $('#passengerList').html(html);
         }).fail(function() {
-            $('#passengerList').html('<p class="text-center" style="color: red; padding: 20px;">Gagal mengambil data dari server.</p>');
+            $('#passengerList').html('<p class="text-center" style="color: red; padding: 20px;">Gagal mengambil data.</p>');
         });
     });
 
-    // Handle Delete
+    // 4. Handle Delete
     let formTarget = null;
     $('.delete-button').on('click', function() {
         formTarget = $(this).closest('form');
@@ -263,38 +265,18 @@ $('#bulkInvoiceForm').on('submit', function(e) {
         $('#deleteConfirmationModal').fadeIn(200);
     });
     $('#cancelDeleteBtn').on('click', function() { $('#deleteConfirmationModal').fadeOut(200); });
-    $('#confirmDeleteBtn').on('click', function() { if(formTarget) formTarget.submit(); });
+    $('#confirmDeleteBtn').on('click', function() { if(formTarget) { showLoading(); formTarget.submit(); } });
 
-    // Loading effect for print
+    // 5. Loading Overlay for Print
     $(document).on('click', '.print-action, .btn-print-sm', function() {
-        $('#loadingOverlay').fadeIn(200);
-        setTimeout(() => { $('#loadingOverlay').fadeOut(300); }, 2500);
+        showLoading();
+        setTimeout(function() { hideLoading(); }, 2500);
     });
-});
-</script>
 
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-$(document).ready(function() {
-    // 1. Logika Notifikasi Sukses
-    const successAlert = $('.alert-success[data-message]');
-    if (successAlert.length > 0) {
-        const message = successAlert.data('message');
-        
-        // Masukkan teks & tampilkan toast
-        $('#successMessageText').text(message);
-        $('#successToast').css('display', 'flex').hide().fadeIn(400);
-
-        // Hilangkan otomatis setelah 3 detik
-        setTimeout(function() {
-            $('#successToast').fadeOut(500);
-        }, 3000);
-    }
-
-    // 2. Tambahan: Pastikan Session 'success' juga tertangkap kalau controller kirim 'success'
-    // (Opsional, tapi bagus buat jaga-jaga)
-    @if(session('success'))
-        $('#successMessageText').text("{{ session('success') }}");
+    // 6. Success Notification
+    @if(session('success') || session('info'))
+        let msg = "{{ session('success') ?? session('info') }}";
+        $('#successMessageText').text(msg);
         $('#successToast').css('display', 'flex').hide().fadeIn(400);
         setTimeout(function() { $('#successToast').fadeOut(500); }, 3000);
     @endif
@@ -305,108 +287,56 @@ $(document).ready(function() {
 .elegant-container { max-width: 1400px; margin: 0 auto; padding: 20px; font-family: 'Poppins', sans-serif; }
 .card-elegant { background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
 .page-title { font-size: 22px; font-weight: 600; color: #0f172a; }
-.top-bar-controls { display: flex; justify-content: space-between; margin-bottom: 20px; }
+.top-bar-controls { display: flex; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
 .elegant-table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .elegant-table thead th { background: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 11px; padding: 15px; border-bottom: 1px solid #e2e8f0; }
 .elegant-table td { padding: 15px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; background: #fff; }
 .badge-pnr { background: #e0e7ff; color: #4338ca; padding: 4px 8px; border-radius: 6px; font-weight: 600; font-size: 12px; }
-.btn-action { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; border: none; margin: 0 2px; transition: all 0.2s; }
+.btn-action { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; border: none; margin: 0 2px; transition: all 0.2s; cursor: pointer; }
 .print-action { background: #ccfbf1; color: #0d9488; }
 .split-action { background: #e0e7ff; color: #4338ca; }
 .edit-action { background: #fef3c7; color: #d97706; }
 .delete-action { background: #fee2e2; color: #dc2626; }
 .custom-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; }
 .custom-modal-content { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-.loading-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:10000; display:flex; justify-content:center; align-items:center; }
-.spinner-elegant { width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid #4338ca; border-radius:50%; animation:spin 1s linear infinite; }
+
+/* Update CSS Loading agar di tengah */
+.loading-overlay { 
+    position: fixed; 
+    top:0; left:0; 
+    width:100%; height:100%; 
+    background:rgba(255,255,255,0.85); 
+    z-index:10000; 
+    display:none; 
+    justify-content:center; 
+    align-items:center; 
+}
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.spinner-elegant { 
+    width:50px; height:50px; 
+    border:5px solid #f3f3f3; 
+    border-top:5px solid #4338ca; 
+    border-radius:50%; 
+    animation:spin 1s linear infinite; 
+}
+
 @keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
-.pagination-wrapper .pagination { margin-bottom: 0; }
 
-/* Success Toast Styles */
-.success-toast {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); 
-    z-index: 11000;
-    padding: 30px 40px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+.success-toast, .warning-toast {
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+    z-index: 11000; padding: 30px 40px; background-color: #ffffff; border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); display: none; flex-direction: column;
+    align-items: center; text-align: center; min-width: 300px;
 }
-
-.checkmark-circle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: #10b981;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 15px;
-    animation: scaleIn 0.3s ease-out forwards;
-}
-
-.checkmark-circle .fa {
-    font-size: 30px;
-    color: white;
-}
-
-.success-text {
-    font-size: 18px;
-    font-weight: 600;
-    color: #10b981;
-    margin: 0;
-}
-
-@keyframes scaleIn {
-    0% { transform: scale(0); }
-    100% { transform: scale(1); }
-}
-
-/* Warning Toast Styles (Persis Success tapi Oranye) */
-.warning-toast {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%); 
-    z-index: 11000;
-    padding: 30px 40px;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    display: none; /* Default sembunyi */
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    min-width: 300px;
-}
-
-.warning-circle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: #f59e0b; /* Warna Oranye Amber */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 15px;
-    animation: scaleIn 0.3s ease-out forwards;
-}
-
-.warning-circle .fa {
-    font-size: 30px;
-    color: white;
-}
-
-.warning-text {
-    font-size: 18px;
-    font-weight: 600;
-    color: #f59e0b;
-    margin: 0;
-}
+.checkmark-circle { width: 60px; height: 60px; border-radius: 50%; background-color: #10b981; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
+.warning-circle { width: 60px; height: 60px; border-radius: 50%; background-color: #f59e0b; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
+.checkmark-circle .fa, .warning-circle .fa { font-size: 30px; color: white; }
+.success-text { font-size: 18px; font-weight: 600; color: #10b981; margin: 0; }
+.warning-text { font-size: 18px; font-weight: 600; color: #f59e0b; margin: 0; }
+</style>
 @endsection

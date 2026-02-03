@@ -132,8 +132,9 @@
                             <td>{{ $row->customer->company }}</td> 
                             <td>{{ $row->customer->phone }}</td>
                             <td>{{ $row->edited }}</td>
-                            <td class="text-right">Rp {{ number_format($row->total) }}</td>
-                            
+                            <td class="text-right">
+                                <strong>Rp {{ number_format($row->detail->sum('pax_paid')) }}</strong>
+                            </td>                            
                             <!-- Kolom Aksi yang Rapi dengan Icon -->
                             <td class="action-buttons text-center">
                                 <form action="{{ route('invoice.destroy', $row->id) }}" method="POST" id="delete-form-{{ $row->id }}">
