@@ -84,7 +84,17 @@ class TicketController extends Controller
     
             // 3. Simpan ke tabel Invoices
             $invoice = new Invoice();
-            $invoice->invoiceno = 'LGT' . date('YmdHis');
+            // Generate invoice number as LGT + YYYYMMDD + 4-digit sequence (0001)
+            $date = \Carbon\Carbon::now()->format('Ymd');
+            // get max 4-digit sequence for today's date, then increment and pad
+            $seqResult = Invoice::selectRaw("COALESCE(MAX(CAST(SUBSTRING(invoiceno, 12) AS INTEGER)), 0) AS maxseq")
+                            ->where(DB::raw("SUBSTRING(invoiceno,4,8)"), $date)
+                            ->get()
+                            ->toArray();
+
+            $nextSeq = (int) $seqResult[0]['maxseq'] + 1;
+            $finalinvoiceno = 'LGT' . $date . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
+            $invoice->invoiceno = $finalinvoiceno;
             $invoice->customer_id = $request->customer_id;
             $invoice->total = $pax_paid_total - $discount_total;
             $invoice->edited = auth()->user()->name ?? 'Admin'; 
@@ -463,12 +473,9 @@ class TicketController extends Controller
     
             // 3. Update Total Harga di Invoice Induk (Akumulasi Semua Tiket)
             $invoiceInduk = \App\Models\Invoice::find($mainInvoiceId);
-            $totalHargaSemuaTiket = \App\Models\Ticket::where('invoice_id', $mainInvoiceId)->sum('total_profit'); 
-            // Catatan: Gunakan field yang sesuai untuk total tagihan (misal: total_publish atau total_profit)
-            
-            $invoiceInduk->update([
-                'total' => $totalHargaSemuaTiket
-            ]);
+            // Recalculate invoice total as sum of pax_paid from all invoice details moved to the main invoice
+            $totalHargaSemuaTiket = \App\Models\Invoice_detail::where('invoice_id', $mainInvoiceId)->sum('pax_paid');
+            $invoiceInduk->update(['total' => $totalHargaSemuaTiket]);
     
             DB::commit();
             return redirect()->route('ticket.index')->with('success', 'Tiket berhasil digabungkan ke dalam Invoice!');
