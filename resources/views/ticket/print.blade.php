@@ -196,7 +196,7 @@
                         <td align="right">Rp {{ number_format($ticket->basic_fare, 0, ',', '.') }}</td>
                     </tr>
                     <tr>
-                        <td>Booking Fee & Taxes</td>
+                        <td>Total Taxes</td>
                         <td align="right">Rp {{ number_format($ticket->total_tax + $ticket->fee, 0, ',', '.') }}</td>
                     </tr>
                     @if($ticket->baggage_price > 0)
