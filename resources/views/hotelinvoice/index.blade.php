@@ -3,41 +3,8 @@
 @section('konten')
 
 @php
-    // =====================================================================
-    // LOGIKA OTOMATISASI STATUS INVOICE HOTEL LAMA
-    // PENTING: Logika ini (Update database di View) melanggar prinsip MVC, 
-    // tetapi diimplementasikan di sini untuk memenuhi permintaan otomatisasi 
-    // agar update terjadi saat halaman diakses. Sebaiknya, logika ini 
-    // dipindahkan ke Scheduled Task (Cron Job) di Controller/Command.
-    // =====================================================================
-    
-    // Pastikan kita bisa mengakses Carbon dan Model Hotel_invoice
-    try {
-        $carbon = new \Carbon\Carbon;
-        $hotelInvoiceModel = new \App\Models\Hotel_invoice; 
-    
-        // Tentukan tanggal batas (14 hari yang lalu)
-        $limitDate = $carbon->now()->subDays(14);
-    
-        // 1. Cari ID invoice hotel yang 'Belum Lunas' dan dibuat lebih dari 14 hari yang lalu
-        $idsToUpdate = $hotelInvoiceModel::where('status_pembayaran', 'Belum Lunas')
-            ->where('created_at', '<', $limitDate)
-            ->pluck('id');
-    
-        if ($idsToUpdate->isNotEmpty()) {
-            // 2. Lakukan update massal di database
-            $updatedCount = $hotelInvoiceModel::whereIn('id', $idsToUpdate)
-                ->update(['status_pembayaran' => 'Sudah Lunas']);
-            
-            // 3. Berikan notifikasi flash (session info)
-            if ($updatedCount > 0) {
-                 session()->flash('info', 'Status ' . $updatedCount . ' invoice hotel lama (lebih dari 14 hari) telah diperbarui secara otomatis menjadi "Sudah Lunas".');
-            }
-        }
-    } catch (\Throwable $e) {
-        // Tangani jika Model atau Carbon tidak dapat diakses (misalnya di lingkungan testing/simulasi)
-        // echo "<script>console.error('Error auto-update status: " . $e->getMessage() . "');</script>";
-    }
+    // NOTE: Removed automatic status update logic. Views must not modify DB.
+    // Any automatic behavior should be moved to a scheduled Command or controller action.
 @endphp
 
 <div class="elegant-container">

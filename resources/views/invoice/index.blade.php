@@ -3,41 +3,9 @@
 @section('konten')
 
 @php
-    // =====================================================================
-    // LOGIKA OTOMATISASI STATUS INVOICE LAMA
-    // PENTING: Logika ini (Update database di View) melanggar prinsip MVC, 
-    // tetapi diimplementasikan di sini untuk memenuhi permintaan otomatisasi 
-    // agar update terjadi saat halaman diakses. Sebaiknya, logika ini 
-    // dipindahkan ke Scheduled Task (Cron Job) di Controller/Command.
-    // =====================================================================
-    
-    // Pastikan kita bisa mengakses Carbon dan Model Invoice (Asumsi App\Models\Invoice)
-    try {
-        $carbon = new \Carbon\Carbon;
-        $invoiceModel = new \App\Models\Invoice; 
-    
-        // Tentukan tanggal batas (14 hari yang lalu)
-        $limitDate = $carbon->now()->subDays(14);
-    
-        // 1. Cari ID invoice yang 'Belum Lunas' dan dibuat lebih dari 14 hari yang lalu
-        $idsToUpdate = $invoiceModel::where('status_pembayaran', 'Belum Lunas')
-            ->where('created_at', '<', $limitDate)
-            ->pluck('id');
-    
-        if ($idsToUpdate->isNotEmpty()) {
-            // 2. Lakukan update massal di database
-            $updatedCount = $invoiceModel::whereIn('id', $idsToUpdate)
-                ->update(['status_pembayaran' => 'Sudah Lunas']);
-            
-            // 3. Berikan notifikasi flash (session info)
-            if ($updatedCount > 0) {
-                 session()->flash('info', 'Status ' . $updatedCount . ' invoice lama (lebih dari 14 hari) telah diperbarui secara otomatis menjadi "Sudah Lunas".');
-            }
-        }
-    } catch (\Throwable $e) {
-        // Tangani jika Model atau Carbon tidak dapat diakses (misalnya di lingkungan testing/simulasi)
-        // echo "<script>console.error('Error auto-update status: " . $e->getMessage() . "');</script>";
-    }
+    // NOTE: Automatic status updates were removed. No DB changes occur when
+    // loading this view. Any scheduled or manual status updates should be
+    // handled explicitly via controller actions or scheduled commands.
 @endphp
 
 <div>

@@ -6,34 +6,66 @@
     <style>
         @page { margin: 15px; }
         body { font-family: Arial, sans-serif; font-size: 10px; color: #333; line-height: 1.3; margin: 0; padding: 10px; }
+        
+        /* HEADER */
         .header { width: 100%; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 10px; }
         .logo { width: 130px; }
         .booking-title { font-size: 18px; font-weight: bold; color: #000; }
-        .section-header { background: #f5f5f5; padding: 5px 10px; font-weight: bold; border: 1px solid #eee; margin-top: 10px; font-size: 11px; }
-        .flight-table { width: 100%; border: 1px solid #eee; border-top: none; border-collapse: collapse; }
-        .flight-table th { background: #fafafa; padding: 5px 10px; text-align: left; font-size: 9px; color: #888; border-bottom: 1px solid #eee; }
-        .flight-table td { padding: 12px 10px; vertical-align: top; border-bottom: 1px solid #eee; }
-        .city-name { font-size: 11px; font-weight: bold; margin-bottom: 2px; }
         
-        /* Style Transit di Tengah */
-        .transit-container { text-align: center; padding-top: 15px; position: relative; }
-        .transit-line { border-top: 1px dashed #cbd5e1; width: 100%; position: absolute; top: 28px; left: 0; z-index: 1; }
-        .transit-badge { 
-            position: relative; z-index: 2; display: inline-block; background: #f1f5f9; 
-            border: 1px solid #cbd5e1; border-radius: 12px; padding: 2px 8px; 
-            font-size: 8px; color: #475569; font-weight: bold; text-transform: uppercase; 
+        /* SECTION & TABLE */
+        .section-header { background: #f5f5f5; padding: 5px 10px; font-weight: bold; border: 1px solid #eee; margin-top: 10px; font-size: 11px; }
+        
+        .flight-table { width: 100%; border: 1px solid #eee; border-top: none; border-collapse: collapse; table-layout: fixed; }
+        .flight-table th { background: #fafafa; padding: 5px 10px; text-align: left; font-size: 9px; color: #888; border-bottom: 1px solid #eee; }
+        .flight-table td { padding: 8px 6px; vertical-align: top; border-bottom: 1px solid #eee; }
+        .flight-table td table td { padding: 0; vertical-align: top; }
+
+        /* PERBAIKAN KOLOM TRANSIT JOG & KOTAK BIRU */
+        .connector-col { 
+            width: 110px; 
+            text-align: center; 
+            vertical-align: middle !important; 
+            padding: 0 !important; 
+        }
+        .connector-wrapper { position: relative; width: 100%; height: 20px; margin-top: 5px; }
+        .line-dashed { border-top: 1px dashed #cbd5e1; width: 100%; position: absolute; top: 10px; z-index: 1; }
+        
+        .status-badge { 
+            position: relative; 
+            z-index: 2; 
+            background: #fff; 
+            padding: 0 5px; 
+            font-size: 8px; 
+            font-weight: bold; 
+            color: #94a3b8; 
+            white-space: nowrap; 
+        }
+        
+        /* CLASS KOTAK BIRU TRANSIT */
+        .transit-pill { 
+            background: #eff6ff; 
+            border: 1px solid #bfdbfe; 
+            color: #1e40af; 
+            padding: 2px 6px; 
+            border-radius: 10px; 
+            text-transform: uppercase;
         }
 
+        .city-name { font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px; }
+        
+        /* PAX TABLE */
         .pax-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
         .pax-table th { background: #f5f5f5; border: 1px solid #eee; padding: 6px; text-align: left; font-size: 9px; color: #666; }
         .pax-table td { border: 1px solid #eee; padding: 8px 6px; }
         
+        /* GRID & PAYMENT */
         .grid-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
         .grid-td { width: 50%; vertical-align: top; padding-right: 10px; }
         .payment-table { width: 100%; border-collapse: collapse; }
         .payment-table td { padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
         .total-row { font-weight: bold; font-size: 12px; border-top: 1.5px solid #333 !important; }
         
+        /* FOOTER INFO */
         .important-info { margin-top: 15px; font-size: 8.5px; color: #444; text-align: justify; }
         .important-info strong { font-size: 10px; display: block; margin-bottom: 3px; }
         .not-allowed-box { margin-top: 15px; border: 1px solid #ddd; padding: 10px; }
@@ -53,8 +85,14 @@
             </td>
             <td width="45%" align="right">
                 <div class="booking-title">Booking Details</div>
-                <div style="margin-top: 5px;">Ticket ID: <strong>{{ $ticketNoGlobal }}</strong></div>
-                <div>Booking ID (PNR): <strong>{{ $ticket->booking_code }}</strong></div>
+                <div style="margin-top: 5px;">
+                    <span style="color: #777;">Ticket ID:</span> 
+                    <strong>{{ $ticketNoGlobal }}</strong>
+                </div>
+                <div>
+                    <span style="color: #777;">Booking ID (PNR):</span> 
+                    <strong>{{ $ticket->booking_code }}</strong>
+                </div>
                 <div style="color: #666;">
                     Issued Date: <strong>{{ $ticket->created_at->format('d M Y') }}</strong> 
                     | Time: <strong>{{ $ticket->created_at->format('H:i') }}</strong>
@@ -70,7 +108,7 @@
             <tr>
                 <th width="30%">FLIGHT</th>
                 <th width="28%">DEPARTING</th>
-                <th width="14%" style="text-align:center;">STOPS</th>
+                <th width="14%"></th> 
                 <th width="28%">ARRIVING</th>
             </tr>
         </thead>
@@ -78,18 +116,20 @@
             @php
                 function getAirlineLogo($name) {
                     $name = strtolower($name);
-                    $logos = ['air asia'=>'airasia.png', 'batik'=>'batik.png', 'citilink'=>'citilink.png', 'garuda'=>'garuda.png', 'lion'=>'lion.png', 'super air jet'=>'Super Air Jet.png', 'flyjaya'=>'flyjaya.png', 'wings'=>'wings.png', 'scoot'=>'scoot.png', 'sriwijaya'=>'sriwijaya.png', 'pelita air'=>'pelitaair.png'];
-                    foreach ($logos as $key => $logo) { if (str_contains($name, $key)) return $logo; }
+                    $logos = ['air asia'=>'airasia.png', 'batik'=>'batik.png', 'citilink'=>'citilink.png', 'garuda'=>'garuda.png', 'lion'=>'lion.png', 'super air jet'=>'Super Air Jet.png', 'flyjaya'=>'flyjaya.png'];
+                    foreach ($logos as $key => $val) { if (str_contains($name, $key)) return $val; }
                     return null;
                 }
                 $logoOut = getAirlineLogo($ticket->airline->airlines_name);
 
                 $rawClass = $passengers->first()->class ?? 'Economy';
                 if (str_contains($rawClass, '/')) {
-                    $p = explode('/', $rawClass);
-                    $cOutArr = explode(',', $p[0]); $cInArr = explode(',', $p[1] ?? $p[0]);
+                    $parts = explode('/', $rawClass);
+                    $classOutArr = explode(',', $parts[0]);
+                    $classInArr = explode(',', $parts[1] ?? $parts[0]);
                 } else {
-                    $cOutArr = explode(',', $rawClass); $cInArr = $cOutArr;
+                    $classOutArr = explode(',', $rawClass);
+                    $classInArr = $classOutArr;
                 }
             @endphp
 
@@ -97,10 +137,10 @@
                 @php 
                     if($type == 'in' && !$ticket->route_in) continue;
                     $route = ($type == 'out') ? $ticket->route_out : $ticket->route_in;
-                    $depTime = ($type == 'out') ? $ticket->dep_time_out : $ticket->dep_time_in;
-                    $arrTime = ($type == 'out') ? $ticket->arr_time_out : $ticket->arr_time_in;
-                    $fNum = ($type == 'out') ? $ticket->flight_out : ($ticket->flight_in ?? $ticket->flight_out);
-                    $clsArr = ($type == 'out') ? $cOutArr : $cInArr;
+                    $depT = ($type == 'out') ? $ticket->dep_time_out : $ticket->dep_time_in;
+                    $arrT = ($type == 'out') ? $ticket->arr_time_out : $ticket->arr_time_in;
+                    $fNo = ($type == 'out') ? $ticket->flight_out : ($ticket->flight_in ?? $ticket->flight_out);
+                    $cls = ($type == 'out') ? $classOutArr : $classInArr;
 
                     $parts = explode('-', $route);
                     $depC = trim($parts[0]);
@@ -109,42 +149,44 @@
                 @endphp
                 <tr>
                     <td>
-                        <table style="border:none;">
+                        <table width="100%" style="border:none;">
                             <tr>
                                 @if($logoOut)
-                                <td style="border:none; padding:0 5px 0 0;"><img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px;"></td>
+                                <td width="40px" style="border:none; padding:0;">
+                                    <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px; height: auto;">
+                                </td>
                                 @endif
-                                <td style="border:none; padding:0;">
+                                <td style="border:none; padding:0; padding-left: 5px;">
                                     <strong>{{ $ticket->airline->airlines_name }}</strong><br>
-                                    <span style="color: #1e40af; font-weight: bold;">{{ $ticket->airline->airlines_code }} - {{ $fNum }}</span><br>
-                                    <span style="font-size: 9px; color: #64748b; text-transform: uppercase;">Class: {{ implode(', ', array_map('trim', $clsArr)) }}</span>
+                                    <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $ticket->airline->airlines_code }} - {{ $fNo }}</span>
+                                    <div style="font-size: 9px; color: #555;">Class: {{ implode(', ', array_map('trim', $cls)) }}</div>
                                 </td>
                             </tr>
                         </table>
                     </td>
-                    <td>
+                    <td align="left">
                         <div class="city-name">{{ $airports[$depC] ?? $depC }}</div>
                         <div style="font-weight: bold; color: #555;">{{ $depC }}</div>
-                        <div style="margin-top: 4px;">
-                            {{ \Carbon\Carbon::parse($depTime)->format('D, d M Y') }}<br>
-                            <strong>{{ \Carbon\Carbon::parse($depTime)->format('H:i') }}</strong>
+                        {{ \Carbon\Carbon::parse($depT)->format('D, d M Y') }}<br>
+                        <strong>{{ \Carbon\Carbon::parse($depT)->format('H:i') }}</strong>
+                    </td>
+                    
+                    <td class="connector-col">
+                        <div class="connector-wrapper">
+                            <div class="line-dashed"></div>
+                            @if($midC)
+                                <span class="status-badge transit-pill">1 STOP • {{ $midC }}</span>
+                            @else
+                                <span class="status-badge">Direct</span>
+                            @endif
                         </div>
                     </td>
-                    <td class="transit-container">
-                        <div class="transit-line"></div>
-                        @if($midC)
-                            <div class="transit-badge">1 STOP • {{ $midC }}</div>
-                        @else
-                            <div style="position: relative; z-index: 2; background: #fff; display: inline-block; padding: 0 5px; font-size: 8px; color: #94a3b8;">Direct</div>
-                        @endif
-                    </td>
-                    <td>
+
+                    <td align="left">
                         <div class="city-name">{{ $airports[$arrC] ?? $arrC }}</div>
                         <div style="font-weight: bold; color: #555;">{{ $arrC }}</div>
-                        <div style="margin-top: 4px;">
-                            {{ \Carbon\Carbon::parse($arrTime)->format('D, d M Y') }}<br>
-                            <strong>{{ \Carbon\Carbon::parse($arrTime)->format('H:i') }}</strong>
-                        </div>
+                        {{ \Carbon\Carbon::parse($arrT)->format('D, d M Y') }}<br>
+                        <strong>{{ \Carbon\Carbon::parse($arrT)->format('H:i') }}</strong>
                     </td>
                 </tr>
             @endforeach
@@ -209,12 +251,15 @@
 
     <div class="important-info">
         <strong>Important Information</strong>
-        All Guests, including children and infants, must present valid identification at check-in. Check-in begins 4 hours for international and 3 hours for domestic prior to departure.
+        All Guests, including children and infants, must present valid identification at check-in. <br>
+        Check-in begins 4 hours for international and 3 hours for domestic prior to the flight and closes 75 minutes prior to departure.
     </div>
 
     <div class="not-allowed-box">
         <div class="not-allowed-title">Not allowed! These items are Dangerous Goods and are not permitted:</div>
-        <div class="not-allowed-list">Lighters, Matches, Flammable Liquids, Toxic Substances, Corrosives, Explosives, Radioactive Materials.</div>
+        <div class="not-allowed-list">
+            <strong>Hand Baggage & Check-in Baggage:</strong> Lighters, Matches, Flammable Liquids, Toxic Substances, Corrosives, Explosives, Radioactive Materials.
+        </div>
     </div>
 
     <div class="agency-footer">
