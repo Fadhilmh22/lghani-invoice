@@ -12,16 +12,28 @@
         .section-header { background: #f5f5f5; padding: 5px 10px; font-weight: bold; border: 1px solid #eee; margin-top: 10px; font-size: 11px; }
         .flight-table { width: 100%; border: 1px solid #eee; border-top: none; border-collapse: collapse; }
         .flight-table th { background: #fafafa; padding: 5px 10px; text-align: left; font-size: 9px; color: #888; border-bottom: 1px solid #eee; }
-        .flight-table td { padding: 10px; vertical-align: top; border-bottom: 1px solid #eee; }
-        .city-name { font-size: 12px; font-weight: bold; }
+        .flight-table td { padding: 12px 10px; vertical-align: top; border-bottom: 1px solid #eee; }
+        .city-name { font-size: 11px; font-weight: bold; margin-bottom: 2px; }
+        
+        /* Style Transit di Tengah */
+        .transit-container { text-align: center; padding-top: 15px; position: relative; }
+        .transit-line { border-top: 1px dashed #cbd5e1; width: 100%; position: absolute; top: 28px; left: 0; z-index: 1; }
+        .transit-badge { 
+            position: relative; z-index: 2; display: inline-block; background: #f1f5f9; 
+            border: 1px solid #cbd5e1; border-radius: 12px; padding: 2px 8px; 
+            font-size: 8px; color: #475569; font-weight: bold; text-transform: uppercase; 
+        }
+
         .pax-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
         .pax-table th { background: #f5f5f5; border: 1px solid #eee; padding: 6px; text-align: left; font-size: 9px; color: #666; }
         .pax-table td { border: 1px solid #eee; padding: 8px 6px; }
+        
         .grid-table { width: 100%; margin-top: 15px; border-collapse: collapse; }
         .grid-td { width: 50%; vertical-align: top; padding-right: 10px; }
         .payment-table { width: 100%; border-collapse: collapse; }
         .payment-table td { padding: 4px 0; border-bottom: 1px solid #f0f0f0; }
         .total-row { font-weight: bold; font-size: 12px; border-top: 1.5px solid #333 !important; }
+        
         .important-info { margin-top: 15px; font-size: 8.5px; color: #444; text-align: justify; }
         .important-info strong { font-size: 10px; display: block; margin-bottom: 3px; }
         .not-allowed-box { margin-top: 15px; border: 1px solid #ddd; padding: 10px; }
@@ -41,14 +53,8 @@
             </td>
             <td width="45%" align="right">
                 <div class="booking-title">Booking Details</div>
-                <div style="margin-top: 5px;">
-                    <span style="color: #777;">Ticket ID:</span> 
-                    <strong>{{ $ticketNoGlobal }}</strong>
-                </div>
-                <div>
-                    <span style="color: #777;">Booking ID (PNR):</span> 
-                    <strong>{{ $ticket->booking_code }}</strong>
-                </div>
+                <div style="margin-top: 5px;">Ticket ID: <strong>{{ $ticketNoGlobal }}</strong></div>
+                <div>Booking ID (PNR): <strong>{{ $ticket->booking_code }}</strong></div>
                 <div style="color: #666;">
                     Issued Date: <strong>{{ $ticket->created_at->format('d M Y') }}</strong> 
                     | Time: <strong>{{ $ticket->created_at->format('H:i') }}</strong>
@@ -62,137 +68,86 @@
     <table class="flight-table">
         <thead>
             <tr>
-                <th width="35%">FLIGHT</th>
-                <th width="32.5%">DEPARTING</th>
-                <th width="32.5%">ARRIVING</th>
+                <th width="30%">FLIGHT</th>
+                <th width="28%">DEPARTING</th>
+                <th width="14%" style="text-align:center;">STOPS</th>
+                <th width="28%">ARRIVING</th>
             </tr>
         </thead>
         <tbody>
             @php
                 function getAirlineLogo($name) {
                     $name = strtolower($name);
-                    if (str_contains($name, 'air asia')) return 'airasia.png';
-                    if (str_contains($name, 'batik')) return 'batik.png';
-                    if (str_contains($name, 'citilink')) return 'citilink.png';
-                    if (str_contains($name, 'garuda')) return 'garuda.png';
-                    if (str_contains($name, 'lion')) return 'lion.png';
-                    if (str_contains($name, 'nam')) return 'nam.png';
-                    if (str_contains($name, 'super air jet')) return 'Super Air Jet.png';
-                    if (str_contains($name, 'wings')) return 'wings.png';
-                    if (str_contains($name, 'scoot')) return 'scoot.png';
-                    if (str_contains($name, 'sriwijaya')) return 'sriwijaya.png';
-                    if (str_contains($name, 'transnusa')) return 'transnusa.png';
-                    if (str_contains($name, 'trigana air')) return 'triganaair.png';
-                    if (str_contains($name, 'xpress air')) return 'xpressair.png';
-                    if (str_contains($name, 'qatar airways')) return 'qatar.png';
-                    if (str_contains($name, 'pelita air')) return 'pelitaair.png';
-                    if (str_contains($name, 'flyjaya')) return 'flyjaya.png';
+                    $logos = ['air asia'=>'airasia.png', 'batik'=>'batik.png', 'citilink'=>'citilink.png', 'garuda'=>'garuda.png', 'lion'=>'lion.png', 'super air jet'=>'Super Air Jet.png', 'flyjaya'=>'flyjaya.png', 'wings'=>'wings.png', 'scoot'=>'scoot.png', 'sriwijaya'=>'sriwijaya.png', 'pelita air'=>'pelitaair.png'];
+                    foreach ($logos as $key => $logo) { if (str_contains($name, $key)) return $logo; }
                     return null;
                 }
                 $logoOut = getAirlineLogo($ticket->airline->airlines_name);
+
+                $rawClass = $passengers->first()->class ?? 'Economy';
+                if (str_contains($rawClass, '/')) {
+                    $p = explode('/', $rawClass);
+                    $cOutArr = explode(',', $p[0]); $cInArr = explode(',', $p[1] ?? $p[0]);
+                } else {
+                    $cOutArr = explode(',', $rawClass); $cInArr = $cOutArr;
+                }
             @endphp
 
-            <tr>
-                <td>
-                    <table width="100%" style="border:none;">
-                        <tr>
-                            @if($logoOut)
-                            <td width="50px" style="border:none; padding:0;">
-                                <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 40px; height: auto;">
-                            </td>
-                            @endif
-                            <td style="border:none; padding:0; padding-left: 5px;">
-                                <strong>{{ $ticket->airline->airlines_name }}</strong><br>
-                                <span style="font-size: 11px; font-weight: bold; color: #1e40af;">
-                                    {{ $ticket->airline->airlines_code }} - {{ $ticket->flight_out }}
-                                </span>
-                                <div style="font-size: 10px; color: #555; text-transform: uppercase; margin-top: 2px;">
-                                    Class: {{ $passengers->first()->class ?? 'Economy' }}
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-                <td>
-                    @php
-                        $partsOut = explode('-', $ticket->route_out);
-                        $depCode = trim($partsOut[0] ?? '');
-                        $depName = $airports[$depCode] ?? $depCode;
-                        $hasStopOut = count($partsOut) === 3;
-                        $stopCodeOut = $hasStopOut ? trim($partsOut[1] ?? '') : '';
-                        $stopNameOut = $hasStopOut ? ($airports[$stopCodeOut] ?? $stopCodeOut) : '';
-                    @endphp
-                    <div class="city-name">{{ $depName }}</div>
-                    <div style="font-weight: bold; color: #555;">{{ $depCode }}</div>
-                    @if($hasStopOut)
-                    <div style="font-size: 9px; color: #999; font-style: italic; margin: 2px 0;">via {{ $stopNameOut }} ({{ $stopCodeOut }})</div>
-                    @endif
-                    {{ \Carbon\Carbon::parse($ticket->dep_time_out)->format('D, d M Y') }}<br>
-                    <strong>{{ \Carbon\Carbon::parse($ticket->dep_time_out)->format('H:i') }}</strong>
-                </td>
-                <td>
-                    @php
-                        $arrCode = trim($partsOut[count($partsOut)-1] ?? '');
-                        $arrName = $airports[$arrCode] ?? $arrCode;
-                    @endphp
-                    <div class="city-name">{{ $arrName }}</div>
-                    <div style="font-weight: bold; color: #555;">{{ $arrCode }}</div>
-                    {{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('D, d M Y') }}<br>
-                    <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('H:i') }}</strong>
-                </td>
-            </tr>
-            
-            @if($ticket->route_in)
-            <tr>
-                <td>
-                    <table width="100%" style="border:none;">
-                        <tr>
-                            @if($logoOut)
-                            <td width="50px" style="border:none; padding:0;">
-                                <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 40px; height: auto;">
-                            </td>
-                            @endif
-                            <td style="border:none; padding:0; padding-left: 5px;">
-                                <strong>{{ $ticket->airline->airlines_name }}</strong><br>
-                                <span style="font-size: 11px; font-weight: bold; color: #1e40af;">
-                                    {{ $ticket->airline->airlines_code }} - {{ $ticket->flight_in ?? $ticket->flight_out }}
-                                </span>
-                                <div style="font-size: 10px; color: #555; text-transform: uppercase; margin-top: 2px;">
-                                    Class: {{ $passengers->first()->class ?? 'Economy' }}
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
-                </td>
-                <td>
-                    @php
-                        $partsIn = explode('-', $ticket->route_in);
-                        $depCodeIn = trim($partsIn[0] ?? '');
-                        $depNameIn = $airports[$depCodeIn] ?? $depCodeIn;
-                        $hasStopIn = count($partsIn) === 3;
-                        $stopCodeIn = $hasStopIn ? trim($partsIn[1] ?? '') : '';
-                        $stopNameIn = $hasStopIn ? ($airports[$stopCodeIn] ?? $stopCodeIn) : '';
-                    @endphp
-                    <div class="city-name">{{ $depNameIn }}</div>
-                    <div style="font-weight: bold; color: #555;">{{ $depCodeIn }}</div>
-                    @if($hasStopIn)
-                    <div style="font-size: 9px; color: #999; font-style: italic; margin: 2px 0;">via {{ $stopNameIn }} ({{ $stopCodeIn }})</div>
-                    @endif
-                    {{ \Carbon\Carbon::parse($ticket->dep_time_in)->format('D, d M Y') }}<br>
-                    <strong>{{ \Carbon\Carbon::parse($ticket->dep_time_in)->format('H:i') }}</strong>
-                </td>
-                <td>
-                    @php
-                        $arrCodeIn = trim($partsIn[count($partsIn)-1] ?? '');
-                        $arrNameIn = $airports[$arrCodeIn] ?? $arrCodeIn;
-                    @endphp
-                    <div class="city-name">{{ $arrNameIn }}</div>
-                    <div style="font-weight: bold; color: #555;">{{ $arrCodeIn }}</div>
-                    {{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('D, d M Y') }}<br>
-                    <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('H:i') }}</strong>
-                </td>
-            </tr>
-            @endif
+            @foreach(['out', 'in'] as $type)
+                @php 
+                    if($type == 'in' && !$ticket->route_in) continue;
+                    $route = ($type == 'out') ? $ticket->route_out : $ticket->route_in;
+                    $depTime = ($type == 'out') ? $ticket->dep_time_out : $ticket->dep_time_in;
+                    $arrTime = ($type == 'out') ? $ticket->arr_time_out : $ticket->arr_time_in;
+                    $fNum = ($type == 'out') ? $ticket->flight_out : ($ticket->flight_in ?? $ticket->flight_out);
+                    $clsArr = ($type == 'out') ? $cOutArr : $cInArr;
+
+                    $parts = explode('-', $route);
+                    $depC = trim($parts[0]);
+                    $arrC = trim($parts[count($parts)-1]);
+                    $midC = (count($parts) === 3) ? trim($parts[1]) : null;
+                @endphp
+                <tr>
+                    <td>
+                        <table style="border:none;">
+                            <tr>
+                                @if($logoOut)
+                                <td style="border:none; padding:0 5px 0 0;"><img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px;"></td>
+                                @endif
+                                <td style="border:none; padding:0;">
+                                    <strong>{{ $ticket->airline->airlines_name }}</strong><br>
+                                    <span style="color: #1e40af; font-weight: bold;">{{ $ticket->airline->airlines_code }} - {{ $fNum }}</span><br>
+                                    <span style="font-size: 9px; color: #64748b; text-transform: uppercase;">Class: {{ implode(', ', array_map('trim', $clsArr)) }}</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td>
+                        <div class="city-name">{{ $airports[$depC] ?? $depC }}</div>
+                        <div style="font-weight: bold; color: #555;">{{ $depC }}</div>
+                        <div style="margin-top: 4px;">
+                            {{ \Carbon\Carbon::parse($depTime)->format('D, d M Y') }}<br>
+                            <strong>{{ \Carbon\Carbon::parse($depTime)->format('H:i') }}</strong>
+                        </div>
+                    </td>
+                    <td class="transit-container">
+                        <div class="transit-line"></div>
+                        @if($midC)
+                            <div class="transit-badge">1 STOP • {{ $midC }}</div>
+                        @else
+                            <div style="position: relative; z-index: 2; background: #fff; display: inline-block; padding: 0 5px; font-size: 8px; color: #94a3b8;">Direct</div>
+                        @endif
+                    </td>
+                    <td>
+                        <div class="city-name">{{ $airports[$arrC] ?? $arrC }}</div>
+                        <div style="font-weight: bold; color: #555;">{{ $arrC }}</div>
+                        <div style="margin-top: 4px;">
+                            {{ \Carbon\Carbon::parse($arrTime)->format('D, d M Y') }}<br>
+                            <strong>{{ \Carbon\Carbon::parse($arrTime)->format('H:i') }}</strong>
+                        </div>
+                    </td>
+                </tr>
+            @endforeach
         </tbody>
     </table>
 
@@ -212,15 +167,10 @@
             @foreach($passengers as $index => $pax)
             <tr>
                 <td>{{ $index + 1 }}</td>
-                <td>
-                    <strong>{{ strtoupper($pax->genre ?? '') }} {{ $pax->name }}</strong> 
-                    ({{ $pax->type ?? 'Adult' }})
-                </td>
+                <td><strong>{{ strtoupper($pax->genre ?? '') }} {{ $pax->name }}</strong> ({{ $pax->type ?? 'Adult' }})</td>
                 <td style="color:#d97706; font-weight:bold;">{{ $ticket->booking_code }}</td>
                 <td>{{ $pax->ticket_no ?? '-' }}</td>
-                <td>
-                    {{ $pax->baggage_kg ?? ($free_baggage ?? 0) }} KG
-                </td>
+                <td>{{ $pax->baggage_kg ?? ($free_baggage ?? 0) }} KG</td>
                 <td style="color:green; font-weight:bold;">Confirmed</td>
             </tr>
             @endforeach
@@ -232,24 +182,12 @@
             <td class="grid-td">
                 <div style="font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #eee;">Payment Details</div>
                 <table class="payment-table">
-                    <tr>
-                        <td>Base Fare</td>
-                        <td align="right">Rp {{ number_format($ticket->basic_fare, 0, ',', '.') }}</td>
-                    </tr>
-                    <tr>
-                        <td>Total Taxes</td>
-                        <td align="right">Rp {{ number_format($ticket->total_tax + $ticket->fee, 0, ',', '.') }}</td>
-                    </tr>
+                    <tr><td>Base Fare</td><td align="right">Rp {{ number_format($ticket->basic_fare, 0, ',', '.') }}</td></tr>
+                    <tr><td>Total Taxes</td><td align="right">Rp {{ number_format($ticket->total_tax + $ticket->fee, 0, ',', '.') }}</td></tr>
                     @if($ticket->baggage_price > 0)
-                    <tr>
-                        <td>Add-on Baggage</td>
-                        <td align="right">Rp {{ number_format($ticket->baggage_price, 0, ',', '.') }}</td>
-                    </tr>
+                    <tr><td>Add-on Baggage</td><td align="right">Rp {{ number_format($ticket->baggage_price, 0, ',', '.') }}</td></tr>
                     @endif
-                    <tr class="total-row">
-                        <td>Total Fare</td>
-                        <td align="right">Rp {{ number_format($ticket->total_publish, 0, ',', '.') }}</td>
-                    </tr>
+                    <tr class="total-row"><td>Total Fare</td><td align="right">Rp {{ number_format($ticket->total_publish, 0, ',', '.') }}</td></tr>
                 </table>
             </td>
             <td class="grid-td">
@@ -260,7 +198,7 @@
                             <td><span style="color:#888;">Cabin Baggage</span><br><strong>7 Kg</strong></td>
                             <td><span style="color:#888;">Baggage</span><br><strong>{{ $free_baggage ?? 0 }} KG</strong></td>
                             @if($ticket->baggage_kg > 0)
-                            <td><span style="color:#888;">Add-On Baggage</span><br><strong>{{ $ticket->baggage_kg }} KG</strong></td>
+                            <td><span style="color:#888;">Add-On</span><br><strong>{{ $ticket->baggage_kg }} KG</strong></td>
                             @endif
                         </tr>
                     </table>
@@ -271,15 +209,12 @@
 
     <div class="important-info">
         <strong>Important Information</strong>
-        All Guests, including children and infants, must present valid identification at check-in. <br>
-        Check-in begins 4 hours for international and 3 hours for domestic prior to the flight for seat assignment and closes 75 minutes prior to the scheduled departure. <br>
+        All Guests, including children and infants, must present valid identification at check-in. Check-in begins 4 hours for international and 3 hours for domestic prior to departure.
     </div>
 
     <div class="not-allowed-box">
         <div class="not-allowed-title">Not allowed! These items are Dangerous Goods and are not permitted:</div>
-        <div class="not-allowed-list">
-            <strong>Hand Baggage & Check-in Baggage:</strong> Lighters, Matches, Flammable Liquids, Toxic Substances, Corrosives, Explosives, Radioactive Materials.
-        </div>
+        <div class="not-allowed-list">Lighters, Matches, Flammable Liquids, Toxic Substances, Corrosives, Explosives, Radioactive Materials.</div>
     </div>
 
     <div class="agency-footer">
