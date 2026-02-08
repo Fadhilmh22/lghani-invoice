@@ -106,6 +106,9 @@
                                 <span style="font-size: 11px; font-weight: bold; color: #1e40af;">
                                     {{ $ticket->airline->airlines_code }} - {{ $ticket->flight_out }}
                                 </span>
+                                <div style="font-size: 10px; color: #555; text-transform: uppercase; margin-top: 2px;">
+                                    Class: {{ $passengers->first()->class ?? 'Economy' }}
+                                </div>
                             </td>
                         </tr>
                     </table>
@@ -119,7 +122,8 @@
                         $stopCodeOut = $hasStopOut ? trim($partsOut[1] ?? '') : '';
                         $stopNameOut = $hasStopOut ? ($airports[$stopCodeOut] ?? $stopCodeOut) : '';
                     @endphp
-                    <div class="city-name">{{ $depName }} - {{ $depCode }}</div>
+                    <div class="city-name">{{ $depName }}</div>
+                    <div style="font-weight: bold; color: #555;">{{ $depCode }}</div>
                     @if($hasStopOut)
                     <div style="font-size: 9px; color: #999; font-style: italic; margin: 2px 0;">via {{ $stopNameOut }} ({{ $stopCodeOut }})</div>
                     @endif
@@ -131,7 +135,8 @@
                         $arrCode = trim($partsOut[count($partsOut)-1] ?? '');
                         $arrName = $airports[$arrCode] ?? $arrCode;
                     @endphp
-                    <div class="city-name">{{ $arrName }} - {{ $arrCode }}</div>
+                    <div class="city-name">{{ $arrName }}</div>
+                    <div style="font-weight: bold; color: #555;">{{ $arrCode }}</div>
                     {{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('D, d M Y') }}<br>
                     <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('H:i') }}</strong>
                 </td>
@@ -152,6 +157,9 @@
                                 <span style="font-size: 11px; font-weight: bold; color: #1e40af;">
                                     {{ $ticket->airline->airlines_code }} - {{ $ticket->flight_in ?? $ticket->flight_out }}
                                 </span>
+                                <div style="font-size: 10px; color: #555; text-transform: uppercase; margin-top: 2px;">
+                                    Class: {{ $passengers->first()->class ?? 'Economy' }}
+                                </div>
                             </td>
                         </tr>
                     </table>
@@ -165,7 +173,8 @@
                         $stopCodeIn = $hasStopIn ? trim($partsIn[1] ?? '') : '';
                         $stopNameIn = $hasStopIn ? ($airports[$stopCodeIn] ?? $stopCodeIn) : '';
                     @endphp
-                    <div class="city-name">{{ $depNameIn }} - {{ $depCodeIn }}</div>
+                    <div class="city-name">{{ $depNameIn }}</div>
+                    <div style="font-weight: bold; color: #555;">{{ $depCodeIn }}</div>
                     @if($hasStopIn)
                     <div style="font-size: 9px; color: #999; font-style: italic; margin: 2px 0;">via {{ $stopNameIn }} ({{ $stopCodeIn }})</div>
                     @endif
@@ -177,7 +186,8 @@
                         $arrCodeIn = trim($partsIn[count($partsIn)-1] ?? '');
                         $arrNameIn = $airports[$arrCodeIn] ?? $arrCodeIn;
                     @endphp
-                    <div class="city-name">{{ $arrNameIn }} - {{ $arrCodeIn }}</div>
+                    <div class="city-name">{{ $arrNameIn }}</div>
+                    <div style="font-weight: bold; color: #555;">{{ $arrCodeIn }}</div>
                     {{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('D, d M Y') }}<br>
                     <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('H:i') }}</strong>
                 </td>
@@ -199,7 +209,6 @@
             </tr>
         </thead>
         <tbody>
-            {{-- PERBAIKAN: Menggunakan variabel $passengers agar tidak bercampur dengan tiket lain --}}
             @foreach($passengers as $index => $pax)
             <tr>
                 <td>{{ $index + 1 }}</td>
