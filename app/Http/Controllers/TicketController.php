@@ -385,13 +385,18 @@ class TicketController extends Controller
                     ->where('ticket_no', $p->id)
                     ->first();
 
+            $freeKg = (int) ($ticket->free_baggage ?? 0);
             if ($b) {
+                $addonKg = $b->route ? (int) filter_var($b->route, FILTER_SANITIZE_NUMBER_INT) : 0;
                 $p->baggage_price = $b->price;
-                $p->baggage_kg = $b->route ? (int) filter_var($b->route, FILTER_SANITIZE_NUMBER_INT) : 0;
-                $p->has_addon_baggage = true;
+                // show combined free + add-on baggage
+                $p->baggage_kg = $freeKg + $addonKg;
+                $p->addon_kg = $addonKg;
+                $p->has_addon_baggage = ($addonKg > 0 || (int) $b->price > 0);
             } else {
                 $p->baggage_price = 0;
-                $p->baggage_kg = $ticket->free_baggage ?? 0;
+                $p->baggage_kg = $freeKg;
+                $p->addon_kg = 0;
                 $p->has_addon_baggage = false;
             }
         }
@@ -458,19 +463,24 @@ class TicketController extends Controller
         // not from Invoice_detail. Add any add-on baggage for this passenger on top.
         $basic_fare_per_pax = floor($ticket->basic_fare / $pax_count);
         $tax_per_pax = floor($ticket->total_tax / $pax_count);
-        $fee_per_pax = floor($ticket->fee / $pax_count);
-        $publish_per_pax = floor($ticket->total_publish / $pax_count);
+        $fee_per_pax = floor(($ticket->fee ?? 0) / $pax_count);
 
         $ticket->basic_fare = $basic_fare_per_pax;
         $ticket->baggage_price = $baggage_price_pax;
         $ticket->baggage_kg = $baggage_kg_pax;
 
-        // total_publish is per-ticket publish divided by pax + add-on baggage for this pax
-        $ticket->total_publish = $publish_per_pax + $baggage_price_pax;
-        // total_tax shown on split = tax_per_pax (ticket-level) + fee_per_pax (if you want fee separate, adjust view)
-        $ticket->total_tax = $tax_per_pax + $fee_per_pax;
+        // Recompute per-pax totals from components so fee is split correctly
         $ticket->fee = $fee_per_pax;
-    
+        $ticket->total_tax = $tax_per_pax;
+        $ticket->total_publish = $basic_fare_per_pax + $tax_per_pax + $fee_per_pax + $baggage_price_pax;
+        // attach baggage info to the single passenger row for the split view
+        $freeKg = (int) ($ticket->free_baggage ?? 0);
+        $addonKg = $baggage_kg_pax;
+        $pax->baggage_price = $baggage_price_pax;
+        $pax->baggage_kg = $freeKg + $addonKg;
+        $pax->addon_kg = $addonKg;
+        $pax->has_addon_baggage = ($addonKg > 0 || $baggage_price_pax > 0);
+
         $passengers = collect([$pax]);
         $ticketNoGlobal = 'TCKT' . $ticket->created_at->format('Ymd') . str_pad($ticket->id, 3, '0', STR_PAD_LEFT);
         

@@ -191,9 +191,10 @@
         <thead>
             <tr>
                 <th width="5%">No</th>
-                <th width="45%">Passenger Name</th>
+                <th width="40%">Passenger Name</th>
                 <th width="15%">PNR</th>
-                <th width="25%">E-Ticket</th>
+                <th width="20%">E-Ticket</th>
+                <th width="10%">Baggage</th>
                 <th width="10%">Status</th>
             </tr>
         </thead>
@@ -208,6 +209,9 @@
                 </td>
                 <td style="color:#d97706; font-weight:bold;">{{ $ticket->booking_code }}</td>
                 <td>{{ $pax->ticket_no ?? '-' }}</td>
+                <td>
+                    {{ $pax->baggage_kg ?? ($free_baggage ?? 0) }} KG
+                </td>
                 <td style="color:green; font-weight:bold;">Confirmed</td>
             </tr>
             @endforeach
