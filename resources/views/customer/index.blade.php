@@ -43,6 +43,7 @@
                 <table class="table elegant-table">
                     <thead>
                         <tr>
+                            <th width="50px">No</th>
                             <th>Gender</th>
                             <th>Nama Booker</th>
                             <th>Nama Perusahaan</th>
@@ -54,8 +55,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($customers as $customer)
-                        <tr class="table-row-hover">
+                    @forelse($customers as $index => $customer)                        
+                    <tr class="table-row-hover">
+                            <td class="text-center">{{ $customers->firstItem() + $index }}</td>
                             <td class="uppercase-text">{{ $customer->gender }}</td>
                             <td class="uppercase-text">{{ $customer->booker }}</td>
                             <td>{{ $customer->company }}</td>

@@ -19,7 +19,9 @@ class CustomerController extends Controller
                           ->orWhere('company', 'like', "%$search%");
                 })
                 ->orderBy('created_at', 'DESC')
+                ->latest()
                 ->paginate(10);
+                
         return view('customer.index', ['customers' => $customers]);
     }
     
