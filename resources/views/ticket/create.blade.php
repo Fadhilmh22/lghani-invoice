@@ -83,7 +83,40 @@
                     <p><strong><i class="fa fa-plane-outbound"></i> Pergi</strong></p>
                     <div class="row">
                         <div class="col-md-6 form-group"><label>No. Flight</label><input type="text" name="flight_out" class="form-control" placeholder="GA-123"></div>
-                        <div class="col-md-6 form-group"><label>Rute</label><input type="text" name="route_out" class="form-control" placeholder="CGK-DPS"></div>
+
+                        <div class="col-md-6 form-group">
+                            <label>Departure</label>
+                            <select name="departure_out_code" id="departure_out_code" class="form-control select2" data-type="departure">
+                                <option value="">-- Pilih Bandara Keberangkatan --</option>
+                                @foreach($airports as $apt)
+                                    <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                @endforeach
+                            </select>
+
+                            <label style="margin-top:8px;">Arrivals</label>
+                            <select name="arrival_out_code" id="arrival_out_code" class="form-control select2" data-type="arrival">
+                                <option value="">-- Pilih Bandara Kedatangan --</option>
+                               @foreach($airports as $apt)
+                                    <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                @endforeach
+                            </select>
+
+                            <label style="margin-top:10px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; display: block;">
+                                <input type="checkbox" id="toggle_stop_out" style="margin-right:6px;"> Tambah 1 Stops (Transit)
+                            </label>
+
+                            <div id="stop_out_wrapper" style="margin-top:8px; display:none;">
+                                <select name="stop_out_code" id="stop_out_code" class="form-control select2" style="width: 100%;">
+                                    <option value="">-- Pilih Airport Transit --</option>
+                                    @foreach($airports as $apt)
+                                        <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <input type="hidden" name="route_out" id="route_out" />
+                        </div>
+
                         <div class="col-md-6 form-group"><label>Berangkat</label><input type="text" name="dep_out" class="form-control"></div>
                         <div class="col-md-6 form-group"><label>Tiba</label><input type="text" name="arr_out" class="form-control"></div>
                     </div>
@@ -92,7 +125,40 @@
                     <p><strong><i class="fa fa-plane-arrival"></i> Pulang (Opsional)</strong></p>
                     <div class="row">
                         <div class="col-md-6 form-group"><label>No. Flight</label><input type="text" name="flight_in" class="form-control"></div>
-                        <div class="col-md-6 form-group"><label>Rute</label><input type="text" name="route_in" class="form-control"></div>
+
+                        <div class="col-md-6 form-group">
+                            <label>Departure</label>
+                            <select name="departure_in_code" id="departure_in_code" class="form-control select2" data-type="departure">
+                                <option value="">-- Pilih Bandara Keberangkatan --</option>
+                                @foreach($airports as $apt)
+                                    <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                @endforeach
+                            </select>
+
+                            <label style="margin-top:8px;">Arrivals</label>
+                            <select name="arrival_in_code" id="arrival_in_code" class="form-control select2" data-type="arrival">
+                                <option value="">-- Pilih Bandara Kedatangan --</option>
+                                @foreach($airports as $apt)
+                                    <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                @endforeach
+                            </select>
+
+                            <label style="margin-top:10px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; display: block;">
+                                <input type="checkbox" id="toggle_stop_in" style="margin-right:6px;"> Tambah 1 Stops (Opsional)
+                            </label>
+
+                            <div id="stop_in_wrapper" style="margin-top:8px; display:none;">
+                                <select name="stop_in_code" id="stop_in_code" class="form-control select2" style="width: 100%;">
+                                    <option value="">-- Pilih Airport Transit --</option>
+                                    @foreach($airports as $apt)
+                                        <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <input type="hidden" name="route_in" id="route_in" />
+                        </div>
+
                         <div class="col-md-6 form-group"><label>Berangkat</label><input type="text" name="dep_in" class="form-control"></div>
                         <div class="col-md-6 form-group"><label>Tiba</label><input type="text" name="arr_in" class="form-control"></div>
                     </div>
@@ -273,6 +339,70 @@ $(document).ready(function() {
         });
 
     $('#passenger-container').on('click', '.remove-row', function() { $(this).closest('tr').remove(); });
+
+    // Route builder: gabungkan departure[-stop]-arrival ke hidden route_out / route_in
+    function buildRoute(prefix) {
+        const dep = $(`#departure_${prefix}_code`).val() || '';
+        const stop = $(`#stop_${prefix}_code`).val() || '';
+        const arr = $(`#arrival_${prefix}_code`).val() || '';
+        if (!dep && !arr) return '';
+        return stop ? `${dep}-${stop}-${arr}` : `${dep}-${arr}`;
+    }
+
+    function syncRoutes() {
+        $('#route_out').val(buildRoute('out'));
+        $('#route_in').val(buildRoute('in'));
+    }
+
+    // Toggle stop inputs dengan toggle checkbox
+    $('#toggle_stop_out').on('change', function() { 
+        if (this.checked) { 
+            $('#stop_out_wrapper').show();
+            $('#has_stop_out').prop('checked', true);
+        } else { 
+            $('#stop_out_wrapper').hide();
+            $('#has_stop_out').prop('checked', false);
+            $('#stop_out_code').val('').trigger('change');
+        } 
+        syncRoutes(); 
+    });
+
+    $('#toggle_stop_in').on('change', function() { 
+        if (this.checked) { 
+            $('#stop_in_wrapper').show();
+            $('#has_stop_in').prop('checked', true);
+        } else { 
+            $('#stop_in_wrapper').hide();
+            $('#has_stop_in').prop('checked', false);
+            $('#stop_in_code').val('').trigger('change');
+        } 
+        syncRoutes(); 
+    });
+
+    // Jika user langsung check dari wrapper, sync ke toggle
+    $('#has_stop_out').on('change', function() {
+        if (!this.checked) {
+            $('#toggle_stop_out').prop('checked', false);
+            $('#stop_out_wrapper').hide();
+            $('#stop_out_code').val('').trigger('change');
+            syncRoutes();
+        }
+    });
+
+    $('#has_stop_in').on('change', function() {
+        if (!this.checked) {
+            $('#toggle_stop_in').prop('checked', false);
+            $('#stop_in_wrapper').hide();
+            $('#stop_in_code').val('').trigger('change');
+            syncRoutes();
+        }
+    });
+
+    // Update pada perubahan select2
+    $('#departure_out_code, #arrival_out_code, #stop_out_code, #departure_in_code, #arrival_in_code, #stop_in_code').on('change', function() { syncRoutes(); });
+
+    // Initialize sync
+    syncRoutes();
 });
 </script>
 @endsection

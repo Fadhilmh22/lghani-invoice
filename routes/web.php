@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\AirportController;
 use App\Http\Controllers\AirlinesController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InvoiceController;
@@ -50,6 +51,15 @@ Route::group(['middleware' => 'auth','AdminMiddleware:Admin,Staff'], function() 
         Route::get('/{id}', [AirlinesController::class, 'edit'])->name('edit');
         Route::put('/{id}', [AirlinesController::class, 'update'])->name('update');
         Route::delete('/{id}', [AirlinesController::class, 'destroy'])->name('destroy');
+    });
+
+    Route::group(['prefix' => 'airports'], function() {
+        Route::get('/', [AirportController::class, 'index'])->name('airports.index');
+        Route::get('/new', [AirportController::class, 'create'])->name('airports.create');
+        Route::post('/', [AirportController::class, 'store'])->name('airports.store');
+        Route::get('/{id}/edit', [AirportController::class, 'edit'])->name('airports.edit');
+        Route::put('/{id}', [AirportController::class, 'update'])->name('airports.update');
+        Route::delete('/{id}', [AirportController::class, 'destroy'])->name('airports.destroy');
     });
 
     Route::group(['prefix' => 'customer'], function() {

@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Invoice_detail; 
 use App\Models\Customer;
 use App\Models\Airlines;
+use App\Models\Airport;
 use App\Models\Ticket;
 use DB;
 use PDF; 
@@ -50,7 +51,8 @@ class TicketController extends Controller
     {
         $customers = Customer::orderBy('booker', 'ASC')->get();
         $airlines = Airlines::orderBy('airlines_name', 'ASC')->get();
-        return view('ticket.create', compact('customers', 'airlines'));
+        $airports = Airport::orderBy('name', 'ASC')->get();
+        return view('ticket.create', compact('customers', 'airlines', 'airports'));
     }
 
     public function store(Request $request)
@@ -170,8 +172,8 @@ class TicketController extends Controller
                         'ticket_no'    => $pax_id,
                         'price'        => $baggage_per_pax, 
                         'pax_paid'     => $baggage_per_pax,
-                        'nta'          => 0,
-                        'profit'       => $baggage_per_pax,
+                        'nta'          => $baggage_per_pax,
+                        'profit'       => 0,
                         'class'        => 'BAGASI_ONLY', 
                         'route'        => $kg_per_pax . ' KG',
                         'airlines_no'  => $request->flight_out, 
@@ -194,6 +196,7 @@ class TicketController extends Controller
         $ticket = Ticket::with(['airline', 'invoice.customer'])->findOrFail($id);
         $customers = Customer::orderBy('booker', 'ASC')->get();
         $airlines = Airlines::orderBy('airlines_name', 'ASC')->get();
+        $airports = Airport::orderBy('name', 'ASC')->get();
         
         // Ambil penumpang yang sudah terkunci ke ticket_id ini
         $passengers = Invoice_detail::where('ticket_id', $id)
@@ -208,7 +211,7 @@ class TicketController extends Controller
                                         ->get();
         }
     
-        return view('ticket.edit', compact('ticket', 'customers', 'airlines', 'passengers'));
+        return view('ticket.edit', compact('ticket', 'customers', 'airlines', 'airports', 'passengers'));
     }
 
     public function update(Request $request, $id)
@@ -326,8 +329,8 @@ class TicketController extends Controller
                         'ticket_no'    => $pax_id, 
                         'price'        => $baggage_per_selected_pax, 
                         'pax_paid'     => $baggage_per_selected_pax,
-                        'nta'          => 0,
-                        'profit'       => $baggage_per_selected_pax,
+                        'nta'          => $baggage_per_selected_pax,
+                        'profit'       => 0,
                         'class'        => 'BAGASI_ONLY', 
                         'route'        => $kg_per_selected_pax . ' KG',
                         'airlines_no'  => $request->flight_out, 
@@ -371,8 +374,30 @@ class TicketController extends Controller
         // 5. Generate Nomor Tiket Global (Format: TCKT + Tanggal + ID)
         $ticketNoGlobal = 'TCKT' . $ticket->created_at->format('Ymd') . str_pad($ticket->id, 3, '0', STR_PAD_LEFT);
         
-        // 6. Kirim data ke View dan Generate PDF
-        $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'free_baggage'));
+        // 6. Fetch airports untuk lookup nama bandara
+        $airports = Airport::pluck('name', 'code');
+        
+        // 6a. Attach add-on / free baggage info to each passenger for printing
+        foreach ($passengers as $p) {
+            // look for add-on baggage row that references this passenger
+            $b = Invoice_detail::where('invoice_id', $ticket->invoice_id)
+                    ->where('class', 'BAGASI_ONLY')
+                    ->where('ticket_no', $p->id)
+                    ->first();
+
+            if ($b) {
+                $p->baggage_price = $b->price;
+                $p->baggage_kg = $b->route ? (int) filter_var($b->route, FILTER_SANITIZE_NUMBER_INT) : 0;
+                $p->has_addon_baggage = true;
+            } else {
+                $p->baggage_price = 0;
+                $p->baggage_kg = $ticket->free_baggage ?? 0;
+                $p->has_addon_baggage = false;
+            }
+        }
+        
+        // 7. Kirim data ke View dan Generate PDF
+        $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'free_baggage', 'airports'));
         
         return $pdf->setPaper('A4', 'portrait')->stream('E-Ticket-' . $ticket->booking_code . '.pdf');
     }
@@ -412,26 +437,48 @@ class TicketController extends Controller
         // Variabel ini yang akan dibaca oleh Blade PDF
         $free_baggage = $ticket->free_baggage ?? 0;
     
-        // 3. Hitung jatah harga tiket per orang
-        $pax_count = Invoice_detail::where('invoice_id', $ticket->invoice_id)
+        // 3. Determine per-passenger values for the split ticket
+        // Count passengers that belong specifically to this ticket first.
+        $pax_count = Invoice_detail::where('ticket_id', $ticket_id)
                     ->where('class', '!=', 'BAGASI_ONLY')
                     ->count();
+
+        // Fallback for older data that may not have `ticket_id` set: count by invoice+booking_code
+        if ($pax_count === 0) {
+            $pax_count = Invoice_detail::where('invoice_id', $ticket->invoice_id)
+                        ->where('booking_code', $ticket->booking_code)
+                        ->where('class', '!=', 'BAGASI_ONLY')
+                        ->count();
+        }
+
         $pax_count = $pax_count > 0 ? $pax_count : 1;
-    
-        // Set data ke object ticket untuk kebutuhan tampilan layout PDF
-        $ticket->basic_fare = floor($ticket->basic_fare / $pax_count);
+
+        // Use the ticket-level inputs (from create/edit) and divide by pax count
+        // This follows the user's requested logic: per-pax values come from the ticket form,
+        // not from Invoice_detail. Add any add-on baggage for this passenger on top.
+        $basic_fare_per_pax = floor($ticket->basic_fare / $pax_count);
+        $tax_per_pax = floor($ticket->total_tax / $pax_count);
+        $fee_per_pax = floor($ticket->fee / $pax_count);
+        $publish_per_pax = floor($ticket->total_publish / $pax_count);
+
+        $ticket->basic_fare = $basic_fare_per_pax;
         $ticket->baggage_price = $baggage_price_pax;
-        $ticket->baggage_kg = $baggage_kg_pax; 
-        
-        $ticket->total_publish = $pax->pax_paid + $baggage_price_pax;
-        $ticket->total_tax = $ticket->total_publish - $ticket->basic_fare - $ticket->baggage_price;
-        $ticket->fee = 0; 
+        $ticket->baggage_kg = $baggage_kg_pax;
+
+        // total_publish is per-ticket publish divided by pax + add-on baggage for this pax
+        $ticket->total_publish = $publish_per_pax + $baggage_price_pax;
+        // total_tax shown on split = tax_per_pax (ticket-level) + fee_per_pax (if you want fee separate, adjust view)
+        $ticket->total_tax = $tax_per_pax + $fee_per_pax;
+        $ticket->fee = $fee_per_pax;
     
         $passengers = collect([$pax]);
         $ticketNoGlobal = 'TCKT' . $ticket->created_at->format('Ymd') . str_pad($ticket->id, 3, '0', STR_PAD_LEFT);
+        
+        // Fetch airports untuk lookup nama bandara
+        $airports = Airport::pluck('name', 'code');
     
         // 4. Kirim variabel free_baggage ke view
-        $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'baggage_pax', 'free_baggage'));
+        $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'baggage_pax', 'free_baggage', 'airports'));
         return $pdf->setPaper('A4', 'portrait')->stream('Ticket_' . $pax->name . '.pdf');
     }
 

@@ -256,6 +256,9 @@
                         <a href="{{ url('/airline') }}" class="menu-link {{ request()->is('airline*') ? 'active' : '' }}">
                             <i class="fa fa-plane"></i> <span>Airlines</span>
                         </a>
+                        <a href="{{ route('airports.index') }}" class="menu-link {{ Request::is('airports*') ? 'active' : '' }}">
+                            <i class="fa fa-map-marker"></i> <span>Airports</span>
+                        </a>
                         <a href="{{ route('ticket.index') }}" class="menu-link {{ request()->is('ticket') ? 'active' : '' }}">
                             <i class="fa fa-plane-departure"></i> <span>Ticket Issued</span>
                         </a>

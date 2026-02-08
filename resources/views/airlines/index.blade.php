@@ -40,7 +40,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($airlines as $airline)
+                        @forelse($additionalData as $airline)
                         <tr class="table-row-hover">
                             <td><strong>{{ $airline->airlines_code }}</strong></td>
                             <td class="uppercase-text">{{ $airline->airlines_name }}</td>
@@ -70,6 +70,44 @@
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Footer Tabel (Pagination) -->
+            <div class="table-footer-controls">
+                <!-- Pagination -->
+                <div class="pagination-elegant">
+                    <ul class="pagination">
+                        <!-- Navigation Links -->
+                        <li class="page-item"><a class="page-link"
+                                href="{{ $additionalData->url(1) }}"><i class="fa fa-angle-double-left"></i></a></li>
+
+                        @php
+                        $startPage = max(1, $additionalData->currentPage() - 2);
+                        $endPage = min($additionalData->lastPage(), $additionalData->currentPage() + 2);
+                        @endphp
+
+                        @if ($startPage > 1)
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                        @endif
+
+                        @foreach (range($startPage, $endPage) as $page)
+                        @if ($page == $additionalData->currentPage())
+                        <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                        @else
+                        <li class="page-item"><a class="page-link"
+                                href="{{ $additionalData->url($page) }}">{{ $page }}</a>
+                        </li>
+                        @endif
+                        @endforeach
+
+                        @if ($endPage < $additionalData->lastPage())
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                        @endif
+
+                        <li class="page-item"><a class="page-link"
+                                href="{{ $additionalData->url($additionalData->lastPage()) }}"><i class="fa fa-angle-double-right"></i></a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>

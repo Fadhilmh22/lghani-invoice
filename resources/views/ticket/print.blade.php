@@ -111,14 +111,27 @@
                     </table>
                 </td>
                 <td>
-                    <div class="city-name">{{ $ticket->route_out }}</div>
+                    @php
+                        $partsOut = explode('-', $ticket->route_out);
+                        $depCode = trim($partsOut[0] ?? '');
+                        $depName = $airports[$depCode] ?? $depCode;
+                        $hasStopOut = count($partsOut) === 3;
+                        $stopCodeOut = $hasStopOut ? trim($partsOut[1] ?? '') : '';
+                        $stopNameOut = $hasStopOut ? ($airports[$stopCodeOut] ?? $stopCodeOut) : '';
+                    @endphp
+                    <div class="city-name">{{ $depName }} - {{ $depCode }}</div>
+                    @if($hasStopOut)
+                    <div style="font-size: 9px; color: #999; font-style: italic; margin: 2px 0;">via {{ $stopNameOut }} ({{ $stopCodeOut }})</div>
+                    @endif
                     {{ \Carbon\Carbon::parse($ticket->dep_time_out)->format('D, d M Y') }}<br>
                     <strong>{{ \Carbon\Carbon::parse($ticket->dep_time_out)->format('H:i') }}</strong>
                 </td>
                 <td>
-                    <div class="city-name">
-                        {{ $ticket->route_in ? explode(' - ', $ticket->route_out)[1] ?? $ticket->route_out : $ticket->route_out }}
-                    </div>
+                    @php
+                        $arrCode = trim($partsOut[count($partsOut)-1] ?? '');
+                        $arrName = $airports[$arrCode] ?? $arrCode;
+                    @endphp
+                    <div class="city-name">{{ $arrName }} - {{ $arrCode }}</div>
                     {{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('D, d M Y') }}<br>
                     <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_out)->format('H:i') }}</strong>
                 </td>
@@ -144,12 +157,27 @@
                     </table>
                 </td>
                 <td>
-                    <div class="city-name">{{ $ticket->route_in }}</div>
+                    @php
+                        $partsIn = explode('-', $ticket->route_in);
+                        $depCodeIn = trim($partsIn[0] ?? '');
+                        $depNameIn = $airports[$depCodeIn] ?? $depCodeIn;
+                        $hasStopIn = count($partsIn) === 3;
+                        $stopCodeIn = $hasStopIn ? trim($partsIn[1] ?? '') : '';
+                        $stopNameIn = $hasStopIn ? ($airports[$stopCodeIn] ?? $stopCodeIn) : '';
+                    @endphp
+                    <div class="city-name">{{ $depNameIn }} - {{ $depCodeIn }}</div>
+                    @if($hasStopIn)
+                    <div style="font-size: 9px; color: #999; font-style: italic; margin: 2px 0;">via {{ $stopNameIn }} ({{ $stopCodeIn }})</div>
+                    @endif
                     {{ \Carbon\Carbon::parse($ticket->dep_time_in)->format('D, d M Y') }}<br>
                     <strong>{{ \Carbon\Carbon::parse($ticket->dep_time_in)->format('H:i') }}</strong>
                 </td>
                 <td>
-                    <div class="city-name">{{ explode(' - ', $ticket->route_in)[1] ?? $ticket->route_in }}</div>
+                    @php
+                        $arrCodeIn = trim($partsIn[count($partsIn)-1] ?? '');
+                        $arrNameIn = $airports[$arrCodeIn] ?? $arrCodeIn;
+                    @endphp
+                    <div class="city-name">{{ $arrNameIn }} - {{ $arrCodeIn }}</div>
                     {{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('D, d M Y') }}<br>
                     <strong>{{ \Carbon\Carbon::parse($ticket->arr_time_in)->format('H:i') }}</strong>
                 </td>

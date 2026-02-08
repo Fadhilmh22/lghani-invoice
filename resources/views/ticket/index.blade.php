@@ -139,8 +139,38 @@
             </div>
             <div class="table-footer-controls">
                 @if($tickets->count() > 0)
-                <div>Showing {{ $tickets->firstItem() }} to {{ $tickets->lastItem() }} of {{ $tickets->total() }} entries</div>
-                <div class="pagination-wrapper">{{ $tickets->links() }}</div>
+                <div class="total-summary">
+                    Showing <strong>{{ $tickets->firstItem() }}</strong> to <strong>{{ $tickets->lastItem() }}</strong> of <strong>{{ $tickets->total() }}</strong> entries
+                </div>
+                
+                <div class="pagination-elegant">
+                    <ul class="pagination">
+                        <li class="page-item"><a class="page-link" href="{{ $tickets->url(1) }}"><i class="fa fa-angle-double-left"></i></a></li>
+
+                        @php
+                            $startPage = max(1, $tickets->currentPage() - 2);
+                            $endPage = min($tickets->lastPage(), $tickets->currentPage() + 2);
+                        @endphp
+
+                        @if ($startPage > 1)
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        @endif
+
+                        @foreach (range($startPage, $endPage) as $page)
+                            @if ($page == $tickets->currentPage())
+                                <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                            @else
+                                <li class="page-item"><a class="page-link" href="{{ $tickets->appends(['search' => request('search')])->url($page) }}">{{ $page }}</a></li>
+                            @endif
+                        @endforeach
+
+                        @if ($endPage < $tickets->lastPage())
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        @endif
+
+                        <li class="page-item"><a class="page-link" href="{{ $tickets->url($tickets->lastPage()) }}"><i class="fa fa-angle-double-right"></i></a></li>
+                    </ul>
+                </div>
                 @endif
             </div>
         </div>
@@ -338,5 +368,58 @@ $(document).ready(function() {
 .checkmark-circle .fa, .warning-circle .fa { font-size: 30px; color: white; }
 .success-text { font-size: 18px; font-weight: 600; color: #10b981; margin: 0; }
 .warning-text { font-size: 18px; font-weight: 600; color: #f59e0b; margin: 0; }
+
+/* Footer Tabel (Pagination Angka) */
+.table-footer-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.total-summary {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.pagination-elegant .pagination {
+    margin: 0;
+    display: flex;
+    list-style: none;
+    padding: 0;
+}
+
+.pagination-elegant .page-link {
+    display: block;
+    padding: 8px 14px;
+    border-radius: 8px !important; /* Membuat kotak melengkung */
+    margin: 0 3px;
+    color: #4f46e5;
+    border: 1px solid #e2e8f0;
+    background-color: #fff;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.pagination-elegant .page-link:hover {
+    background-color: #eff0ff;
+    border-color: #c7c9ff;
+}
+
+.pagination-elegant .page-item.active .page-link {
+    background-color: #4f46e5;
+    border-color: #4f46e5;
+    color: white;
+}
+
+.pagination-elegant .page-item.disabled .page-link {
+    color: #cbd5e1;
+    pointer-events: none;
+    background-color: #f8fafc;
+}
+
 </style>
 @endsection
