@@ -16,9 +16,18 @@
             </div>
             @endif
 
-            <!-- TOMBOL TAMBAH -->
+            <!-- FILTER & TOMBOL TAMBAH -->
             <div class="top-bar-controls">
-                <div></div>
+                <div class="filter-search-group">
+                    <form action="{{ url('/airline') }}" method="GET" class="search-form">
+                        <div class="input-group">
+                            <input type="text" class="form-control elegant-input" placeholder="Cari Kode atau Nama Maskapai" name="search" value="{{ request('search') }}">
+                            <button class="btn btn-search" type="submit" title="Search Airline">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
                 <div class="action-group">
                     <a href="{{ url('/airline/new') }}" class="btn btn-primary-elegant">
                         <i class="fa fa-plus-circle"></i> Tambah Maskapai

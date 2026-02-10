@@ -135,12 +135,13 @@
 
                             <div id="stop_out_wrapper" style="margin-top:8px; {{ $stopOut ? 'display:block;' : 'display:none;' }}">
                                 <label style="font-weight:600; font-size:12px;"><input type="checkbox" id="has_stop_out" style="margin-right:6px;" {{ $stopOut ? 'checked' : '' }}> Tambah 1 Stops (Opsional)</label>
-                                <select name="stop_out_code" id="stop_out_code" class="form-control select2" placeholder="Pilih Airport" style="margin-top:8px;" data-type="stop">
+                                <select name="stop_out_code" id="stop_out_code" class="form-control select2" placeholder="Pilih Airport" style="margin-top:8px; margin-bottom:8px;" data-type="stop">
                                     <option value="">-- Pilih Airport Transit --</option>
                                     @foreach($airports as $apt)
                                         <option value="{{ $apt->code }}" {{ $stopOut == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
                                     @endforeach
                                 </select>
+                                <input type="text" name="stop_flight_leg2_out" id="stop_flight_leg2_out" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" value="{{ $ticket->stop_flight_leg2_out ?? '' }}" style="margin-top:6px; font-size:12px;">
                             </div>
 
                             <label id="add_stop_out_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $stopOut ? 'display:none;' : '' }}">
@@ -149,6 +150,25 @@
 
                             <input type="hidden" name="route_out" id="route_out" value="{{ $ticket->route_out }}" />
                         </div>
+
+                        <div class="col-md-12" style="padding-left:0; padding-right:0;">
+                            <div id="stop_out_wrapper_detail" style="margin-top:8px; {{ $stopOut ? 'display:block;' : 'display:none;' }}">
+                                <div class="row" style="margin: 0; margin-bottom: 8px;">
+                                    <div class="col-md-12 form-group" style="margin-bottom: 0;">
+                                        <label style="font-size:11px; margin-bottom:4px;">Waktu di Stop</label>
+                                        <div class="row" style="margin:0;">
+                                            <div class="col-md-4 form-group" style="padding-left:0; margin-bottom:0;">
+                                                <input type="text" name="stop_time_out_arrival" id="stop_time_out_arrival" class="form-control" placeholder="Arrive transit" value="{{ $ticket->stop_time_out_arrival ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out_arrival)) : ($ticket->stop_time_out ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out)) : '') }}" style="font-size:12px;">
+                                            </div>
+                                            <div class="col-md-8 form-group" style="padding-right:0; margin-bottom:0;">
+                                                <input type="text" name="stop_time_out_depart" id="stop_time_out_depart" class="form-control" placeholder="Depart transit" value="{{ $ticket->stop_time_out_depart ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out_depart)) : ($ticket->stop_time_out ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out)) : '') }}" style="font-size:12px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="col-md-6 form-group">
                             <label>Berangkat</label>
                             <input type="text" name="dep_out" class="form-control" value="{{ $ticket->dep_time_out ? date('Y-m-d\TH:i', strtotime($ticket->dep_time_out)) : '' }}">
@@ -192,12 +212,13 @@
 
                             <div id="stop_in_wrapper" style="margin-top:8px; {{ $stopIn ? 'display:block;' : 'display:none;' }}">
                                 <label style="font-weight:600; font-size:12px;"><input type="checkbox" id="has_stop_in" style="margin-right:6px;" {{ $stopIn ? 'checked' : '' }}> Tambah 1 Stops (Opsional)</label>
-                                <select name="stop_in_code" id="stop_in_code" class="form-control select2" placeholder="Pilih Airport" style="margin-top:8px;" data-type="stop">
+                                <select name="stop_in_code" id="stop_in_code" class="form-control select2" placeholder="Pilih Airport" style="margin-top:8px; margin-bottom:8px;" data-type="stop">
                                     <option value="">-- Pilih Airport Transit --</option>
                                     @foreach($airports as $apt)
                                         <option value="{{ $apt->code }}" {{ $stopIn == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
                                     @endforeach
                                 </select>
+                                <input type="text" name="stop_flight_leg2_in" id="stop_flight_leg2_in" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" value="{{ $ticket->stop_flight_leg2_in ?? '' }}" style="margin-top:6px; font-size:12px;">
                             </div>
 
                             <label id="add_stop_in_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $stopIn ? 'display:none;' : '' }}">
@@ -205,6 +226,24 @@
                             </label>
 
                             <input type="hidden" name="route_in" id="route_in" value="{{ $ticket->route_in }}" />
+                        </div>
+
+                        <div class="col-md-12" style="padding-left:0; padding-right:0;">
+                            <div id="stop_in_wrapper_detail" style="margin-top:8px; {{ $stopIn ? 'display:block;' : 'display:none;' }}">
+                                <div class="row" style="margin: 0;">
+                                    <div class="col-md-12 form-group" style="margin-bottom: 0;">
+                                        <label style="font-size:11px; margin-bottom:4px;">Waktu di Stop</label>
+                                        <div class="row" style="margin:0;">
+                                            <div class="col-md-4 form-group" style="padding-left:0; margin-bottom:0;">
+                                                <input type="text" name="stop_time_in_arrival" id="stop_time_in_arrival" class="form-control" placeholder="Arrive transit" value="{{ $ticket->stop_time_in_arrival ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in_arrival)) : ($ticket->stop_time_in ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in)) : '') }}" style="font-size:12px;">
+                                            </div>
+                                            <div class="col-md-8 form-group" style="padding-right:0; margin-bottom:0;">
+                                                <input type="text" name="stop_time_in_depart" id="stop_time_in_depart" class="form-control" placeholder="Depart transit" value="{{ $ticket->stop_time_in_depart ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in_depart)) : ($ticket->stop_time_in ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in)) : '') }}" style="font-size:12px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-6 form-group"><label>Berangkat</label>
@@ -418,10 +457,7 @@ $(document).ready(function() {
             altFormat: 'd-m-Y H:i',
             time_24hr: true
         };
-        flatpickr('input[name="dep_out"]', dateTimeConfig);
-        flatpickr('input[name="arr_out"]', dateTimeConfig);
-        flatpickr('input[name="dep_in"]', dateTimeConfig);
-        flatpickr('input[name="arr_in"]', dateTimeConfig);
+        flatpickr('input[name="dep_out"], input[name="arr_out"], input[name="dep_in"], input[name="arr_in"], input[name="stop_time_out_arrival"], input[name="stop_time_out_depart"], input[name="stop_time_in_arrival"], input[name="stop_time_in_depart"]', dateTimeConfig);
     }
 
     // Fitur Tambah Penumpang
@@ -477,12 +513,17 @@ $(document).ready(function() {
         if (this.checked) { 
             $('#add_stop_out_label').hide();
             $('#stop_out_wrapper').show();
+            $('#stop_out_wrapper_detail').show();
             $('#has_stop_out').prop('checked', true);
         } else { 
             $('#add_stop_out_label').show();
             $('#stop_out_wrapper').hide();
+            $('#stop_out_wrapper_detail').hide();
             $('#has_stop_out').prop('checked', false);
             $('#stop_out_code').val('').trigger('change');
+            $('#stop_time_out_arrival').val('');
+            $('#stop_time_out_depart').val('');
+            $('#stop_flight_leg2_out').val('');
         } 
         syncRoutes(); 
     });
@@ -491,12 +532,17 @@ $(document).ready(function() {
         if (this.checked) { 
             $('#add_stop_in_label').hide();
             $('#stop_in_wrapper').show();
+            $('#stop_in_wrapper_detail').show();
             $('#has_stop_in').prop('checked', true);
         } else { 
             $('#add_stop_in_label').show();
             $('#stop_in_wrapper').hide();
+            $('#stop_in_wrapper_detail').hide();
             $('#has_stop_in').prop('checked', false);
             $('#stop_in_code').val('').trigger('change');
+            $('#stop_time_in_arrival').val('');
+            $('#stop_time_in_depart').val('');
+            $('#stop_flight_leg2_in').val('');
         } 
         syncRoutes(); 
     });
@@ -507,7 +553,11 @@ $(document).ready(function() {
             $('#toggle_stop_out').prop('checked', false);
             $('#add_stop_out_label').show();
             $('#stop_out_wrapper').hide();
+            $('#stop_out_wrapper_detail').hide();
             $('#stop_out_code').val('').trigger('change');
+            $('#stop_time_out_arrival').val('');
+            $('#stop_time_out_depart').val('');
+            $('#stop_flight_leg2_out').val('');
             syncRoutes();
         }
     });
@@ -517,7 +567,11 @@ $(document).ready(function() {
             $('#toggle_stop_in').prop('checked', false);
             $('#add_stop_in_label').show();
             $('#stop_in_wrapper').hide();
+            $('#stop_in_wrapper_detail').hide();
             $('#stop_in_code').val('').trigger('change');
+            $('#stop_time_in_arrival').val('');
+            $('#stop_time_in_depart').val('');
+            $('#stop_flight_leg2_in').val('');
             syncRoutes();
         }
     });

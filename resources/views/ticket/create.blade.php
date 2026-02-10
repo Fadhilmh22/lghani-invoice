@@ -82,7 +82,10 @@
                 <div class="col-md-6" style="border-right: 1px solid #f1f5f9;">
                     <p><strong><i class="fa fa-plane-outbound"></i> Pergi</strong></p>
                     <div class="row">
-                        <div class="col-md-6 form-group"><label>No. Flight</label><input type="text" name="flight_out" class="form-control" placeholder="GA-123"></div>
+                        <div class="col-md-6 form-group">
+                            <label>No. Flight</label>
+                            <input type="text" name="flight_out" class="form-control" placeholder="GA-123">
+                        </div>
 
                         <div class="col-md-6 form-group">
                             <label>Departure</label>
@@ -96,35 +99,61 @@
                             <label style="margin-top:8px;">Arrivals</label>
                             <select name="arrival_out_code" id="arrival_out_code" class="form-control select2" data-type="arrival">
                                 <option value="">-- Pilih Bandara Kedatangan --</option>
-                               @foreach($airports as $apt)
+                                @foreach($airports as $apt)
                                     <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
                                 @endforeach
                             </select>
 
-                            <label style="margin-top:10px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; display: block;">
-                                <input type="checkbox" id="toggle_stop_out" style="margin-right:6px;"> Tambah 1 Stops (Transit)
-                            </label>
-
                             <div id="stop_out_wrapper" style="margin-top:8px; display:none;">
-                                <select name="stop_out_code" id="stop_out_code" class="form-control select2" style="width: 100%;">
+                                <label style="font-weight:600; font-size:12px;">
+                                    <input type="checkbox" id="has_stop_out" style="margin-right:6px;"> Tambah 1 Stops (Opsional)
+                                </label>
+                                <select name="stop_out_code" id="stop_out_code" class="form-control select2" style="margin-top:8px; margin-bottom:8px;" data-type="stop">
                                     <option value="">-- Pilih Airport Transit --</option>
                                     @foreach($airports as $apt)
                                         <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
                                     @endforeach
                                 </select>
+                                <input type="text" name="stop_flight_leg2_out" id="stop_flight_leg2_out" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" style="margin-top:6px; font-size:12px;">
                             </div>
 
+                            <label id="add_stop_out_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1;">
+                                <input type="checkbox" id="toggle_stop_out" style="margin-right:6px;"> Tambah 1 Stops (Opsional)
+                            </label>
+
                             <input type="hidden" name="route_out" id="route_out" />
+                        </div>
+
+                        <div class="col-md-12" style="padding-left:0; padding-right:0;">
+                            <div id="stop_out_wrapper_detail" style="margin-top:8px; display:none;">
+                                <div class="row" style="margin: 0; margin-bottom: 8px;">
+                                    <div class="col-md-12 form-group" style="margin-bottom: 0;">
+                                        <label style="font-size:11px; margin-bottom:4px;">Waktu di Stop</label>
+                                        <div class="row" style="margin:0;">
+                                            <div class="col-md-4 form-group" style="padding-left:0; margin-bottom:0;">
+                                                <input type="text" name="stop_time_out_arrival" id="stop_time_out_arrival" class="form-control" placeholder="Arrive transit" style="font-size:12px;">
+                                            </div>
+                                            <div class="col-md-8 form-group" style="padding-right:0; margin-bottom:0;">
+                                                <input type="text" name="stop_time_out_depart" id="stop_time_out_depart" class="form-control" placeholder="Depart transit" style="font-size:12px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-6 form-group"><label>Berangkat</label><input type="text" name="dep_out" class="form-control"></div>
                         <div class="col-md-6 form-group"><label>Tiba</label><input type="text" name="arr_out" class="form-control"></div>
                     </div>
                 </div>
+
                 <div class="col-md-6">
                     <p><strong><i class="fa fa-plane-arrival"></i> Pulang (Opsional)</strong></p>
                     <div class="row">
-                        <div class="col-md-6 form-group"><label>No. Flight</label><input type="text" name="flight_in" class="form-control"></div>
+                        <div class="col-md-6 form-group">
+                            <label>No. Flight</label>
+                            <input type="text" name="flight_in" class="form-control">
+                        </div>
 
                         <div class="col-md-6 form-group">
                             <label>Departure</label>
@@ -143,20 +172,42 @@
                                 @endforeach
                             </select>
 
-                            <label style="margin-top:10px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; display: block;">
-                                <input type="checkbox" id="toggle_stop_in" style="margin-right:6px;"> Tambah 1 Stops (Opsional)
-                            </label>
-
                             <div id="stop_in_wrapper" style="margin-top:8px; display:none;">
-                                <select name="stop_in_code" id="stop_in_code" class="form-control select2" style="width: 100%;">
+                                <label style="font-weight:600; font-size:12px;">
+                                    <input type="checkbox" id="has_stop_in" style="margin-right:6px;"> Tambah 1 Stops (Opsional)
+                                </label>
+                                <select name="stop_in_code" id="stop_in_code" class="form-control select2" style="margin-top:8px; margin-bottom:8px;" data-type="stop">
                                     <option value="">-- Pilih Airport Transit --</option>
                                     @foreach($airports as $apt)
                                         <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
                                     @endforeach
                                 </select>
+                                <input type="text" name="stop_flight_leg2_in" id="stop_flight_leg2_in" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" style="margin-top:6px; font-size:12px;">
                             </div>
 
+                            <label id="add_stop_in_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1;">
+                                <input type="checkbox" id="toggle_stop_in" style="margin-right:6px;"> Tambah 1 Stops (Opsional)
+                            </label>
+
                             <input type="hidden" name="route_in" id="route_in" />
+                        </div>
+
+                        <div class="col-md-12" style="padding-left:0; padding-right:0;">
+                            <div id="stop_in_wrapper_detail" style="margin-top:8px; display:none;">
+                                <div class="row" style="margin: 0; margin-bottom: 8px;">
+                                    <div class="col-md-12 form-group" style="margin-bottom: 0;">
+                                        <label style="font-size:11px; margin-bottom:4px;">Waktu di Stop</label>
+                                        <div class="row" style="margin:0;">
+                                            <div class="col-md-4 form-group" style="padding-left:0; margin-bottom:0;">
+                                                <input type="text" name="stop_time_in_arrival" id="stop_time_in_arrival" class="form-control" placeholder="Arrive transit" style="font-size:12px;">
+                                            </div>
+                                            <div class="col-md-8 form-group" style="padding-right:0; margin-bottom:0;">
+                                                <input type="text" name="stop_time_in_depart" id="stop_time_in_depart" class="form-control" placeholder="Depart transit" style="font-size:12px;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-md-6 form-group"><label>Berangkat</label><input type="text" name="dep_in" class="form-control"></div>
@@ -184,12 +235,10 @@
                         <td><input type="text" name="passengers[0][name]" class="form-control" required></td>
                         <td><select name="passengers[0][type]" class="form-control"><option>Adult</option><option>Child</option><option>Infant</option></select></td>
                         <td><input type="text" name="passengers[0][ticket_num]" class="form-control"></td>
-                        
                         <td class="text-center">
                             <input type="checkbox" name="passengers[0][has_baggage]" value="1" style="width: 20px; height: 20px; cursor: pointer;">
                             <br><small class="text-muted">Munculkan Bagasi</small>
                         </td>
-
                         <td class="text-center">
                             <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button>
                         </td>
@@ -197,7 +246,7 @@
                 </tbody>
             </table>
             <button type="button" class="btn btn-default btn-sm" id="add-passenger"><i class="fa fa-plus"></i> Tambah Penumpang</button>
-        </div>  
+        </div>
 
         <div class="invoice-section">
             <div class="row">
@@ -225,57 +274,36 @@
                 </div>
 
                 <div class="col-md-6">
-    <div class="section-title" style="border-left-color: #f59e0b;">Rincian Tiket (Airfare PDF)</div>
-    
-    <div class="row">
-        <div class="col-md-4 form-group">
-            <label>Basic Fare</label>
-            <input type="number" name="basic_fare" id="basic_fare" class="form-control" placeholder="0">
-        </div>
-        <div class="col-md-4 form-group">
-            <label>Tax & Surcharge</label>
-            <input type="number" name="total_tax" id="total_tax" class="form-control" placeholder="0">
-        </div>
-        <div class="col-md-4 form-group">
-            <label>Fee Ticket</label>
-            <input type="number" name="fee_ticket" id="fee_ticket" class="form-control" placeholder="0">
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4 form-group">
-            <label>Free Baggage</label>
-            <div class="ticket-unit-wrapper">
-                <input type="number" name="free_baggage" class="form-control ticket-unit-input" placeholder="0">
-                <span class="ticket-unit-label">KG</span>
+                    <div class="section-title" style="border-left-color: #f59e0b;">Rincian Tiket (Airfare PDF)</div>
+                    <div class="row">
+                        <div class="col-md-4 form-group"><label>Basic Fare</label><input type="number" name="basic_fare" id="basic_fare" class="form-control" placeholder="0"></div>
+                        <div class="col-md-4 form-group"><label>Tax & Surcharge</label><input type="number" name="total_tax" id="total_tax" class="form-control" placeholder="0"></div>
+                        <div class="col-md-4 form-group"><label>Fee Ticket</label><input type="number" name="fee_ticket" id="fee_ticket" class="form-control" placeholder="0"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label>Free Baggage</label>
+                            <div class="ticket-unit-wrapper"><input type="number" name="free_baggage" class="form-control ticket-unit-input" placeholder="0"><span class="ticket-unit-label">KG</span></div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>Add On (Qty)</label>
+                            <div class="ticket-unit-wrapper"><input type="number" name="baggage_kg" id="baggage_kg" class="form-control ticket-unit-input" value="0"><span class="ticket-unit-label">KG</span></div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>Add On Price</label>
+                            <div class="ticket-unit-wrapper"><span class="ticket-unit-label">Rp</span><input type="number" name="baggage_price" id="baggage_price" class="form-control ticket-unit-input" value="0"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="well well-sm" style="margin-top: 5px; background: #fffbeb; border: 1px solid #fde68a; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;">
+                                <span style="color: #92400e; font-weight: 600;">Total Tertera di PDF:</span>
+                                <strong id="total_ticket_display" style="font-size: 20px; color: #b45309;">Rp 0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="col-md-4 form-group">
-            <label>Add On (Qty)</label>
-            <div class="ticket-unit-wrapper">
-                <input type="number" name="baggage_kg" id="baggage_kg" class="form-control ticket-unit-input" value="0">
-                <span class="ticket-unit-label">KG</span>
-            </div>
-        </div>
-        <div class="col-md-4 form-group">
-            <label>Add On Price</label>
-            <div class="ticket-unit-wrapper">
-                <span class="ticket-unit-label">Rp</span>
-                <input type="number" name="baggage_price" id="baggage_price" class="form-control ticket-unit-input" value="0">
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-12">
-            <div class="well well-sm" style="margin-top: 5px; background: #fffbeb; border: 1px solid #fde68a; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;">
-                <span style="color: #92400e; font-weight: 600;">Total Tertera di PDF:</span>
-                <strong id="total_ticket_display" style="font-size: 20px; color: #b45309;">Rp 0</strong>
-            </div>
-            <p class="text-muted" style="font-size: 11px; margin-top: -5px;">*Inputan ini khusus untuk tampilan rincian harga di file PDF tiket.</p>
-        </div>
-    </div>
-    </div>
 
             <div class="text-right" style="margin-top: 20px;">
                 <hr>
@@ -296,51 +324,33 @@ $(document).ready(function() {
 
     function cleanNumber(val) { return parseFloat(val) || 0; }
 
-    // Hitung Otomatis
     $('#basic_fare, #total_tax, #fee_ticket, #baggage_price').on('input', function() {
         let totalPDF = cleanNumber($('#basic_fare').val()) + cleanNumber($('#total_tax').val()) + cleanNumber($('#fee_ticket').val()) + cleanNumber($('#baggage_price').val());
         $('#total_ticket_display').text('Rp ' + totalPDF.toLocaleString('id-ID'));
         $('#publish_price').val(totalPDF);
     });
 
-    // DateTime picker untuk jadwal penerbangan
     if (window.flatpickr) {
-        const dateTimeConfig = {
-            enableTime: true,
-            dateFormat: 'Y-m-d\\TH:i',
-            altInput: true,
-            altFormat: 'd-m-Y H:i',
-            time_24hr: true
-        };
-        flatpickr('input[name="dep_out"]', dateTimeConfig);
-        flatpickr('input[name="arr_out"]', dateTimeConfig);
-        flatpickr('input[name="dep_in"]', dateTimeConfig);
-        flatpickr('input[name="arr_in"]', dateTimeConfig);
+        const dateTimeConfig = { enableTime: true, dateFormat: 'Y-m-d\\TH:i', altInput: true, altFormat: 'd-m-Y H:i', time_24hr: true };
+        flatpickr('input[name="dep_out"], input[name="arr_out"], input[name="dep_in"], input[name="arr_in"], input[name="stop_time_out_arrival"], input[name="stop_time_out_depart"], input[name="stop_time_in_arrival"], input[name="stop_time_in_depart"]', dateTimeConfig);
     }
 
-    // Tambah Penumpang
     let rowIdx = 1;
-        $('#add-passenger').click(function() {
-            let html = `<tr>
-                <td><select name="passengers[${rowIdx}][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option></select></td>
-                <td><input type="text" name="passengers[${rowIdx}][name]" class="form-control" required></td>
-                <td><select name="passengers[${rowIdx}][type]" class="form-control"><option>Adult</option><option>Child</option><option>Infant</option></select></td>
-                <td><input type="text" name="passengers[${rowIdx}][ticket_num]" class="form-control"></td>
-                
-                <td class="text-center">
-                    <input type="checkbox" name="passengers[${rowIdx}][has_baggage]" value="1" style="width: 20px; height: 20px; cursor: pointer;">
-                    <br><small class="text-muted">Munculkan Bagasi</small>
-                </td>
-
-                <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button></td>
-            </tr>`;
-            $('#passenger-container').append(html);
-            rowIdx++;
-        });
+    $('#add-passenger').click(function() {
+        let html = `<tr>
+            <td><select name="passengers[${rowIdx}][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option></select></td>
+            <td><input type="text" name="passengers[${rowIdx}][name]" class="form-control" required></td>
+            <td><select name="passengers[${rowIdx}][type]" class="form-control"><option>Adult</option><option>Child</option><option>Infant</option></select></td>
+            <td><input type="text" name="passengers[${rowIdx}][ticket_num]" class="form-control"></td>
+            <td class="text-center"><input type="checkbox" name="passengers[${rowIdx}][has_baggage]" value="1" style="width: 20px; height: 20px; cursor: pointer;"><br><small class="text-muted">Munculkan Bagasi</small></td>
+            <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button></td>
+        </tr>`;
+        $('#passenger-container').append(html);
+        rowIdx++;
+    });
 
     $('#passenger-container').on('click', '.remove-row', function() { $(this).closest('tr').remove(); });
 
-    // Route builder: gabungkan departure[-stop]-arrival ke hidden route_out / route_in
     function buildRoute(prefix) {
         const dep = $(`#departure_${prefix}_code`).val() || '';
         const stop = $(`#stop_${prefix}_code`).val() || '';
@@ -354,54 +364,56 @@ $(document).ready(function() {
         $('#route_in').val(buildRoute('in'));
     }
 
-    // Toggle stop inputs dengan toggle checkbox
+    // --- LOGIC STOP OUT (DISAMAKAN DENGAN EDIT) ---
     $('#toggle_stop_out').on('change', function() { 
         if (this.checked) { 
+            $('#add_stop_out_label').hide();
             $('#stop_out_wrapper').show();
+            $('#stop_out_wrapper_detail').show();
             $('#has_stop_out').prop('checked', true);
-        } else { 
-            $('#stop_out_wrapper').hide();
-            $('#has_stop_out').prop('checked', false);
-            $('#stop_out_code').val('').trigger('change');
-        } 
-        syncRoutes(); 
+        }
     });
 
-    $('#toggle_stop_in').on('change', function() { 
-        if (this.checked) { 
-            $('#stop_in_wrapper').show();
-            $('#has_stop_in').prop('checked', true);
-        } else { 
-            $('#stop_in_wrapper').hide();
-            $('#has_stop_in').prop('checked', false);
-            $('#stop_in_code').val('').trigger('change');
-        } 
-        syncRoutes(); 
-    });
-
-    // Jika user langsung check dari wrapper, sync ke toggle
     $('#has_stop_out').on('change', function() {
         if (!this.checked) {
             $('#toggle_stop_out').prop('checked', false);
+            $('#add_stop_out_label').show();
             $('#stop_out_wrapper').hide();
+            $('#stop_out_wrapper_detail').hide();
             $('#stop_out_code').val('').trigger('change');
+            $('#stop_time_out_arrival').val('');
+            $('#stop_time_out_depart').val('');
+            $('#stop_flight_leg2_out').val('');
             syncRoutes();
+        }
+    });
+
+    // --- LOGIC STOP IN (DISAMAKAN DENGAN EDIT) ---
+    $('#toggle_stop_in').on('change', function() { 
+        if (this.checked) { 
+            $('#add_stop_in_label').hide();
+            $('#stop_in_wrapper').show();
+            $('#stop_in_wrapper_detail').show();
+            $('#has_stop_in').prop('checked', true);
         }
     });
 
     $('#has_stop_in').on('change', function() {
         if (!this.checked) {
             $('#toggle_stop_in').prop('checked', false);
+            $('#add_stop_in_label').show();
             $('#stop_in_wrapper').hide();
+            $('#stop_in_wrapper_detail').hide();
             $('#stop_in_code').val('').trigger('change');
+            $('#stop_time_in_arrival').val('');
+            $('#stop_time_in_depart').val('');
+            $('#stop_flight_leg2_in').val('');
             syncRoutes();
         }
     });
 
-    // Update pada perubahan select2
     $('#departure_out_code, #arrival_out_code, #stop_out_code, #departure_in_code, #arrival_in_code, #stop_in_code').on('change', function() { syncRoutes(); });
 
-    // Initialize sync
     syncRoutes();
 });
 </script>

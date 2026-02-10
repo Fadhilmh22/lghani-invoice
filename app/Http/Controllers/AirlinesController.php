@@ -8,12 +8,14 @@ use Illuminate\Http\Request;
 
 class AirlinesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $airlines = Airlines::orderBy('created_at', 'DESC')->get();
+        $additionalData = Airlines::when($request->search, function($query) use ($request) {
+            $query->where('airlines_code', 'like', "%{$request->search}%")
+                  ->orWhere('airlines_name', 'like', "%{$request->search}%");
+        })->orderBy('created_at', 'DESC')->paginate(10);
 
-        $additionalData = Airlines::orderBy('created_at', 'DESC')->paginate(10);
-        return view('airlines.index', compact('airlines', 'additionalData'));
+        return view('airlines.index', compact('additionalData'));
     }
 
     public function create()

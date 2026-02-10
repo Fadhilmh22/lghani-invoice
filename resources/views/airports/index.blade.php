@@ -16,9 +16,18 @@
             </div>
             @endif
 
-            <!-- TOMBOL TAMBAH -->
+            <!-- FILTER & TOMBOL TAMBAH -->
             <div class="top-bar-controls">
-                <div></div>
+                <div class="filter-search-group">
+                    <form action="{{ route('airports.index') }}" method="GET" class="search-form">
+                        <div class="input-group">
+                            <input type="text" class="form-control elegant-input" placeholder="Cari Kode, Nama, atau Kota Bandara" name="search" value="{{ request('search') }}">
+                            <button class="btn btn-search" type="submit" title="Search Airport">
+                                <i class="fa fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
                 <div class="action-group">
                     <a href="{{ route('airports.create') }}" class="btn btn-primary-elegant">
                         <i class="fa fa-plus-circle"></i> Tambah Bandara

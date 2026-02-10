@@ -20,16 +20,6 @@
         .flight-table td { padding: 8px 6px; vertical-align: top; border-bottom: 1px solid #eee; }
         .flight-table td table td { padding: 0; vertical-align: top; }
 
-        /* PERBAIKAN KOLOM TRANSIT JOG & KOTAK BIRU */
-        .connector-col { 
-            width: 110px; 
-            text-align: center; 
-            vertical-align: middle !important; 
-            padding: 0 !important; 
-        }
-        .connector-wrapper { position: relative; width: 100%; height: 20px; margin-top: 5px; }
-        .line-dashed { border-top: 1px dashed #cbd5e1; width: 100%; position: absolute; top: 10px; z-index: 1; }
-        
         .status-badge { 
             position: relative; 
             z-index: 2; 
@@ -106,23 +96,43 @@
     <table class="flight-table">
         <thead>
             <tr>
-                <th width="30%">FLIGHT</th>
-                <th width="28%">DEPARTING</th>
-                <th width="14%"></th> 
-                <th width="28%">ARRIVING</th>
+                <th width="34%">FLIGHT</th>
+                <th width="33%">DEPARTING</th>
+                <th width="33%">ARRIVING</th>
             </tr>
         </thead>
         <tbody>
             @php
                 function getAirlineLogo($name) {
                     $name = strtolower($name);
-                    $logos = ['air asia'=>'airasia.png', 'batik'=>'batik.png', 'citilink'=>'citilink.png', 'garuda'=>'garuda.png', 'lion'=>'lion.png', 'super air jet'=>'Super Air Jet.png', 'flyjaya'=>'flyjaya.png'];
-                    foreach ($logos as $key => $val) { if (str_contains($name, $key)) return $val; }
+                    $logos = [
+                        'air asia' => 'airasia.png',
+                        'batik' => 'batik.png',
+                        'citilink' => 'citilink.png',
+                        'garuda' => 'garuda.png',
+                        'lion' => 'lion.png',
+                        'super air jet' => 'Super Air Jet.png',
+                        'flyjaya' => 'flyjaya.png',
+                        'sriwijaya' => 'sriwijaya.png',
+                        'scoot' => 'scoot.png',
+                        'singapore airlines' => 'singaporeairlines.png',
+                        'malaysia airlines' => 'malaysiairlines.png',
+                        'thai airways' => 'thaiairways.png',
+                        'indonesia' => 'indonesiairlines.png',
+                        'cathay' => 'cathaypacific.png',
+                        'emirates' => 'emirates.png',
+                        'qatar' => 'qatar.png',
+                        'etihad' => 'etihad.png'
+                    ];
+                    foreach ($logos as $key => $val) {
+                        if (str_contains($name, $key)) return $val;
+                    }
                     return null;
                 }
                 $logoOut = getAirlineLogo($ticket->airline->airlines_name);
 
                 $rawClass = $passengers->first()->class ?? 'Economy';
+                // Parse "Y,A/B,V" format: Y=leg1_out, A=leg2_out, B=leg1_in, V=leg2_in
                 if (str_contains($rawClass, '/')) {
                     $parts = explode('/', $rawClass);
                     $classOutArr = explode(',', $parts[0]);
@@ -130,6 +140,19 @@
                 } else {
                     $classOutArr = explode(',', $rawClass);
                     $classInArr = $classOutArr;
+                }
+                
+                // Function to get correct class for each leg
+                function getClassForLeg($classArr, $legIndex) {
+                    // Normalize array
+                    $arr = array_values(array_filter(array_map('trim', $classArr), function($v) { return $v !== ''; }));
+                    if ($legIndex == 0) {
+                        // Leg 1: use first element if present
+                        return isset($arr[0]) ? $arr[0] : '';
+                    } else {
+                        // Leg 2 (transit): use second element if exists, otherwise fallback to first
+                        return isset($arr[1]) ? $arr[1] : (isset($arr[0]) ? $arr[0] : '');
+                    }
                 }
             @endphp
 
@@ -140,55 +163,131 @@
                     $depT = ($type == 'out') ? $ticket->dep_time_out : $ticket->dep_time_in;
                     $arrT = ($type == 'out') ? $ticket->arr_time_out : $ticket->arr_time_in;
                     $fNo = ($type == 'out') ? $ticket->flight_out : ($ticket->flight_in ?? $ticket->flight_out);
-                    $cls = ($type == 'out') ? $classOutArr : $classInArr;
 
                     $parts = explode('-', $route);
                     $depC = trim($parts[0]);
                     $arrC = trim($parts[count($parts)-1]);
                     $midC = (count($parts) === 3) ? trim($parts[1]) : null;
-                @endphp
-                <tr>
-                    <td>
-                        <table width="100%" style="border:none;">
-                            <tr>
-                                @if($logoOut)
-                                <td width="40px" style="border:none; padding:0;">
-                                    <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px; height: auto;">
-                                </td>
-                                @endif
-                                <td style="border:none; padding:0; padding-left: 5px;">
-                                    <strong>{{ $ticket->airline->airlines_name }}</strong><br>
-                                    <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $ticket->airline->airlines_code }} - {{ $fNo }}</span>
-                                    <div style="font-size: 9px; color: #555;">Class: {{ implode(', ', array_map('trim', $cls)) }}</div>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                    <td align="left">
-                        <div class="city-name">{{ $airports[$depC] ?? $depC }}</div>
-                        <div style="font-weight: bold; color: #555;">{{ $depC }}</div>
-                        {{ \Carbon\Carbon::parse($depT)->format('D, d M Y') }}<br>
-                        <strong>{{ \Carbon\Carbon::parse($depT)->format('H:i') }}</strong>
-                    </td>
+                    $hasStop = $midC !== null;
                     
-                    <td class="connector-col">
-                        <div class="connector-wrapper">
-                            <div class="line-dashed"></div>
-                            @if($midC)
-                                <span class="status-badge transit-pill">1 STOP • {{ $midC }}</span>
-                            @else
-                                <span class="status-badge">Direct</span>
-                            @endif
-                        </div>
-                    </td>
-
-                    <td align="left">
-                        <div class="city-name">{{ $airports[$arrC] ?? $arrC }}</div>
-                        <div style="font-weight: bold; color: #555;">{{ $arrC }}</div>
-                        {{ \Carbon\Carbon::parse($arrT)->format('D, d M Y') }}<br>
-                        <strong>{{ \Carbon\Carbon::parse($arrT)->format('H:i') }}</strong>
-                    </td>
+                    $stopFlight1 = ($type == 'out') ? ($ticket->stop_flight_leg1_out ?? $ticket->flight_out) : ($ticket->stop_flight_leg1_in ?? $ticket->flight_in);
+                    $stopArrival = ($type == 'out') ? $ticket->stop_time_out_arrival ?? $ticket->stop_time_out : $ticket->stop_time_in_arrival ?? $ticket->stop_time_in;
+                    $stopDepart  = ($type == 'out') ? $ticket->stop_time_out_depart ?? $ticket->stop_time_out : $ticket->stop_time_in_depart ?? $ticket->stop_time_in;
+                    $stopFlight2 = ($type == 'out') ? $ticket->stop_flight_leg2_out : $ticket->stop_flight_leg2_in;
+                @endphp
+                
+                <tr>
+                    <td colspan="3" style="background:#fbfdff; padding:6px 10px; font-weight:700; color:#1f2937;">{{ $type == 'out' ? 'Departure' : 'Return' }}</td>
                 </tr>
+                @if($hasStop)
+                    {{-- LEG 1: Departure to Stop --}}
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    @if($logoOut)
+                                    <td width="40px" style="border:none; padding:0;">
+                                        <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px; height: auto;">
+                                    </td>
+                                    @endif
+                                    <td style="border:none; padding:0; padding-left: 5px;">
+                                        <strong>{{ $ticket->airline->airlines_name }}</strong><br>
+                                        <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $ticket->airline->airlines_code }} - {{ $stopFlight1 ?? $fNo }}</span>
+                                        <div style="font-size: 9px; color: #555;">Class: {{ getClassForLeg(($type == 'out') ? $classOutArr : $classInArr, 0) }}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td align="left">
+                            <div class="city-name">{{ $airports[$depC] ?? $depC }}</div>
+                            <div style="font-weight: bold; color: #555;">{{ $depC }}</div>
+                            {{ \Carbon\Carbon::parse($depT)->format('D, d M Y') }}<br>
+                            <strong>{{ \Carbon\Carbon::parse($depT)->format('H:i') }}</strong>
+                        </td>
+
+                        <td align="left">
+                            <div class="city-name">{{ $airports[$midC] ?? $midC }}</div>
+                            <div style="font-weight: bold; color: #555;">{{ $midC }}</div>
+                            @if($stopArrival)
+                                {{ \Carbon\Carbon::parse($stopArrival)->format('D, d M Y') }}<br>
+                                <strong>{{ \Carbon\Carbon::parse($stopArrival)->format('H:i') }}</strong>
+                            @else
+                                <span style="color: #999;">-- --</span>
+                            @endif
+                        </td>
+                    </tr>
+                    
+                    {{-- LEG 2: Stop to Arrival --}}
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    @if($logoOut)
+                                    <td width="40px" style="border:none; padding:0;">
+                                        <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px; height: auto;">
+                                    </td>
+                                    @endif
+                                    <td style="border:none; padding:0; padding-left: 5px;">
+                                        <strong>{{ $ticket->airline->airlines_name }}</strong><br>
+                                        <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $ticket->airline->airlines_code }} - {{ $stopFlight2 ?? $fNo }}</span>
+                                        <div style="font-size: 9px; color: #555;">Class: {{ getClassForLeg(($type == 'out') ? $classOutArr : $classInArr, 1) }}</div>
+                                        <div style="margin-top:6px;"><span class="transit-pill">TRANSIT • {{ $midC }}</span></div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td align="left">
+                            <div class="city-name">{{ $airports[$midC] ?? $midC }}</div>
+                            <div style="font-weight: bold; color: #555;">{{ $midC }}</div>
+                            @if($stopDepart)
+                                {{ \Carbon\Carbon::parse($stopDepart)->format('D, d M Y') }}<br>
+                                <strong>{{ \Carbon\Carbon::parse($stopDepart)->format('H:i') }}</strong>
+                            @else
+                                <span style="color: #999;">-- --</span>
+                            @endif
+                        </td>
+
+                        <td align="left">
+                            <div class="city-name">{{ $airports[$arrC] ?? $arrC }}</div>
+                            <div style="font-weight: bold; color: #555;">{{ $arrC }}</div>
+                            {{ \Carbon\Carbon::parse($arrT)->format('D, d M Y') }}<br>
+                            <strong>{{ \Carbon\Carbon::parse($arrT)->format('H:i') }}</strong>
+                        </td>
+                    </tr>
+                @else
+                    {{-- DIRECT FLIGHT --}}
+                    <tr>
+                        <td>
+                            <table width="100%" style="border:none;">
+                                <tr>
+                                    @if($logoOut)
+                                    <td width="40px" style="border:none; padding:0;">
+                                        <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px; height: auto;">
+                                    </td>
+                                    @endif
+                                    <td style="border:none; padding:0; padding-left: 5px;">
+                                        <strong>{{ $ticket->airline->airlines_name }}</strong><br>
+                                        <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $ticket->airline->airlines_code }} - {{ $fNo }}</span>
+                                        <div style="font-size: 9px; color: #555;">Class: {{ getClassForLeg(($type == 'out') ? $classOutArr : $classInArr, 0) }}</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td align="left">
+                            <div class="city-name">{{ $airports[$depC] ?? $depC }}</div>
+                            <div style="font-weight: bold; color: #555;">{{ $depC }}</div>
+                            {{ \Carbon\Carbon::parse($depT)->format('D, d M Y') }}<br>
+                            <strong>{{ \Carbon\Carbon::parse($depT)->format('H:i') }}</strong>
+                        </td>
+
+                        <td align="left">
+                            <div class="city-name">{{ $airports[$arrC] ?? $arrC }}</div>
+                            <div style="font-weight: bold; color: #555;">{{ $arrC }}</div>
+                            {{ \Carbon\Carbon::parse($arrT)->format('D, d M Y') }}<br>
+                            <strong>{{ \Carbon\Carbon::parse($arrT)->format('H:i') }}</strong>
+                        </td>
+                    </tr>
+                @endif
             @endforeach
         </tbody>
     </table>
