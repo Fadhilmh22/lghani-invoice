@@ -28,4 +28,10 @@ class Invoice_detail extends Model
         // Pastikan nama modelnya 'Airlines' sesuai file abang
         return $this->belongsTo(Airlines::class, 'airline_id');
     }
+
+    // relation to ticket (nullable when invoice detail created manually)
+    public function ticket()
+    {
+        return $this->belongsTo(\App\Models\Ticket::class, 'ticket_id');
+    }
 }

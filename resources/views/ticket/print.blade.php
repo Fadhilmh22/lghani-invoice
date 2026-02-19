@@ -64,7 +64,15 @@
         .agency-footer { margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; font-size: 9px; line-height: 1.4; }
     </style>
 </head>
+
 <body>
+
+    @php
+        // KAI detection used for header/logo and layout adjustments
+        $airlineNameLower = strtolower($ticket->airline->airlines_name ?? '');
+        $airlineCodeLower = strtolower($ticket->airline->airlines_code ?? '');
+        $isKAI = ($airlineCodeLower === 'kai') || str_contains($airlineNameLower, 'kai');
+    @endphp
 
     <table class="header">
         <tr>
@@ -74,7 +82,12 @@
                 <div style="font-size: 10px; color: #555;">tour&travel</div>
             </td>
             <td width="45%" align="right">
-                <div class="booking-title">Booking Details</div>
+                <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px;">
+                    @if(!empty($isKAI))
+                        <img src="{{ public_path('airlines-logo/kai.png') }}" style="height:40px; object-fit:contain;">
+                    @endif
+                    <div class="booking-title">Booking Details</div>
+                </div>
                 <div style="margin-top: 5px;">
                     <span style="color: #777;">Ticket ID:</span> 
                     <strong>{{ $ticketNoGlobal }}</strong>
@@ -85,7 +98,7 @@
                 </div>
                 <div style="color: #666;">
                     Issued Date: <strong>{{ $ticket->created_at->format('d M Y') }}</strong> 
-                    | Time: <strong>{{ $ticket->created_at->format('H:i') }}</strong>
+                    
                 </div>
                 <div style="margin-top: 5px; font-weight: bold;">{{ $ticket->invoice->customer->email ?? 'Ighani_travel@ymail.com' }}</div>
             </td>
@@ -96,7 +109,7 @@
     <table class="flight-table">
         <thead>
             <tr>
-                <th width="34%">FLIGHT</th>
+                <th width="34%">{{ $isKAI ? 'TRAIN' : 'FLIGHT' }}</th>
                 <th width="33%">DEPARTING</th>
                 <th width="33%">ARRIVING</th>
             </tr>
@@ -109,27 +122,39 @@
                         'air asia' => 'airasia.png',
                         'batik' => 'batik.png',
                         'citilink' => 'citilink.png',
-                        'garuda' => 'garuda.png',
-                        'lion' => 'lion.png',
-                        'super air jet' => 'Super Air Jet.png',
                         'flyjaya' => 'flyjaya.png',
-                        'sriwijaya' => 'sriwijaya.png',
+                        'garuda' => 'garuda.png',
+                        'kereta' => 'kai.png',
+                        'kai' => 'kai.png',
+                        'lion' => 'lion.png',
+                        'nam' => 'namair.png',
+                        'pelita' => 'pelitaair.png',
+                        'qatar' => 'qatar.png',
                         'scoot' => 'scoot.png',
+                        'sriwijaya' => 'sriwijaya.png',
+                        'super air jet' => 'Super Air Jet.png',
+                        'transnusa' => 'transnusa.png',
+                        'trigana' => 'triganaair.png',
+                        'wings' => 'wings.png',
+                        'xpressair' => 'xpressair.png',
                         'singapore airlines' => 'singaporeairlines.png',
                         'malaysia airlines' => 'malaysiairlines.png',
                         'thai airways' => 'thaiairways.png',
                         'indonesia' => 'indonesiairlines.png',
                         'cathay' => 'cathaypacific.png',
                         'emirates' => 'emirates.png',
-                        'qatar' => 'qatar.png',
-                        'etihad' => 'etihad.png'
+                        'etihad' => 'etihad.png',
                     ];
                     foreach ($logos as $key => $val) {
                         if (str_contains($name, $key)) return $val;
                     }
                     return null;
                 }
-                $logoOut = getAirlineLogo($ticket->airline->airlines_name);
+
+                // determine logos for each potential leg
+                $logoMain = getAirlineLogo($ticket->airline->airlines_name);
+                $logoStopOut = $ticket->stop_airline_out ? getAirlineLogo($ticket->stop_airline_out) : $logoMain;
+                $logoStopIn  = $ticket->stop_airline_in ? getAirlineLogo($ticket->stop_airline_in) : $logoMain;
 
                 $rawClass = $passengers->first()->class ?? 'Economy';
                 // Parse "Y,A/B,V" format: Y=leg1_out, A=leg2_out, B=leg1_in, V=leg2_in
@@ -174,6 +199,15 @@
                     $stopArrival = ($type == 'out') ? $ticket->stop_time_out_arrival ?? $ticket->stop_time_out : $ticket->stop_time_in_arrival ?? $ticket->stop_time_in;
                     $stopDepart  = ($type == 'out') ? $ticket->stop_time_out_depart ?? $ticket->stop_time_out : $ticket->stop_time_in_depart ?? $ticket->stop_time_in;
                     $stopFlight2 = ($type == 'out') ? $ticket->stop_flight_leg2_out : $ticket->stop_flight_leg2_in;
+                    // choose airline names per leg
+                    $leg1AirlineName = $ticket->airline->airlines_name;
+                    $leg1AirlineCode = $ticket->airline->airlines_code;
+                    $leg2AirlineName = ($type == 'out') ? ($ticket->stop_airline_out ?: $leg1AirlineName) : ($ticket->stop_airline_in ?: $leg1AirlineName);
+                    $leg2AirlineCode = ($type == 'out')
+                        ? ($ticket->stop_airline_out ? $ticket->stop_airline_out : $ticket->airline->airlines_code)
+                        : ($ticket->stop_airline_in ? $ticket->stop_airline_in : $ticket->airline->airlines_code);
+                    $logoForLeg1 = $logoMain;
+                    $logoForLeg2 = ($type == 'out') ? $logoStopOut : $logoStopIn;
                 @endphp
                 
                 <tr>
@@ -185,15 +219,15 @@
                         <td>
                             <table width="100%" style="border:none;">
                                 <tr>
-                                    @if($logoOut)
+                                    @if($logoForLeg1)
                                     <td width="40px" style="border:none; padding:0;">
-                                        <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px; height: auto;">
+                                        <img src="{{ public_path('airlines-logo/' . $logoForLeg1) }}" style="width: 35px; height: auto;">
                                     </td>
                                     @endif
                                     <td style="border:none; padding:0; padding-left: 5px;">
-                                        <strong>{{ $ticket->airline->airlines_name }}</strong><br>
-                                        <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $ticket->airline->airlines_code }} - {{ $stopFlight1 ?? $fNo }}</span>
-                                        <div style="font-size: 9px; color: #555;">Class: {{ getClassForLeg(($type == 'out') ? $classOutArr : $classInArr, 0) }}</div>
+                                        <strong>{{ $leg1AirlineName }}</strong><br>
+                                        <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $leg1AirlineCode }} - {{ $stopFlight1 ?? $fNo }}</span>
+                                        <div style="font-size: 9px; color: #555;">{{ $isKAI ? 'Class' : 'Class' }}: {{ getClassForLeg(($type == 'out') ? $classOutArr : $classInArr, 0) }}</div>
                                     </td>
                                 </tr>
                             </table>
@@ -222,14 +256,14 @@
                         <td>
                             <table width="100%" style="border:none;">
                                 <tr>
-                                    @if($logoOut)
+                                    @if($logoForLeg2)
                                     <td width="40px" style="border:none; padding:0;">
-                                        <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px; height: auto;">
+                                        <img src="{{ public_path('airlines-logo/' . $logoForLeg2) }}" style="width: 35px; height: auto;">
                                     </td>
                                     @endif
                                     <td style="border:none; padding:0; padding-left: 5px;">
-                                        <strong>{{ $ticket->airline->airlines_name }}</strong><br>
-                                        <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $ticket->airline->airlines_code }} - {{ $stopFlight2 ?? $fNo }}</span>
+                                        <strong>{{ $leg2AirlineName }}</strong><br>
+                                        <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $leg2AirlineCode }} - {{ $stopFlight2 ?? $fNo }}</span>
                                         <div style="font-size: 9px; color: #555;">Class: {{ getClassForLeg(($type == 'out') ? $classOutArr : $classInArr, 1) }}</div>
                                         <div style="margin-top:6px;"><span class="transit-pill">TRANSIT • {{ $midC }}</span></div>
                                     </td>
@@ -260,14 +294,14 @@
                         <td>
                             <table width="100%" style="border:none;">
                                 <tr>
-                                    @if($logoOut)
+                                    @if($logoForLeg1)
                                     <td width="40px" style="border:none; padding:0;">
-                                        <img src="{{ public_path('airlines-logo/' . $logoOut) }}" style="width: 35px; height: auto;">
+                                        <img src="{{ public_path('airlines-logo/' . $logoForLeg1) }}" style="width: 35px; height: auto;">
                                     </td>
                                     @endif
                                     <td style="border:none; padding:0; padding-left: 5px;">
-                                        <strong>{{ $ticket->airline->airlines_name }}</strong><br>
-                                        <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $ticket->airline->airlines_code }} - {{ $fNo }}</span>
+                                        <strong>{{ $leg1AirlineName }}</strong><br>
+                                        <span style="font-size: 11px; font-weight: bold; color: #1e40af;">{{ $leg1AirlineCode }} - {{ $fNo }}</span>
                                         <div style="font-size: 9px; color: #555;">Class: {{ getClassForLeg(($type == 'out') ? $classOutArr : $classInArr, 0) }}</div>
                                     </td>
                                 </tr>
@@ -300,7 +334,9 @@
                 <th width="40%">Passenger Name</th>
                 <th width="15%">PNR</th>
                 <th width="20%">E-Ticket</th>
-                <th width="10%">Baggage</th>
+                @if(!$isKAI)
+                    <th width="10%">Baggage</th>
+                @endif
                 <th width="10%">Status</th>
             </tr>
         </thead>
@@ -311,7 +347,9 @@
                 <td><strong>{{ strtoupper($pax->genre ?? '') }} {{ $pax->name }}</strong> ({{ $pax->type ?? 'Adult' }})</td>
                 <td style="color:#d97706; font-weight:bold;">{{ $ticket->booking_code }}</td>
                 <td>{{ $pax->ticket_no ?? '-' }}</td>
-                <td>{{ $pax->baggage_kg ?? ($free_baggage ?? 0) }} KG</td>
+                @if(!$isKAI)
+                    <td>{{ $pax->baggage_kg ?? ($free_baggage ?? 0) }} KG</td>
+                @endif
                 <td style="color:green; font-weight:bold;">Confirmed</td>
             </tr>
             @endforeach
@@ -325,12 +363,13 @@
                 <table class="payment-table">
                     <tr><td>Base Fare</td><td align="right">Rp {{ number_format($ticket->basic_fare, 0, ',', '.') }}</td></tr>
                     <tr><td>Total Taxes</td><td align="right">Rp {{ number_format($ticket->total_tax + $ticket->fee, 0, ',', '.') }}</td></tr>
-                    @if($ticket->baggage_price > 0)
+                    @if(!$isKAI && $ticket->baggage_price > 0)
                     <tr><td>Add-on Baggage</td><td align="right">Rp {{ number_format($ticket->baggage_price, 0, ',', '.') }}</td></tr>
                     @endif
                     <tr class="total-row"><td>Total Fare</td><td align="right">Rp {{ number_format($ticket->total_publish, 0, ',', '.') }}</td></tr>
                 </table>
             </td>
+            @if(!$isKAI)
             <td class="grid-td">
                 <div style="font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #eee;">Flight Inclusions</div>
                 <div style="border: 1px solid #eee; padding: 10px;">
@@ -345,9 +384,20 @@
                     </table>
                 </div>
             </td>
+            @endif
         </tr>
     </table>
 
+    @if($isKAI)
+    <div class="important-info">
+        <strong>Important Information</strong>
+        <ul style="margin:0; padding-left:18px;">
+            <li>Use your e-ticket to print the boarding pass at the station, starting 7×24 hours before departure.</li>
+            <li>For boarding, carry an official ID matching the one used during booking.</li>
+            <li>Arrive at the station at least 60 minutes prior to departure.</li>
+        </ul>
+    </div>
+    @else
     <div class="important-info">
         <strong>Important Information</strong>
         All Guests, including children and infants, must present valid identification at check-in. <br>
@@ -360,6 +410,7 @@
             <strong>Hand Baggage & Check-in Baggage:</strong> Lighters, Matches, Flammable Liquids, Toxic Substances, Corrosives, Explosives, Radioactive Materials.
         </div>
     </div>
+    @endif
 
     <div class="agency-footer">
         <strong>LGhani T & T</strong><br>

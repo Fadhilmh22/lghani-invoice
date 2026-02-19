@@ -21,6 +21,9 @@ public function create() {
 }
 
 public function store(Request $request) {
+    // Normalize code to uppercase before validation so uniqueness is checked consistently
+    $request->merge(['code' => strtoupper($request->code)]);
+
     $request->validate([
         'code' => 'required|unique:airports,code|max:5',
         'name' => 'required',
@@ -36,6 +39,9 @@ public function edit($id) {
 }
 
 public function update(Request $request, $id) {
+    // Normalize code to uppercase before validation
+    $request->merge(['code' => strtoupper($request->code)]);
+
     $request->validate([
         'code' => 'required|max:5|unique:airports,code,'.$id,
         'name' => 'required',

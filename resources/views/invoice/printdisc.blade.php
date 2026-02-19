@@ -170,9 +170,36 @@
                 <tr class="tr-no-border">
                     <td style="width: 2%">{{ $no++ }}</td>
                     <td style="width: 25%">{{ $detail->name }}, {{ $detail->genre }}</td>
-                    <td style="width: 65%">{{ $detail->booking_code }} / {{ $detail->airlines_code }} -
-                        {{ $detail->airlines_no }} - {{ $detail->class }} / {{ $detail->ticket_no }} /
-                        {{ $detail->route }} / {{ $detail->depart_date }} / {{ $detail->return_date }}</td>
+                    <td style="width: 65%">
+                        @php
+                            $airlineStr = $detail->airlines_code;
+                            if(!empty($detail->stop_out_code)) {
+                                $airlineStr .= '/' . $detail->stop_out_code;
+                            }
+                            if($detail->return_date) {
+                                $inStr = $detail->airlines_code;
+                                if(!empty($detail->stop_in_code)) {
+                                    $inStr .= '/' . $detail->stop_in_code;
+                                }
+                                $airlineStr .= ' - ' . $inStr;
+                            }
+
+                            $flightStr = $detail->ticket_flight_out ?: $detail->airlines_no;
+                            if(!empty($detail->stop_flight_leg2_out)) {
+                                $flightStr .= '/' . $detail->stop_flight_leg2_out;
+                            }
+                            if($detail->return_date) {
+                                $flightIn = $detail->ticket_flight_in ?: $detail->airlines_no;
+                                if(!empty($detail->stop_flight_leg2_in)) {
+                                    $flightIn .= '/' . $detail->stop_flight_leg2_in;
+                                }
+                                $flightStr .= ' - ' . $flightIn;
+                            }
+                        @endphp
+                        {{ $detail->booking_code }} / {{ $airlineStr }} -
+                        {{ $flightStr }} - {{ $detail->class }} / {{ $detail->ticket_no }} /
+                        {{ $detail->route }} / {{ $detail->depart_date }} / {{ $detail->return_date }}
+                    </td>
                     <td colspan="4" class="text-right">Rp {{ number_format($detail->pax_paid) }}</td>
                 </tr>
                 @endforeach

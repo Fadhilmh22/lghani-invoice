@@ -267,7 +267,34 @@
                     <td>{{ $detail->genre }}</td>
                     <td class="uppercase-text">{{ $detail->name }}</td>
                     <td>{{ $detail->booking_code }}</td>
-                    <td>{{ $comboAirline[$detail->airline_id]['airlines_code'] }}</td>
+                    <td>
+                        @php
+                            // start with primary airline code
+                            $baseCode = $comboAirline[$detail->airline_id]['airlines_code'];
+                            $outCode = $baseCode;
+                            // if ticket relation exists and has outbound stop, append code
+                            if(isset($detail->ticket) && $detail->ticket->stop_airline_out) {
+                                $stopName = $detail->ticket->stop_airline_out;
+                                $matched = collect($airlines)->firstWhere('airlines_name', $stopName);
+                                $stopCode = $matched ? $matched->airlines_code : $stopName;
+                                $outCode .= '/' . $stopCode;
+                            }
+
+                            $display = $outCode;
+                            // construct inbound display if return date present
+                            if($detail->return_date) {
+                                $inCode = $baseCode;
+                                if(isset($detail->ticket) && $detail->ticket->stop_airline_in) {
+                                    $stopName = $detail->ticket->stop_airline_in;
+                                    $matched = collect($airlines)->firstWhere('airlines_name', $stopName);
+                                    $stopCode = $matched ? $matched->airlines_code : $stopName;
+                                    $inCode .= '/' . $stopCode;
+                                }
+                                $display .= ' - ' . $inCode;
+                            }
+                        @endphp
+                        {{ $display }}
+                    </td>
                     <td>{{ $detail->route }}</td>
                     <td>Rp {{ number_format($detail->pax_paid) }}</td>
                     <td>Rp {{ number_format($detail->price) }}</td>

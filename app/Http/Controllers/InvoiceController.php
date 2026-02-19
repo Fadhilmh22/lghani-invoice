@@ -108,7 +108,8 @@ class InvoiceController extends Controller
 
 public function edit($id)
 {
-    $invoice = Invoice::with(['customer', 'detail'])->find($id);
+    // eager load ticket relation on details so we can inspect stop airlines
+    $invoice = Invoice::with(['customer', 'detail.ticket'])->find($id);
 
     if (!$invoice) {
         return redirect()->route('invoice.index')->with('error', 'Invoice tidak ditemukan');
@@ -216,12 +217,33 @@ public function edit($id)
     {
         $invoice = Invoice::with(['customer'])->find($id);
 
-        $field = ["invoice_details.*", "invoices.invoiceno", "invoices.status", "customers.booker", "customers.payment", "airlines.airlines_code", "airlines.airlines_name"];
+        // select additional stop airline codes by joining tickets and aliasing airline joins
+        $field = [
+            "invoice_details.*",
+            "invoices.invoiceno",
+            "invoices.status",
+            "customers.booker",
+            "customers.payment",
+            "airlines.airlines_code",
+            "airlines.airlines_name",
+            "tickets.stop_airline_out",
+            "tickets.stop_airline_in",
+            // include flight numbers for formatting
+            "tickets.flight_out as ticket_flight_out",
+            "tickets.flight_in as ticket_flight_in",
+            "tickets.stop_flight_leg2_out",
+            "tickets.stop_flight_leg2_in",
+            "out_air.airlines_code as stop_out_code",
+            "in_air.airlines_code as stop_in_code"
+        ];
 
         $details = DB::table('invoice_details')->select($field)
                     ->join('invoices', 'invoice_details.invoice_id', '=', 'invoices.id')
                     ->join('customers', 'invoices.customer_id', '=', 'customers.id')
                     ->join('airlines', 'invoice_details.airline_id', '=', 'airlines.id')
+                    ->leftJoin('tickets', 'invoice_details.ticket_id', '=', 'tickets.id')
+                    ->leftJoin('airlines as out_air', 'tickets.stop_airline_out', '=', 'out_air.airlines_name')
+                    ->leftJoin('airlines as in_air', 'tickets.stop_airline_in', '=', 'in_air.airlines_name')
                     ->where('invoice_details.invoice_id', $id)
                     ->get();
 
@@ -235,12 +257,32 @@ public function edit($id)
         set_time_limit(0);
         $invoice = Invoice::with(['customer'])->find($id);
 
-        $field = ["invoice_details.*", "invoices.invoiceno", "invoices.status", "customers.booker", "customers.payment", "airlines.airlines_code", "airlines.airlines_name"];
+        $field = [
+            "invoice_details.*",
+            "invoices.invoiceno",
+            "invoices.status",
+            "customers.booker",
+            "customers.payment",
+            "airlines.airlines_code",
+            "airlines.airlines_name",
+            "tickets.stop_airline_out",
+            "tickets.stop_airline_in",
+            // include flight numbers for formatting
+            "tickets.flight_out as ticket_flight_out",
+            "tickets.flight_in as ticket_flight_in",
+            "tickets.stop_flight_leg2_out",
+            "tickets.stop_flight_leg2_in",
+            "out_air.airlines_code as stop_out_code",
+            "in_air.airlines_code as stop_in_code"
+        ];
 
         $details = DB::table('invoice_details')->select($field)
                     ->join('invoices', 'invoice_details.invoice_id', '=', 'invoices.id')
                     ->join('customers', 'invoices.customer_id', '=', 'customers.id')
                     ->join('airlines', 'invoice_details.airline_id', '=', 'airlines.id')
+                    ->leftJoin('tickets', 'invoice_details.ticket_id', '=', 'tickets.id')
+                    ->leftJoin('airlines as out_air', 'tickets.stop_airline_out', '=', 'out_air.airlines_name')
+                    ->leftJoin('airlines as in_air', 'tickets.stop_airline_in', '=', 'in_air.airlines_name')
                     ->where('invoice_details.invoice_id', $id)
                     ->get();
 

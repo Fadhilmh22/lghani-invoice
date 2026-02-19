@@ -25,6 +25,9 @@ class AirlinesController extends Controller
 
     public function save(Request $request)
     {
+        // Normalize code to uppercase so database always stores uppercase codes
+        $request->merge(['airlines_code' => strtoupper($request->airlines_code)]);
+
         $this->validate($request, [
             'airlines_code' => 'required|string|max:3',
             'airlines_name' => 'required|string'
@@ -50,6 +53,9 @@ class AirlinesController extends Controller
     public function update(Request $request, $id)
     {
         $airlines = Airlines::find($id);
+        // Ensure code is stored uppercase
+        $request->merge(['airlines_code' => strtoupper($request->airlines_code)]);
+
         $airlines->update([
             'airlines_code' => $request->airlines_code,
             'airlines_name' => $request->airlines_name

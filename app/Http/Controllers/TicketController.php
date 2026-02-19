@@ -122,11 +122,13 @@ class TicketController extends Controller
             $ticket->stop_time_out_arrival  = $request->stop_time_out_arrival ?? null;
             $ticket->stop_time_out_depart   = $request->stop_time_out_depart ?? null;
             $ticket->stop_flight_leg2_out = $request->stop_flight_leg2_out ?? null;
+            $ticket->stop_airline_out = $request->stop_airline_out ?? null;
             $ticket->stop_flight_leg1_in  = $request->flight_in ?? null;
             $ticket->stop_time_in   = $request->stop_time_in ?? null;
             $ticket->stop_time_in_arrival  = $request->stop_time_in_arrival ?? null;
             $ticket->stop_time_in_depart   = $request->stop_time_in_depart ?? null;
             $ticket->stop_flight_leg2_in  = $request->stop_flight_leg2_in ?? null;
+            $ticket->stop_airline_in = $request->stop_airline_in ?? null;
             $ticket->class          = $request->class;
             $ticket->basic_fare     = $clean($request->basic_fare);
             $ticket->total_tax      = $clean($request->total_tax);
@@ -269,11 +271,13 @@ class TicketController extends Controller
                 'stop_time_out_arrival' => $request->stop_time_out_arrival ?? null,
                 'stop_time_out_depart'  => $request->stop_time_out_depart ?? null,
                 'stop_flight_leg2_out' => $request->stop_flight_leg2_out ?? null,
+                'stop_airline_out' => $request->stop_airline_out ?? null,
                 'stop_flight_leg1_in'  => $request->flight_in ?? null,
                 'stop_time_in'  => $request->stop_time_in ?? null,
                 'stop_time_in_arrival'  => $request->stop_time_in_arrival ?? null,
                 'stop_time_in_depart'   => $request->stop_time_in_depart ?? null,
                 'stop_flight_leg2_in'  => $request->stop_flight_leg2_in ?? null,
+                'stop_airline_in' => $request->stop_airline_in ?? null,
                 'class'         => $request->class,
                 'basic_fare'    => $clean($request->basic_fare), 
                 'total_tax'     => $clean($request->total_tax),

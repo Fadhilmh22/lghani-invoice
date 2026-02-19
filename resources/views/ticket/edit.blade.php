@@ -141,7 +141,16 @@
                                         <option value="{{ $apt->code }}" {{ $stopOut == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
                                     @endforeach
                                 </select>
-                                <input type="text" name="stop_flight_leg2_out" id="stop_flight_leg2_out" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" value="{{ $ticket->stop_flight_leg2_out ?? '' }}" style="margin-top:6px; font-size:12px;">
+                                <div style="font-size:11px; font-weight:600; margin-top:6px;">Maskapai & No. Flight Leg 2</div>
+                                <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+                                    <select name="stop_airline_out" id="stop_airline_out" class="form-control select2" style="font-size:12px; flex:2;">
+                                        <option value="">-- Pilih Maskapai Transit --</option>
+                                        @foreach($airlines as $a)
+                                            <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_out ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="text" name="stop_flight_leg2_out" id="stop_flight_leg2_out" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" value="{{ $ticket->stop_flight_leg2_out ?? '' }}" style="font-size:12px; flex:1;">
+                                </div>
                             </div>
 
                             <label id="add_stop_out_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $stopOut ? 'display:none;' : '' }}">
@@ -218,7 +227,16 @@
                                         <option value="{{ $apt->code }}" {{ $stopIn == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
                                     @endforeach
                                 </select>
-                                <input type="text" name="stop_flight_leg2_in" id="stop_flight_leg2_in" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" value="{{ $ticket->stop_flight_leg2_in ?? '' }}" style="margin-top:6px; font-size:12px;">
+                                <div style="font-size:11px; font-weight:600; margin-top:6px;">Maskapai & No. Flight Leg 2</div>
+                                <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+                                    <select name="stop_airline_in" id="stop_airline_in" class="form-control select2" style="font-size:12px; flex:2;">
+                                        <option value="">-- Pilih Maskapai Transit --</option>
+                                        @foreach($airlines as $a)
+                                            <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_in ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="text" name="stop_flight_leg2_in" id="stop_flight_leg2_in" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" value="{{ $ticket->stop_flight_leg2_in ?? '' }}" style="font-size:12px; flex:1;">
+                                </div>
                             </div>
 
                             <label id="add_stop_in_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $stopIn ? 'display:none;' : '' }}">
@@ -523,6 +541,7 @@ $(document).ready(function() {
             $('#stop_out_code').val('').trigger('change');
             $('#stop_time_out_arrival').val('');
             $('#stop_time_out_depart').val('');
+            $('#stop_airline_out').val('').trigger('change');
             $('#stop_flight_leg2_out').val('');
         } 
         syncRoutes(); 
@@ -542,6 +561,7 @@ $(document).ready(function() {
             $('#stop_in_code').val('').trigger('change');
             $('#stop_time_in_arrival').val('');
             $('#stop_time_in_depart').val('');
+            $('#stop_airline_in').val('').trigger('change');
             $('#stop_flight_leg2_in').val('');
         } 
         syncRoutes(); 
@@ -557,29 +577,13 @@ $(document).ready(function() {
             $('#stop_out_code').val('').trigger('change');
             $('#stop_time_out_arrival').val('');
             $('#stop_time_out_depart').val('');
-            $('#stop_flight_leg2_out').val('');
-            syncRoutes();
-        }
-    });
-
-    $('#has_stop_in').on('change', function() {
-        if (!this.checked) {
-            $('#toggle_stop_in').prop('checked', false);
-            $('#add_stop_in_label').show();
+                $('#stop_airline_out').val('').trigger('change');
             $('#stop_in_wrapper').hide();
             $('#stop_in_wrapper_detail').hide();
             $('#stop_in_code').val('').trigger('change');
             $('#stop_time_in_arrival').val('');
             $('#stop_time_in_depart').val('');
-            $('#stop_flight_leg2_in').val('');
-            syncRoutes();
-        }
-    });
-
-    $('#departure_out_code, #arrival_out_code, #stop_out_code, #departure_in_code, #arrival_in_code, #stop_in_code').on('change', function() { syncRoutes(); });
-
-    // Ensure initial sync
-    syncRoutes();
+                $('#stop_airline_in').val('').trigger('change');
 });
 </script>
 @endsection
