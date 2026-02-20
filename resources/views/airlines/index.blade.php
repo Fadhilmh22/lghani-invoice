@@ -44,6 +44,7 @@
                         <tr>
                             <th>Kode Maskapai</th>
                             <th>Nama Maskapai</th>
+                            <th>Saldo</th>
                             <th>Tanggal Pembuatan</th>
                             <th class="text-center">Aksi</th>
                         </tr>
@@ -53,6 +54,7 @@
                         <tr class="table-row-hover">
                             <td><strong>{{ $airline->airlines_code }}</strong></td>
                             <td class="uppercase-text">{{ $airline->airlines_name }}</td>
+                            <td class="text-right">IDR {{ number_format($airline->balance) }}</td>
                             <td>{{ $airline->created_at->format('d-m-Y') }}</td>
                             
                             <!-- Kolom Aksi -->

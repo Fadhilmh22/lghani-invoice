@@ -9,6 +9,10 @@ class Ticket extends Model
     // Baris ini WAJIB ada agar data mau tersimpan
     protected $guarded = []; 
 
+    protected $casts = [
+        'nta_total' => 'integer',
+    ];
+
     public function invoice() {
         return $this->belongsTo(Invoice::class);
     }

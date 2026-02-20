@@ -95,6 +95,10 @@
                         </span>
                     @endif
                 </div>
+                <div class="col-md-6 form-spacing">
+                    <label class="form-label">Saldo Saat Ini</label>
+                    <input type="text" class="form-control" value="IDR {{ number_format($airlines->balance) }}" readonly>
+                </div>
 
             </div>
 

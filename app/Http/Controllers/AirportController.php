@@ -12,7 +12,9 @@ class AirportController extends Controller
         $query->where('code', 'like', "%{$request->search}%")
               ->orWhere('name', 'like', "%{$request->search}%")
               ->orWhere('city', 'like', "%{$request->search}%");
-    })->paginate(10);
+    })
+    ->latest()
+    ->paginate(10);
     return view('airports.index', compact('airports'));
 }
 

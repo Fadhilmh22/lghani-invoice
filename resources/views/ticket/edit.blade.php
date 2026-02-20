@@ -80,13 +80,14 @@
                 </div>
                 <div class="col-md-3 form-group">
                     <label>Maskapai</label>
-                    <select name="airline_id" class="form-control select2" required>
+                    <select name="airline_id" class="form-control select2" id="airlineSelect" required>
                         @foreach($airlines as $a)
-                            <option value="{{ $a->id }}" {{ $ticket->airline_id == $a->id ? 'selected' : '' }}>
+                            <option value="{{ $a->id }}" data-balance="{{ $a->balance }}" {{ $ticket->airline_id == $a->id ? 'selected' : '' }}>
                                 {{ $a->airlines_name }}
                             </option>
                         @endforeach
                     </select>
+                    <small id="airlineBalanceInfo" class="text-muted" style="display:block; margin-top:4px; font-size:12px;"></small>
                 </div>
                 <div class="col-md-3 form-group">
                     <label>Kode Booking (PNR)</label>
@@ -149,7 +150,7 @@
                                             <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_out ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
                                         @endforeach
                                     </select>
-                                    <input type="text" name="stop_flight_leg2_out" id="stop_flight_leg2_out" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" value="{{ $ticket->stop_flight_leg2_out ?? '' }}" style="font-size:12px;">
+                                    <input type="text" name="stop_flight_leg2_out" id="stop_flight_leg2_out" class="form-control" placeholder="(Stop→Arrival) e.g. 456" value="{{ $ticket->stop_flight_leg2_out ?? '' }}" style="font-size:12px;">
                                 </div>
                             </div>
 
@@ -235,7 +236,7 @@
                                             <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_in ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
                                         @endforeach
                                     </select>
-                                    <input type="text" name="stop_flight_leg2_in" id="stop_flight_leg2_in" class="form-control" placeholder="Flight Leg 2 (Stop→Arrival) e.g. GA-456" value="{{ $ticket->stop_flight_leg2_in ?? '' }}" style="font-size:12px;">
+                                    <input type="text" name="stop_flight_leg2_in" id="stop_flight_leg2_in" class="form-control" placeholder="(Stop→Arrival) e.g. 456" value="{{ $ticket->stop_flight_leg2_in ?? '' }}" style="font-size:12px;">
                                 </div>
                             </div>
 
@@ -447,6 +448,17 @@ $(document).ready(function() {
         width: '100%',
         placeholder: '-- Pilih Data --'
     });
+
+    // tampilkan saldo maskapai saat dipilih
+    $('#airlineSelect').on('change', function(){
+        var bal = $(this).find('option:selected').data('balance');
+        if(bal !== undefined) {
+            $('#airlineBalanceInfo').text('Saldo saat ini: IDR ' + parseInt(bal).toLocaleString('id-ID'));
+        } else {
+            $('#airlineBalanceInfo').text('');
+        }
+    });
+    $('#airlineSelect').trigger('change');
 
     function cleanNumber(val) {
         return parseFloat(val.toString().replace(/[^0-9.-]+/g, "")) || 0;

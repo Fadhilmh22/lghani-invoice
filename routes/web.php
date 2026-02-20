@@ -15,6 +15,7 @@ use App\Http\Controllers\HotelVoucherController;
 use App\Http\Controllers\HotelInvoiceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\TopUpController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -42,7 +43,6 @@ Route::group(['middleware' => 'auth'], function() {
 Route::get('register', [RegisterController::class, 'register'])->name('register');
 Route::post('register/action', [RegisterController::class, 'actionregister'])->name('actionregister')->middleware('auth');
 
-Route::group(['middleware' => 'auth','AdminMiddleware:Admin,Staff'], function() {
 
     Route::group(['prefix' => 'airline'], function() {
         Route::get('/', [AirlinesController::class, 'index'])->name('index');
@@ -100,6 +100,9 @@ Route::group(['middleware' => 'auth','AdminMiddleware:Admin,Staff'], function() 
         Route::post('/tickets/bulk-invoice', [TicketController::class, 'bulkInvoice'])->name('ticket.bulkInvoice');
         Route::post('/ticket/auto-parse', [TicketController::class, 'autoParse'])->name('ticket.autoParse');
     });
+
+    // new top up airline routes (also allow Owner role)
+    // topup routes moved outside main admin group below
 
     Route::group(['prefix' => 'report'], function() {
         Route::get('/', [ReportController::class, 'index'])->name('report.index');
@@ -174,4 +177,9 @@ Route::group(['middleware' => 'auth','AdminMiddleware:Admin,Staff'], function() 
     });
     
     
+
+// standalone topup routes accessible by Admin, Staff, or Owner
+Route::group(['middleware'=>['auth','AdminMiddleware:Admin,Staff,Owner'],'prefix'=>'topup'], function() {
+    Route::get('/', [TopUpController::class, 'index'])->name('topup.index');
+    Route::post('/', [TopUpController::class, 'store'])->name('topup.store');
 });

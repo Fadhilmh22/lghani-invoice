@@ -58,12 +58,13 @@
                 </div>
                 <div class="col-md-3 form-group">
                     <label>Maskapai</label>
-                    <select name="airline_id" class="form-control select2" required>
+                    <select name="airline_id" class="form-control select2" id="airlineSelect" required>
                         <option value="">-- Pilih Maskapai --</option>
                         @foreach($airlines as $a)
-                            <option value="{{ $a->id }}">{{ $a->airlines_name }}</option>
+                            <option value="{{ $a->id }}" data-balance="{{ $a->balance }}">{{ $a->airlines_name }}</option>
                         @endforeach
                     </select>
+                    <small id="airlineBalanceInfo" class="text-muted" style="display:block; margin-top:4px; font-size:12px;"></small>
                 </div>
                 <div class="col-md-3 form-group">
                     <label>Kode Booking (PNR)</label>
@@ -339,6 +340,18 @@
 <script>
 $(document).ready(function() {
     $('.select2').select2({ width: '100%', placeholder: '-- Pilih Data --', allowClear: true });
+
+    // show airline balance whenever selection changes
+    $('#airlineSelect').on('change', function(){
+        var bal = $(this).find('option:selected').data('balance');
+        if(bal !== undefined) {
+            $('#airlineBalanceInfo').text('Saldo saat ini: IDR ' + parseInt(bal).toLocaleString('id-ID'));
+        } else {
+            $('#airlineBalanceInfo').text('');
+        }
+    });
+    // trigger on page load if something is preselected
+    $('#airlineSelect').trigger('change');
 
     function cleanNumber(val) { return parseFloat(val) || 0; }
 
