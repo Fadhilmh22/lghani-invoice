@@ -72,6 +72,7 @@
                         @php
                             $statusClass = $invoice->status_pembayaran === 'Sudah Lunas' ? 'status-paid' : 'status-unpaid';
                             $statusIcon = $invoice->status_pembayaran === 'Sudah Lunas' ? 'fa-check-circle' : 'fa-times-circle';
+                            $displayStatus = $invoice->status_pembayaran or 'Belum Lunas';
                         @endphp
                         
                         <tr class="table-row-hover">
@@ -129,7 +130,7 @@
                                     @method('POST')
                                     <input type="hidden" name="current_page" value="{{ $invoices->currentPage() }}">
                                     <button type="button" class="toggleStatus status-badge {{ $statusClass }}" data-invoice-id="{{ $invoice->id }}">
-                                        <i class="fa {{ $statusIcon }}"></i> {{ $invoice->status_pembayaran }}
+                                        <i class="fa {{ $statusIcon }}"></i> {{ $displayStatus }}
                                     </button>
                                 </form>
                             </td>

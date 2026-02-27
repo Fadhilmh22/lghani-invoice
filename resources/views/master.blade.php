@@ -231,6 +231,36 @@
             padding-left: 10px;
         }
 
+        .mobile-sidebar-toggle {
+            display: none;
+            background: #f1f5f9;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-right: 15px;
+        }
+
+        .mobile-sidebar-toggle:hover {
+            background: #e2e8f0;
+        }
+
+        .mobile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .mobile-overlay.open {
+            display: block;
+        }
+
         /* --- RESPONSIVE --- */
         @media (max-width: 1200px) {
             .sidebar { transform: translateX(-100%); z-index: 1000; }
@@ -238,6 +268,31 @@
             .main-content { margin-left: 0; padding: 20px 16px; }
             .airline-balances {
                 grid-template-columns: repeat(2, 1fr); /* Layar sedang jadi 2 kolom */
+            }
+            .mobile-sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-sidebar-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .airline-balances {
+                grid-template-columns: 1fr; /* Layar kecil jadi 1 kolom */
+            }
+            .main-header {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .airline-balances {
+                order: 3;
+                width: 100%;
+                margin: 0;
             }
         }
 
@@ -337,9 +392,11 @@
             </div>
         </aside>
 
+        <div id="mobileOverlay" class="mobile-overlay"></div>
+
         <main class="main-content">
             <header class="main-header">
-
+                <button id="mobileSidebarToggle" class="mobile-sidebar-toggle"><i class="fa fa-bars"></i></button>
 
             <div class="airline-balances">
                 @php
@@ -421,8 +478,21 @@
         function isDesktop() { return window.innerWidth > 992; }
 
         document.getElementById('sidebarToggle').addEventListener('click', function () {
-            if (isDesktop()) { document.body.classList.toggle('sidebar-minimized'); } 
-            else { document.getElementById('sidebar').classList.toggle('open'); }
+            if (isDesktop()) { document.body.classList.toggle('sidebar-minimized'); }
+            else {
+                document.getElementById('sidebar').classList.toggle('open');
+                document.getElementById('mobileOverlay').classList.toggle('open');
+            }
+        });
+
+        document.getElementById('mobileSidebarToggle').addEventListener('click', function () {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('mobileOverlay').classList.toggle('open');
+        });
+
+        document.getElementById('mobileOverlay').addEventListener('click', function () {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('mobileOverlay').classList.remove('open');
         });
 
         document.querySelectorAll('[data-toggle="submenu"]').forEach(function (header) {
