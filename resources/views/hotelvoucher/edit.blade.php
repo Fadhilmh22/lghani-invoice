@@ -5,8 +5,8 @@
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 <script type="text/javascript">
     $(document).ready(function() {
-        // Initialize Select2
-        $('.select2').select2();
+        // Initialize Select2 dengan width 100%
+        $('.select2').select2({ width: '100%' });
     });
 </script>
 
@@ -120,9 +120,9 @@
                     
                     <div class="elegant-form-group">
                         <label for="hotel_id">Hotel</label>
-                        <select id="hotel_id" name="hotel_id" class="elegant-form-control" required>
+                        <select id="hotel_id" name="hotel_id" class="elegant-form-control select2" required>
                             <option value="">Pilih</option>
-                            @foreach ($hotels as $hotel) 
+                            @foreach ($hotels as $hotel)
                             <option value="{{ $hotel->id }}" data-code="{{ $hotel->hotel_code }}" data-region="{{ $hotel->region }}" @if( $hotel->id == $voucher->hotel_id ) selected="selected" @endif>{{ $hotel->hotel_code }} - {{ $hotel->hotel_name }} @if ($hotel->region != '') | Region {{ $hotel->region }} @endif</option>
                             @endforeach
                         </select>

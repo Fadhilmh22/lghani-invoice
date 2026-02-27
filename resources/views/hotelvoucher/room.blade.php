@@ -177,7 +177,7 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-md-12">
-                                            <div class="panel panel-default">
+                                            <div class="panel panel-default d-none" id="room-price-panel">
                                                 <div class="panel-heading">Room Price Detail</div>
                                                 <div class="panel-body">
                                                     <table id="room-detail" class="table" style="width: 100%">
@@ -563,14 +563,25 @@
                 })
             }
 
-            $('#room_id').change(function() {
-                var id = $(this).val();
-                if( id != '' ) {
+            function formatRupiah(angka) {
+                var number_string = angka.toString(),
+                    sisa = number_string.length % 3,
+                    rupiah = number_string.substr(0, sisa),
+                    ribuan = number_string.substr(sisa).match(/\d{3}/g);
+                if (ribuan) {
+                    separator = sisa ? '.' : '';
+                    rupiah += separator + ribuan.join('.');
+                }
+                return rupiah;
+            }
+
+            function loadRoomPrice(roomId) {
+                if( roomId != '' ) {
                     $.ajax({
                         url: "{{ route('room.detail') }}",
                         type: 'POST',
                         dataType: "json",
-                        data: {id: id},
+                        data: {id: roomId},
                         success: function(response){
                             if( response.result ) {
                                 $('.td-weekday-price').text('Rp ' + formatRupiah(response.data.weekday_price));
@@ -578,7 +589,7 @@
                                 $('.td-weekday-nta').text('Rp ' + formatRupiah(response.data.weekday_nta));
                                 $('.td-weekend-nta').text('Rp ' + formatRupiah(response.data.weekend_nta));
 
-                                $('#btnUpdatePrice').attr('href', "{{ url('/room') }}/" + response.data.id + '?redirect=hotel-voucher/1?roomselected=' + id);
+                                $('#btnUpdatePrice').attr('href', "{{ url('/room') }}/" + response.data.id + '?redirect=hotel-voucher/1?roomselected=' + roomId);
                                 $('#btnUpdatePrice').removeAttr('disabled');
                             }
                         }
@@ -590,7 +601,24 @@
                     $('.td-weekend-nta').text('');
                     $('#btnUpdatePrice').attr('disabled', 'disabled');
                 }
+            }
+
+            $('#room_id').change(function() {
+                var id = $(this).val();
+                if( id != '' ) {
+                    $('#room-price-panel').removeClass('d-none');
+                    loadRoomPrice(id);
+                } else {
+                    $('#room-price-panel').addClass('d-none');
+                }
             })
+
+            // Trigger on page load if room is already selected
+            var selectedRoom = $('#room_id').val();
+            if( selectedRoom != '' ) {
+                $('#room-price-panel').removeClass('d-none');
+                loadRoomPrice(selectedRoom);
+            }
 
             $('#no_of_extrabed').change(function() {
                 var no = parseInt($(this).val()) + 2;
