@@ -25,4 +25,14 @@ class Hotel_voucher extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+
+    public function hotel()
+    {
+        return $this->belongsTo(Hotel::class, 'hotel_id');
+    }
+
+    public function rooms()
+    {
+        return $this->hasMany(Hotel_voucher_room::class, 'hotel_voucher_id');
+    }
 }

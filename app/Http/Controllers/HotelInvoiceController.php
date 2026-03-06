@@ -19,17 +19,18 @@ class HotelInvoiceController extends Controller
     public function index(Request $request)
     {
         $search = $request->input('search');
-    
-        // Query untuk pencarian
-        $invoices = Hotel_invoice::with(['customer' => function ($query) use ($search) {
-                $query->where('booker', 'like', '%' . $search . '%');
-            }])
+
+        $invoices = Hotel_invoice::with([
+            'customer', 
+            'hoteldetail.rooms.room',  // Hotel_invoice -> Hotel_voucher -> rooms -> room
+            'hoteldetail.hotel'        // Hotel_invoice -> Hotel_voucher -> hotel
+        ])
             ->whereHas('customer', function ($query) use ($search) {
                 $query->where('booker', 'like', '%' . $search . '%');
             })
             ->orderBy('created_at', 'DESC')
             ->paginate(10);
-    
+
         return view('hotelinvoice.index', compact('invoices'));
     }
 
@@ -191,6 +192,24 @@ class HotelInvoiceController extends Controller
             $i++;
         }
 
+        // Hitung dan simpan Grand Total ke field total agar bisa dipakai di index
+        $grandTotal = 0;
+        foreach ($voucherRoom as $roomId => $hRoom) {
+            if (!isset($rooms[$roomId])) {
+                continue;
+            }
+            $count      = $hRoom['count'] ?? 0;
+            $weekdayPrice = $rooms[$roomId]->weekday_price ?? 0;
+            $weekendPrice = $rooms[$roomId]->weekend_price ?? 0;
+
+            $totalWeekDay = $weekdayPrice * $count * $weekDay;
+            $totalWeekEnd = $weekendPrice * $count * $weekEnd;
+
+            $grandTotal += ($totalWeekDay + $totalWeekEnd);
+        }
+        $invoice->total = $grandTotal;
+        $invoice->save();
+
         $filename = $invoice->invoiceno . "-" . date("dmyHis");
         // $pdf = PDF::loadView('invoice.print', compact('invoice', 'details'))->setPaper('a4', 'portrait');
         // $pdf = PDF::loadView('hotelinvoice.print')->setPaper('a4', 'portrait');
@@ -249,6 +268,24 @@ class HotelInvoiceController extends Controller
             
             $i++;
         }
+
+        // Hitung dan simpan Grand Total juga untuk versi disc
+        $grandTotal = 0;
+        foreach ($voucherRoom as $roomId => $hRoom) {
+            if (!isset($rooms[$roomId])) {
+                continue;
+            }
+            $count        = $hRoom['count'] ?? 0;
+            $weekdayPrice = $rooms[$roomId]->weekday_price ?? 0;
+            $weekendPrice = $rooms[$roomId]->weekend_price ?? 0;
+
+            $totalWeekDay = $weekdayPrice * $count * $weekDay;
+            $totalWeekEnd = $weekendPrice * $count * $weekEnd;
+
+            $grandTotal += ($totalWeekDay + $totalWeekEnd);
+        }
+        $invoice->total = $grandTotal;
+        $invoice->save();
 
         $filename = $invoice->invoiceno . "-" . date("dmyHis");
         // $pdf = PDF::loadView('invoice.print', compact('invoice', 'details'))->setPaper('a4', 'portrait');

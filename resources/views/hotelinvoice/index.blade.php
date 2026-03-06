@@ -63,6 +63,7 @@
                             <th>Due Date Payment</th>
                             <th>Booking By</th>
                             <th>Issued By</th>
+                            <th class="text-right">Total</th>
                             <th class="text-center">Action</th>
                             <th class="text-center">Status</th>
                         </tr>
@@ -72,7 +73,8 @@
                         @php
                             $statusClass = $invoice->status_pembayaran === 'Sudah Lunas' ? 'status-paid' : 'status-unpaid';
                             $statusIcon = $invoice->status_pembayaran === 'Sudah Lunas' ? 'fa-check-circle' : 'fa-times-circle';
-                            $displayStatus = $invoice->status_pembayaran or 'Belum Lunas';
+                            // Default-kan ke "Belum Lunas" jika null / kosong
+                            $displayStatus = $invoice->status_pembayaran ?: 'Belum Lunas';
                         @endphp
                         
                         <tr class="table-row-hover">
@@ -84,6 +86,49 @@
                                 {{ !empty($invoice->customer) ? $invoice->customer->gender . '. ' . $invoice->customer->booker : '-' }}
                             </td>
                             <td>{{ $invoice->issued_by }}</td>
+                        <td class="text-right font-weight-bold text-primary">
+                            @php
+                                $grandTotal = 0;
+
+                                // 1. Jika di database sudah ada isinya, langsung tampilkan
+                                if ($invoice->total > 0) {
+                                    $grandTotal = $invoice->total;
+                                } 
+                                // 2. Jika NULL, hitung ulang pakai logika Weekday/Weekend (seperti di Print)
+                                elseif ($invoice->hoteldetail) {
+                                    $voucher = $invoice->hoteldetail; // hoteldetail sekarang adalah Hotel_voucher
+                                    $roomsData = $voucher->rooms; // Relasi ke voucher room
+                                    
+                                    $begin = new DateTime($voucher->check_in);
+                                    $end   = new DateTime($voucher->check_out);
+                                    $interval = DateInterval::createFromDateString('1 day');
+                                    $period = new DatePeriod($begin, $interval, $end);
+
+                                    $weekDay = 0;
+                                    $weekEnd = 0;
+
+                                    foreach ($period as $dt) {
+                                        if ($dt->format("N") < 6) {
+                                            $weekDay++;
+                                        } else {
+                                            $weekEnd++;
+                                        }
+                                    }
+
+                                    foreach ($roomsData as $r) {
+                                        // Ambil harga dari relasi room (Hotel_rate)
+                                        $weekdayPrice = $r->room ? ($r->room->weekday_price ?? 0) : 0;
+                                        $weekendPrice = $r->room ? ($r->room->weekend_price ?? 0) : 0;
+                                        
+                                        $totalWeekDay = $weekdayPrice * ($r->count ?? 1) * $weekDay;
+                                        $totalWeekEnd = $weekendPrice * ($r->count ?? 1) * $weekEnd;
+                                        $grandTotal += ($totalWeekDay + $totalWeekEnd);
+                                    }
+                                }
+                            @endphp
+                            
+                            <Strong>Rp {{ number_format($grandTotal, 0, ',', '.') }}</strong>
+                        </td>
                             
                             <!-- Kolom Aksi -->
                             <td class="action-buttons text-center">
@@ -137,7 +182,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="8" class="text-center p-4">
+                            <td colspan="9" class="text-center p-4">
                                 <i class="fa fa-info-circle"></i> Tidak ada data invoice ditemukan.
                             </td>
                         </tr>

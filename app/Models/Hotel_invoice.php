@@ -16,7 +16,8 @@ class Hotel_invoice extends Model
 
     public function hoteldetail()
     {
-        return $this->belongsTo(Hotel_voucher_room::class);
+        // Hotel_voucher_room is linked via Hotel_voucher where booking_id = hotel_invoice.id
+        return $this->hasOne(Hotel_voucher::class, 'booking_id');
     }
 
     public function hotelguest()
