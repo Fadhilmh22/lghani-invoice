@@ -47,7 +47,7 @@
                             <th>Nama Maskapai</th>
                             <th>Saldo</th>
                             <th>Tanggal Pembuatan</th>
-                            <th class="text-center">Aksi</th>
+                            <th class="text-left">Aksi
                         </tr>
 
                     </thead>
@@ -64,11 +64,11 @@
                             </td>
                             <td class="uppercase-text">{{ $airline->airlines_name }}</td>
 
-                            <td class="text-right">IDR {{ number_format($airline->balance) }}</td>
+                            <td class="text-left">IDR {{ number_format($airline->balance) }}</td>
                             <td>{{ $airline->created_at->format('d-m-Y') }}</td>
                             
                             <!-- Kolom Aksi -->
-                            <td class="action-buttons text-center">
+                            <td class="action-buttons text-left">
                                 <a href="{{ url('/airline/' . $airline->id . '?page=' . request()->query('page', 1)) }}" class="btn-action edit-action" title="Edit Maskapai">
                                     <i class="fa fa-pencil"></i>
                                 

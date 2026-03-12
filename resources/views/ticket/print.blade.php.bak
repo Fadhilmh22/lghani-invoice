@@ -12,7 +12,7 @@
         .section-header { background: #f5f5f5; padding: 5px 10px; font-weight: bold; border: 1px solid #eee; margin-top: 10px; font-size: 11px; }
         .flight-table { width: 100%; border: 1px solid #eee; border-top: none; border-collapse: collapse; table-layout: fixed; }
         .flight-table th { background: #fafafa; padding: 5px 10px; text-align: left; font-size: 9px; color: #888; border-bottom: 1px solid #eee; }
-        .flight-table td { padding: 8px 6px; vertical-align: top; border-bottom: none solid #eee; }
+        .flight-table td { padding: 8px 6px; vertical-align: top; border-bottom: 1px solid #eee; }
         .flight-table td table td { padding: 0; vertical-align: top; }
         .transit-pill { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 2px 6px; border-radius: 10px; text-transform: uppercase; font-size: 9px; }
         .city-name { font-size: 11px; font-weight: bold; display: block; margin-bottom: 2px; }
@@ -64,22 +64,12 @@
             </td>
             <td width="45%" align="right">
                 <div style="display:flex; align-items:center; justify-content:flex-end; gap:12px;">
-                    @if(!empty($isKAI))
-                        <img src="{{ public_path('airlines-logo/kai.png') }}" style="height:40px; object-fit:contain;">
-                    @endif
+                    @if($isKAI)<img src="{{ public_path('airlines-logo/kai.png') }}" style="height:40px;">@endif
                     <div class="booking-title">Booking Details</div>
                 </div>
-                <div style="margin-top: 5px;">
-                    <span style="color: #777;">Ticket ID:</span> 
-                    <strong>{{ $ticketNoGlobal }}</strong>
-                </div>
-                <div>
-                    <span style="color: #777;">Booking ID (PNR):</span> 
-                    <strong>{{ $ticket->booking_code }}</strong>
-                </div>
-                <div style="color: #666;">
-                    Issued Date: <strong>{{ $ticket->created_at->format('d M Y') }}</strong> 
-                </div>
+                <div>Ticket ID: <strong>{{ $ticketNoGlobal }}</strong></div>
+                <div>PNR: <strong>{{ $ticket->booking_code }}</strong></div>
+                <div>Issued: <strong>{{ $ticket->created_at->format('d M Y') }}</strong></div>
                 <div style="margin-top: 5px; font-weight: bold;">{{ $ticket->invoice->customer->email ?? 'Ighani_travel@ymail.com' }}</div>
             </td>
         </tr>
@@ -124,10 +114,7 @@
                             <table width="100%">
                                 <tr>
                                     @if($logoForLeg1)<td width="40px"><img src="{{ asset('airlines-logo/' . basename($logoForLeg1)) }}" style="width:35px;"></td>@endif
-                                    <td><strong>{{ $leg1AirlineName }}</strong><br>
-                                    <span style="font-size:11px; font-weight:bold; color:#1e40af;">{{ $leg1AirlineCode }} - {{ $stopFlight1 }}</span><br>
-                                    <small>Class: {{ getClassForLeg($classArr, 0) }}</small><br>
-                                </td>
+                                    <td><strong>{{ $leg1AirlineName }}</strong><br><span style="font-size:11px; font-weight:bold; color:#1e40af;">{{ $leg1AirlineCode }} - {{ $stopFlight1 }}</span><br><small>Class: {{ getClassForLeg($classArr, 0) }}</small></td>
                                 </tr>
                             </table>
                         </td>
@@ -138,6 +125,7 @@
                         <td>
                             <div class="city-name">{{ $airports[$midC] ?? $midC }}</div>
                             {{ $midC }}<br>@if($stopArrival){{ \Carbon\Carbon::parse($stopArrival)->format('D, d M H:i') }}@endif
+                            @if($midC2)<span class="transit-pill">TRANSIT {{ $midC2 }}</span>@endif
                         </td>
                     </tr>
                     {{-- Leg 2 --}}
@@ -194,7 +182,7 @@
             <tr>
                 <td>{{ $index+1 }}</td>
                 <td><strong>{{ strtoupper($pax->genre ?? '') }} {{ $pax->name }}</strong> ({{ $pax->type ?? 'Adult' }})</td>
-                <td style="color:#d97706; font-weight:bold;"><strong>{{ $ticket->booking_code }}</strong></td>
+                <td><strong>{{ $ticket->booking_code }}</strong></td>
                 <td>{{ $pax->ticket_no ?? '-' }}</td>
                 @if(!$isKAI)<td>{{ $pax->baggage_kg ?? ($free_baggage ?? 0) }} KG</td>@endif
                 <td style="color:green; font-weight:bold;">Confirmed</td>
@@ -210,60 +198,27 @@
                 <table class="payment-table">
                     <tr><td>Base Fare</td><td align="right">Rp {{ number_format($ticket->basic_fare) }}</td></tr>
                     <tr><td>Taxes</td><td align="right">Rp {{ number_format($ticket->total_tax + $ticket->fee) }}</td></tr>
-                    @if(!$isKAI && $ticket->baggage_price > 0)
-                    <tr><td>Add-on Baggage</td><td align="right">Rp {{ number_format($ticket->baggage_price, 0, ',', '.') }}</td></tr>
-                    @endif
+                    @if(!$isKAI && $ticket->baggage_price > 0)<tr><td>Baggage</td><td align="right">Rp {{ number_format($ticket->baggage_price) }}</td></tr>@endif
                     <tr class="total-row"><td>Total</td><td align="right">Rp {{ number_format($ticket->total_publish) }}</td></tr>
                 </table>
             </td>
             @if(!$isKAI)
             <td class="grid-td">
-                <div style="font-weight: bold; margin-bottom: 5px; border-bottom: 1px solid #eee;">Flight Inclusions</div>
-                <div style="border: 1px solid #eee; padding: 10px;">
-                    <table width="100%">
-                        <tr>
-                            <td><span style="color:#888;">Cabin Baggage</span><br><strong>7 Kg</strong></td>
-                            <td><span style="color:#888;">Baggage</span><br><strong>{{ $free_baggage ?? 0 }} KG</strong></td>
-                            @if($ticket->baggage_kg > 0)
-                            <td><span style="color:#888;">Add-On</span><br><strong>{{ $ticket->baggage_kg }} KG</strong></td>
-                            @endif
-                        </tr>
-                    </table>
+                <div style="font-weight:bold; margin-bottom:5px; border-bottom:1px solid #eee;">Baggage</div>
+                <div style="border:1px solid #eee; padding:10px;">
+                    Cabin: <strong>7kg</strong> | Check-in: <strong>{{ $free_baggage ?? 0 }}kg</strong>
+                    @if($ticket->baggage_kg > 0)| Add-on: <strong>{{ $ticket->baggage_kg }}kg</strong>@endif
                 </div>
             </td>
             @endif
         </tr>
     </table>
 
-    @if($isKAI)
     <div class="important-info">
-        <strong>Important Information</strong>
-        <ul style="margin:0; padding-left:18px;">
-            <li>Use your e-ticket to print the boarding pass at the station, starting 7×24 hours before departure.</li>
-            <li>For boarding, carry an official ID matching the one used during booking.</li>
-            <li>Arrive at the station at least 60 minutes prior to departure.</li>
-        </ul>
+        <strong>INFO:</strong> Present valid ID at check-in. Check-in 3hrs domestic, 4hrs international.
     </div>
-    @else
-    <div class="important-info">
-        <strong>Important Information</strong>
-        All Guests, including children and infants, must present valid identification at check-in. <br>
-        Check-in begins 4 hours for international and 3 hours for domestic prior to the flight and closes 75 minutes prior to departure.
-    </div>
-
-    <div class="not-allowed-box">
-        <div class="not-allowed-title">Not allowed! These items are Dangerous Goods and are not permitted:</div>
-        <div class="not-allowed-list">
-            <strong>Hand Baggage & Check-in Baggage:</strong> Lighters, Matches, Flammable Liquids, Toxic Substances, Corrosives, Explosives, Radioactive Materials.
-        </div>
-    </div>
-    @endif
-
     <div class="agency-footer">
-        <strong>LGhani T & T</strong><br>
-        Komplek Permata 2 Cimahi Blok M6 no2, Kel. Tanimulya, Kec. Ngamprah, Kab. Bandung Barat, 40552.<br>
-        <strong>Contact:</strong> 085-62151280 | <strong>Email:</strong> Ighani_travel@ymail.com
+        <strong>LGhani T&T</strong> | 08562151280 | Ighani_travel@ymail.com
     </div>
-
 </body>
 </html>

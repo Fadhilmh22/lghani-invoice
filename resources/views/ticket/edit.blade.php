@@ -114,9 +114,12 @@
                         @php
                             $partsOut = $ticket->route_out ? explode('-', $ticket->route_out) : [];
                             $depOut = $partsOut[0] ?? '';
-                            $arrOut = count($partsOut) ? $partsOut[count($partsOut)-1] : '';
-                            $stopOut = count($partsOut) === 3 ? $partsOut[1] : '';
+                            $arrOut = count($partsOut) ? end($partsOut) : '';
+                            $stopOutDepart = $ticket->stop_out_depart_code ?: (isset($partsOut[1]) ? $partsOut[1] : '');
+                            $stopOutArrival = $ticket->stop_out_arrival_code ?: (isset($partsOut[2]) ? $partsOut[2] : '');
+                            $hasStopOut = !empty($ticket->stop_out_depart_code) || !empty($ticket->stop_out_arrival_code) || count($partsOut) > 2;
                         @endphp
+
                         <div class="col-md-6 form-group">
                             <label>Departure</label>
                             <select name="departure_out_code" id="departure_out_code" class="form-control select2" data-type="departure">
@@ -134,14 +137,28 @@
                                 @endforeach
                             </select>
 
-                            <div id="stop_out_wrapper" style="margin-top:8px; {{ $stopOut ? 'display:block;' : 'display:none;' }}">
-                                <label style="font-weight:600; font-size:12px;"><input type="checkbox" id="has_stop_out" style="margin-right:6px;" {{ $stopOut ? 'checked' : '' }}> Tambah 1 Stops (Opsional)</label>
-                                <select name="stop_out_code" id="stop_out_code" class="form-control select2" placeholder="Pilih Airport" style="margin-top:8px; margin-bottom:8px;" data-type="stop">
-                                    <option value="">-- Pilih Airport Transit --</option>
-                                    @foreach($airports as $apt)
-                                        <option value="{{ $apt->code }}" {{ $stopOut == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
-                                    @endforeach
-                                </select>
+                            <div id="stop_out_wrapper" style="margin-top:8px; {{ $hasStopOut ? 'display:block;' : 'display:none;' }}">
+                                <label style="font-weight:600; font-size:12px;">
+                                    <input type="checkbox" id="has_stop_out" style="margin-right:6px;" {{ $hasStopOut ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
+                                </label>
+                                <div style="margin-top:8px;">
+                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pergi 1 (Leg 1 Tiba)</label>
+                                    <select name="stop_out_depart_code" id="stop_out_depart_code" class="form-control select2" style="margin-bottom:8px;" data-type="stop">
+                                        <option value="">-- Pilih Bandara Kedatangan Leg 1 --</option>
+                                        @foreach($airports as $apt)
+                                            <option value="{{ $apt->code }}" {{ $stopOutDepart == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pergi 2 (Leg 2 Berangkat)</label>
+                                    <select name="stop_out_arrival_code" id="stop_out_arrival_code" class="form-control select2" data-type="stop">
+                                        <option value="">-- Pilih Bandara Keberangkatan Leg 2 --</option>
+                                        @foreach($airports as $apt)
+                                            <option value="{{ $apt->code }}" {{ $stopOutArrival == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <div style="font-size:11px; font-weight:600; margin-top:6px;">Maskapai & No. Flight Leg 2</div>
                                 <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
                                     <select name="stop_airline_out" id="stop_airline_out" class="form-control select2" style="font-size:12px;">
@@ -154,15 +171,15 @@
                                 </div>
                             </div>
 
-                            <label id="add_stop_out_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $stopOut ? 'display:none;' : '' }}">
-                                <input type="checkbox" id="toggle_stop_out" style="margin-right:6px;" {{ $stopOut ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
+                            <label id="add_stop_out_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $hasStopOut ? 'display:none;' : '' }}">
+                                <input type="checkbox" id="toggle_stop_out" style="margin-right:6px;" {{ $hasStopOut ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
                             </label>
 
                             <input type="hidden" name="route_out" id="route_out" value="{{ $ticket->route_out }}" />
                         </div>
 
                         <div class="col-md-12" style="padding-left:0; padding-right:0;">
-                            <div id="stop_out_wrapper_detail" style="margin-top:8px; {{ $stopOut ? 'display:block;' : 'display:none;' }}">
+                            <div id="stop_out_wrapper_detail" style="margin-top:8px; {{ $hasStopOut ? 'display:block;' : 'display:none;' }}">
                                 <div class="row" style="margin: 0; margin-bottom: 8px;">
                                     <div class="col-md-12 form-group" style="margin-bottom: 0;">
                                         <label style="font-size:11px; margin-bottom:4px;">Waktu di Stop</label>
@@ -200,8 +217,10 @@
                         @php
                             $partsIn = $ticket->route_in ? explode('-', $ticket->route_in) : [];
                             $depIn = $partsIn[0] ?? '';
-                            $arrIn = count($partsIn) ? $partsIn[count($partsIn)-1] : '';
-                            $stopIn = count($partsIn) === 3 ? $partsIn[1] : '';
+                            $arrIn = count($partsIn) ? end($partsIn) : '';
+                            $stopInDepart = $ticket->stop_in_depart_code ?: (isset($partsIn[1]) ? $partsIn[1] : '');
+                            $stopInArrival = $ticket->stop_in_arrival_code ?: (isset($partsIn[2]) ? $partsIn[2] : '');
+                            $hasStopIn = !empty($ticket->stop_in_depart_code) || !empty($ticket->stop_in_arrival_code) || count($partsIn) > 2;
                         @endphp
                         <div class="col-md-6 form-group">
                             <label>Departure</label>
@@ -220,14 +239,28 @@
                                 @endforeach
                             </select>
 
-                            <div id="stop_in_wrapper" style="margin-top:8px; {{ $stopIn ? 'display:block;' : 'display:none;' }}">
-                                <label style="font-weight:600; font-size:12px;"><input type="checkbox" id="has_stop_in" style="margin-right:6px;" {{ $stopIn ? 'checked' : '' }}> Tambah 1 Stops (Opsional)</label>
-                                <select name="stop_in_code" id="stop_in_code" class="form-control select2" placeholder="Pilih Airport" style="margin-top:8px; margin-bottom:8px;" data-type="stop">
-                                    <option value="">-- Pilih Airport Transit --</option>
-                                    @foreach($airports as $apt)
-                                        <option value="{{ $apt->code }}" {{ $stopIn == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
-                                    @endforeach
-                                </select>
+                            <div id="stop_in_wrapper" style="margin-top:8px; {{ $hasStopIn ? 'display:block;' : 'display:none;' }}">
+                                <label style="font-weight:600; font-size:12px;">
+                                    <input type="checkbox" id="has_stop_in" style="margin-right:6px;" {{ $hasStopIn ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
+                                </label>
+                                <div style="margin-top:8px;">
+                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pulang 1 (Leg 1 Tiba)</label>
+                                    <select name="stop_in_depart_code" id="stop_in_depart_code" class="form-control select2" style="margin-bottom:8px;" data-type="stop">
+                                        <option value="">-- Pilih Bandara Kedatangan Leg 1 --</option>
+                                        @foreach($airports as $apt)
+                                            <option value="{{ $apt->code }}" {{ $stopInDepart == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pulang 2 (Leg 2 Berangkat)</label>
+                                    <select name="stop_in_arrival_code" id="stop_in_arrival_code" class="form-control select2" data-type="stop">
+                                        <option value="">-- Pilih Bandara Keberangkatan Leg 2 --</option>
+                                        @foreach($airports as $apt)
+                                            <option value="{{ $apt->code }}" {{ $stopInArrival == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <div style="font-size:11px; font-weight:600; margin-top:6px;">Maskapai & No. Flight Leg 2</div>
                                 <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
                                     <select name="stop_airline_in" id="stop_airline_in" class="form-control select2" style="font-size:12px;">
@@ -240,15 +273,15 @@
                                 </div>
                             </div>
 
-                            <label id="add_stop_in_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $stopIn ? 'display:none;' : '' }}">
-                                <input type="checkbox" id="toggle_stop_in" style="margin-right:6px;" {{ $stopIn ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
+                            <label id="add_stop_in_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $hasStopIn ? 'display:none;' : '' }}">
+                                <input type="checkbox" id="toggle_stop_in" style="margin-right:6px;" {{ $hasStopIn ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
                             </label>
 
                             <input type="hidden" name="route_in" id="route_in" value="{{ $ticket->route_in }}" />
                         </div>
 
                         <div class="col-md-12" style="padding-left:0; padding-right:0;">
-                            <div id="stop_in_wrapper_detail" style="margin-top:8px; {{ $stopIn ? 'display:block;' : 'display:none;' }}">
+                            <div id="stop_in_wrapper_detail" style="margin-top:8px; {{ $hasStopIn ? 'display:block;' : 'display:none;' }}">
                                 <div class="row" style="margin: 0;">
                                     <div class="col-md-12 form-group" style="margin-bottom: 0;">
                                         <label style="font-size:11px; margin-bottom:4px;">Waktu di Stop</label>
@@ -279,153 +312,141 @@
         <div class="invoice-section">
             <div class="section-title">Data Penumpang</div>
             <table class="table table-bordered">
-    <thead>
-        <tr class="active">
-            <th width="12%">Title</th>
-            <th>Nama Lengkap</th>
-            <th width="12%">Tipe</th>
-            <th width="20%">No. Tiket</th>
-            <th width="15%" class="text-center">Baggage?</th> <th width="50px"></th>
-        </tr>
-    </thead>
-    <tbody id="passenger-container">
-    @foreach($passengers as $index => $pax)
-    @php
-        // Memisahkan Title (MR.) dan Nama (JHON) jika tersimpan gabung "MR. JHON"
-        $splitName = explode('. ', $pax->name, 2);
-        
-        // Cek apakah $pax->genre ada di database, jika tidak pakai hasil split, jika tidak ada juga default MR
-        $currentTitle = $pax->genre ?? ($splitName[0] ?? 'MR');
-        $realName = isset($splitName[1]) ? $splitName[1] : $pax->name;
-
-        $currentType = $pax->type ?? 'Adult';
-        
-        $hasBaggage = \DB::table('invoice_details')
-                        ->where('invoice_id', $ticket->invoice_id)
-                        ->where('class', 'BAGASI_ONLY')
-                        ->where('ticket_no', $pax->id)
-                        ->exists();
-    @endphp
-    <tr>
-        <td>
-            {{-- PERHATIKAN: name harus title agar tidak error Undefined index --}}
-            <select name="passengers[{{ $index }}][title]" class="form-control">
-                <option value="MR" {{ $currentTitle == 'MR' ? 'selected' : '' }}>MR</option>
-                <option value="MRS" {{ $currentTitle == 'MRS' ? 'selected' : '' }}>MRS</option>
-                <option value="MS" {{ $currentTitle == 'MS' ? 'selected' : '' }}>MS</option>
-                <option value="MSTR" {{ $currentTitle == 'MSTR' ? 'selected' : '' }}>MSTR</option>
-                <option value="MISS" {{ $currentTitle == 'MISS' ? 'selected' : '' }}>MISS</option>
-            </select>
-        </td>
-        <td>
-            <input type="text" name="passengers[{{ $index }}][name]" class="form-control" value="{{ $realName }}" required>
-        </td>
-        <td>
-            <select name="passengers[{{ $index }}][type]" class="form-control">
-                <option value="Adult" {{ $currentType == 'Adult' ? 'selected' : '' }}>Adult</option>
-                <option value="Child" {{ $currentType == 'Child' ? 'selected' : '' }}>Child</option>
-                <option value="Infant" {{ $currentType == 'Infant' ? 'selected' : '' }}>Infant</option>
-            </select>
-        </td>
-        <td>
-            <input type="text" name="passengers[{{ $index }}][ticket_num]" class="form-control" value="{{ $pax->ticket_no }}">
-        </td>
-        <td class="text-center">
-            <input type="checkbox" name="passengers[{{ $index }}][has_baggage]" value="1" {{ $hasBaggage ? 'checked' : '' }} style="width: 20px; height: 20px; cursor: pointer;">
-            <br><small class="text-muted">Munculkan Bagasi</small>
-        </td>
-        <td class="text-center">
-            <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button>
-        </td>
-    </tr>
-    @endforeach
-</tbody>
-</table>
+                <thead>
+                    <tr class="active">
+                        <th width="12%">Title</th>
+                        <th>Nama Lengkap</th>
+                        <th width="12%">Tipe</th>
+                        <th width="20%">No. Tiket</th>
+                        <th width="15%" class="text-center">Baggage?</th> <th width="50px"></th>
+                    </tr>
+                </thead>
+                <tbody id="passenger-container">
+                    @foreach($passengers as $index => $pax)
+                    @php
+                        $splitName = explode('. ', $pax->name, 2);
+                        $currentTitle = $pax->genre ?? ($splitName[0] ?? 'MR');
+                        $realName = isset($splitName[1]) ? $splitName[1] : $pax->name;
+                        $currentType = $pax->type ?? 'Adult';
+                        $hasBaggage = \DB::table('invoice_details')
+                                        ->where('invoice_id', $ticket->invoice_id)
+                                        ->where('class', 'BAGASI_ONLY')
+                                        ->where('ticket_no', $pax->id)
+                                        ->exists();
+                    @endphp
+                    <tr>
+                        <td>
+                            <select name="passengers[{{ $index }}][title]" class="form-control">
+                                <option value="MR" {{ $currentTitle == 'MR' ? 'selected' : '' }}>MR</option>
+                                <option value="MRS" {{ $currentTitle == 'MRS' ? 'selected' : '' }}>MRS</option>
+                                <option value="MS" {{ $currentTitle == 'MS' ? 'selected' : '' }}>MS</option>
+                                <option value="MSTR" {{ $currentTitle == 'MSTR' ? 'selected' : '' }}>MSTR</option>
+                                <option value="MISS" {{ $currentTitle == 'MISS' ? 'selected' : '' }}>MISS</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="passengers[{{ $index }}][name]" class="form-control" value="{{ $realName }}" required>
+                        </td>
+                        <td>
+                            <select name="passengers[{{ $index }}][type]" class="form-control">
+                                <option value="Adult" {{ $currentType == 'Adult' ? 'selected' : '' }}>Adult</option>
+                                <option value="Child" {{ $currentType == 'Child' ? 'selected' : '' }}>Child</option>
+                                <option value="Infant" {{ $currentType == 'Infant' ? 'selected' : '' }}>Infant</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="passengers[{{ $index }}][ticket_num]" class="form-control" value="{{ $pax->ticket_no }}">
+                        </td>
+                        <td class="text-center">
+                            <input type="checkbox" name="passengers[{{ $index }}][has_baggage]" value="1" {{ $hasBaggage ? 'checked' : '' }} style="width: 20px; height: 20px; cursor: pointer;">
+                            <br><small class="text-muted">Munculkan Bagasi</small>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
             <button type="button" class="btn btn-default btn-sm" id="add-passenger"><i class="fa fa-plus"></i> Tambah Penumpang</button>
         </div>
 
         <div class="invoice-section">
-    <div class="row">
-        <div class="col-md-6" style="border-right: 1px solid #f1f5f9;">
-            <div class="section-title" style="border-left-color: #6366f1;">Detail Keuangan (Invoice)</div>
             <div class="row">
-                <div class="col-md-6 form-group">
-                    <label>Pax Paid (Harga Jual Akhir)</label>
-                    <input type="number" name="pax_paid" id="pax_paid" class="form-control" 
-                           value="{{ (int)$passengers->sum('pax_paid') }}" required>
+                <div class="col-md-6" style="border-right: 1px solid #f1f5f9;">
+                    <div class="section-title" style="border-left-color: #6366f1;">Detail Keuangan (Invoice)</div>
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label>Pax Paid (Harga Jual Akhir)</label>
+                            <input type="number" name="pax_paid" id="pax_paid" class="form-control" value="{{ (int)$passengers->sum('pax_paid') }}" required>
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Price (Harga Dasar di Invoice)</label>
+                            <input type="number" name="price" id="price" class="form-control" value="{{ (int)$passengers->sum('price') }}">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>Discount</label>
+                            <input type="number" name="discount" id="discount" class="form-control" value="{{ (int)$passengers->sum('discount') }}">
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label>NTA (Modal)</label>
+                            <input type="number" name="nta_price" id="nta_price" class="form-control" value="{{ (int)$passengers->sum('nta') }}" required>
+                        </div>
+                        <input type="hidden" name="publish_price" id="publish_price" value="{{ (int)$ticket->total_publish }}">
+                    </div>
                 </div>
-                <div class="col-md-6 form-group">
-                    <label>Price (Harga Dasar di Invoice)</label>
-                    <input type="number" name="price" id="price" class="form-control" 
-                           value="{{ (int)$passengers->sum('price') }}">
-                </div>
-                <div class="col-md-6 form-group">
-                    <label>Discount</label>
-                    <input type="number" name="discount" id="discount" class="form-control" 
-                           value="{{ (int)$passengers->sum('discount') }}">
-                </div>
-                <div class="col-md-6 form-group">
-                    <label>NTA (Modal)</label>
-                    <input type="number" name="nta_price" id="nta_price" class="form-control" 
-                           value="{{ (int)$passengers->sum('nta') }}" required>
-                </div>
-                <input type="hidden" name="publish_price" id="publish_price" value="{{ (int)$ticket->total_publish }}">
-            </div>
-        </div>
 
- <div class="col-md-6">
-    <div class="section-title" style="border-left-color: #f59e0b;">Rincian Tiket (Airfare PDF)</div>
-    
-    <div class="row">
-        <div class="col-md-4 form-group">
-            <label>Basic Fare</label>
-            <input type="number" name="basic_fare" id="basic_fare" class="form-control" value="{{ (int)$ticket->basic_fare }}">
-        </div>
-        <div class="col-md-4 form-group">
-            <label>Tax & Surcharge</label>
-            <input type="number" name="total_tax" id="total_tax" class="form-control" value="{{ (int)$ticket->total_tax }}">
-        </div>
-        <div class="col-md-4 form-group">
-            <label>Fee Ticket</label>
-            <input type="number" name="fee_ticket" id="fee_ticket" class="form-control" value="{{ (int)$ticket->fee }}">
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-4 form-group">
-            <label>Free Baggage</label>
-            <div class="ticket-unit-wrapper">
-                <input type="number" name="free_baggage" class="form-control ticket-unit-input" value="{{ $ticket->free_baggage ?? 0 }}">
-                <span class="ticket-unit-label">KG</span>
+                <div class="col-md-6">
+                    <div class="section-title" style="border-left-color: #f59e0b;">Rincian Tiket (Airfare PDF)</div>
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label>Basic Fare</label>
+                            <input type="number" name="basic_fare" id="basic_fare" class="form-control" value="{{ (int)$ticket->basic_fare }}">
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>Tax & Surcharge</label>
+                            <input type="number" name="total_tax" id="total_tax" class="form-control" value="{{ (int)$ticket->total_tax }}">
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>Fee Ticket</label>
+                            <input type="number" name="fee_ticket" id="fee_ticket" class="form-control" value="{{ (int)$ticket->fee }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 form-group">
+                            <label>Free Baggage</label>
+                            <div class="ticket-unit-wrapper">
+                                <input type="number" name="free_baggage" class="form-control ticket-unit-input" value="{{ $ticket->free_baggage ?? 0 }}">
+                                <span class="ticket-unit-label">KG</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>Add On (Qty)</label>
+                            <div class="ticket-unit-wrapper">
+                                <input type="number" name="baggage_kg" id="baggage_kg" class="form-control ticket-unit-input" value="{{ $ticket->baggage_kg }}">
+                                <span class="ticket-unit-label">KG</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 form-group">
+                            <label>Add On Price</label>
+                            <div class="ticket-unit-wrapper">
+                                <span class="ticket-unit-label">Rp</span>
+                                <input type="number" name="baggage_price" id="baggage_price" class="form-control ticket-unit-input" value="{{ (int)$ticket->baggage_price }}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="well well-sm" style="margin-top: 5px; background: #fffbeb; border: 1px solid #fde68a; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;">
+                                <span style="color: #92400e; font-weight: 600;">Total Tertera di PDF:</span>
+                                @php $totalPDF = $ticket->basic_fare + $ticket->total_tax + $ticket->fee + $ticket->baggage_price; @endphp
+                                <strong id="total_ticket_display" style="font-size: 20px; color: #b45309;">Rp {{ number_format($totalPDF, 0, ',', '.') }}</strong>
+                            </div>
+                            <p class="text-muted" style="font-size: 11px; margin-top: -5px;">*Nilai ini yang akan muncul di print out tiket satuan.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-        <div class="col-md-4 form-group">
-            <label>Add On (Qty)</label>
-            <div class="ticket-unit-wrapper">
-                <input type="number" name="baggage_kg" id="baggage_kg" class="form-control ticket-unit-input" value="{{ $ticket->baggage_kg }}">
-                <span class="ticket-unit-label">KG</span>
-            </div>
-        </div>
-        <div class="col-md-4 form-group">
-            <label>Add On Price</label>
-            <div class="ticket-unit-wrapper">
-                <span class="ticket-unit-label">Rp</span>
-                <input type="number" name="baggage_price" id="baggage_price" class="form-control ticket-unit-input" value="{{ (int)$ticket->baggage_price }}">
-            </div>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-12">
-            <div class="well well-sm" style="margin-top: 5px; background: #fffbeb; border: 1px solid #fde68a; display: flex; justify-content: space-between; align-items: center; padding: 10px 15px;">
-                <span style="color: #92400e; font-weight: 600;">Total Tertera di PDF:</span>
-                @php $totalPDF = $ticket->basic_fare + $ticket->total_tax + $ticket->fee + $ticket->baggage_price; @endphp
-                <strong id="total_ticket_display" style="font-size: 20px; color: #b45309;">Rp {{ number_format($totalPDF, 0, ',', '.') }}</strong>
-            </div>
-            <p class="text-muted" style="font-size: 11px; margin-top: -5px;">*Nilai ini yang akan muncul di print out tiket satuan.</p>
-        </div>
-    </div>
-</div>
 
             <div class="text-right" style="margin-top: 20px;">
                 <hr>
@@ -443,13 +464,11 @@
 
 <script>
 $(document).ready(function() {
-    // INISIALISASI SELECT2
     $('.select2').select2({
         width: '100%',
         placeholder: '-- Pilih Data --'
     });
 
-    // tampilkan saldo maskapai saat dipilih
     $('#airlineSelect').on('change', function(){
         var bal = $(this).find('option:selected').data('balance');
         if(bal !== undefined) {
@@ -464,21 +483,16 @@ $(document).ready(function() {
         return parseFloat(val.toString().replace(/[^0-9.-]+/g, "")) || 0;
     }
 
-    // Hitung Otomatis tapi TIDAK menimpa Pax Paid & Price di kiri
     $('#basic_fare, #total_tax, #fee_ticket, #baggage_price').on('input', function() {
         let basic   = cleanNumber($('#basic_fare').val());
         let tax     = cleanNumber($('#total_tax').val());
         let fee     = cleanNumber($('#fee_ticket').val());
         let baggage = cleanNumber($('#baggage_price').val());
-
         let totalPDF = basic + tax + fee + baggage;
-
-        // Update tampilan kuning dan hidden field saja
         $('#total_ticket_display').text('Rp ' + totalPDF.toLocaleString('id-ID'));
         $('#publish_price').val(totalPDF);
     });
 
-    // DateTime picker untuk jadwal penerbangan
     if (window.flatpickr) {
         const dateTimeConfig = {
             enableTime: true,
@@ -490,47 +504,35 @@ $(document).ready(function() {
         flatpickr('input[name="dep_out"], input[name="arr_out"], input[name="dep_in"], input[name="arr_in"], input[name="stop_time_out_arrival"], input[name="stop_time_out_depart"], input[name="stop_time_in_arrival"], input[name="stop_time_in_depart"]', dateTimeConfig);
     }
 
-    // Fitur Tambah Penumpang
     let rowIdx = {{ count($passengers) }};
     $('#add-passenger').click(function() {
         let html = `<tr>
-        <td>
-            <select name="passengers[${rowIdx}][title]" class="form-control">
-                <option value="MR">MR</option>
-                <option value="MRS">MRS</option>
-                <option value="MS">MS</option>
-                <option value="MSTR">MSTR</option>
-                <option value="MISS">MISS</option>
-            </select>
-        </td>
+        <td><select name="passengers[${rowIdx}][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option></select></td>
         <td><input type="text" name="passengers[${rowIdx}][name]" class="form-control" required></td>
-        <td>
-            <select name="passengers[${rowIdx}][type]" class="form-control">
-                <option value="Adult">Adult</option>
-                <option value="Child">Child</option>
-                <option value="Infant">Infant</option>
-            </select>
-        </td>
+        <td><select name="passengers[${rowIdx}][type]" class="form-control"><option>Adult</option><option>Child</option><option>Infant</option></select></td>
         <td><input type="text" name="passengers[${rowIdx}][ticket_num]" class="form-control"></td>
         <td class="text-center">
             <input type="checkbox" name="passengers[${rowIdx}][has_baggage]" value="1" style="width: 20px; height: 20px; cursor: pointer;">
             <br><small class="text-muted">Munculkan Bagasi</small>
         </td>
         <td class="text-center"><button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-times"></i></button></td>
-    </tr>`;
+        </tr>`;
         $('#passenger-container').append(html);
         rowIdx++;
     });
 
     $('#passenger-container').on('click', '.remove-row', function() { $(this).closest('tr').remove(); });
 
-    // Route builder sync for edit form
     function buildRoute(prefix) {
         const dep = $(`#departure_${prefix}_code`).val() || '';
-        const stop = $(`#stop_${prefix}_code`).val() || '';
+        const stop1 = $(`#stop_${prefix}_depart_code`).val() || '';
+        const stop2 = $(`#stop_${prefix}_arrival_code`).val() || '';
         const arr = $(`#arrival_${prefix}_code`).val() || '';
         if (!dep && !arr) return '';
-        return stop ? `${dep}-${stop}-${arr}` : `${dep}-${arr}`;
+        let route = `${dep}-${arr}`;
+        if (stop1) route = `${dep}-${stop1}-${arr}`;
+        if (stop1 && stop2) route = `${dep}-${stop1}-${stop2}-${arr}`;
+        return route;
     }
 
     function syncRoutes() {
@@ -550,13 +552,12 @@ $(document).ready(function() {
             $('#stop_out_wrapper').hide();
             $('#stop_out_wrapper_detail').hide();
             $('#has_stop_out').prop('checked', false);
-            $('#stop_out_code').val('').trigger('change');
-            $('#stop_time_out_arrival').val('');
-            $('#stop_time_out_depart').val('');
+            $('#stop_out_depart_code, #stop_out_arrival_code').val('').trigger('change');
+            $('#stop_time_out_arrival, #stop_time_out_depart').val('');
             $('#stop_airline_out').val('').trigger('change');
             $('#stop_flight_leg2_out').val('');
+            syncRoutes();
         } 
-        syncRoutes(); 
     });
 
     $('#toggle_stop_in').on('change', function() { 
@@ -570,50 +571,43 @@ $(document).ready(function() {
             $('#stop_in_wrapper').hide();
             $('#stop_in_wrapper_detail').hide();
             $('#has_stop_in').prop('checked', false);
-            $('#stop_in_code').val('').trigger('change');
-            $('#stop_time_in_arrival').val('');
-            $('#stop_time_in_depart').val('');
+            $('#stop_in_depart_code, #stop_in_arrival_code').val('').trigger('change');
+            $('#stop_time_in_arrival, #stop_time_in_depart').val('');
             $('#stop_airline_in').val('').trigger('change');
             $('#stop_flight_leg2_in').val('');
+            syncRoutes();
         } 
-        syncRoutes(); 
     });
 
-    // Jika user langsung check dari wrapper, sync ke toggle (OUT only)
     $('#has_stop_out').on('change', function() {
         if (!this.checked) {
             $('#toggle_stop_out').prop('checked', false);
             $('#add_stop_out_label').show();
             $('#stop_out_wrapper').hide();
             $('#stop_out_wrapper_detail').hide();
-            $('#stop_out_code').val('').trigger('change');
-            $('#stop_time_out_arrival').val('');
-            $('#stop_time_out_depart').val('');
+            $('#stop_out_depart_code, #stop_out_arrival_code').val('').trigger('change');
+            $('#stop_time_out_arrival, #stop_time_out_depart').val('');
             $('#stop_airline_out').val('').trigger('change');
             $('#stop_flight_leg2_out').val('');
             syncRoutes();
         }
     });
 
-    // same for IN wrapper checkbox
     $('#has_stop_in').on('change', function() {
         if (!this.checked) {
             $('#toggle_stop_in').prop('checked', false);
             $('#add_stop_in_label').show();
             $('#stop_in_wrapper').hide();
             $('#stop_in_wrapper_detail').hide();
-            $('#stop_in_code').val('').trigger('change');
-            $('#stop_time_in_arrival').val('');
-            $('#stop_time_in_depart').val('');
+            $('#stop_in_depart_code, #stop_in_arrival_code').val('').trigger('change');
+            $('#stop_time_in_arrival, #stop_time_in_depart').val('');
             $('#stop_airline_in').val('').trigger('change');
             $('#stop_flight_leg2_in').val('');
             syncRoutes();
         }
     });
 
-    // update route when selects change (same as create)
-    $('#departure_out_code, #arrival_out_code, #stop_out_code, #departure_in_code, #arrival_in_code, #stop_in_code').on('change', function() { syncRoutes(); });
-
-}); // end document.ready
+    $('#departure_out_code, #arrival_out_code, #stop_out_depart_code, #stop_out_arrival_code, #departure_in_code, #arrival_in_code, #stop_in_depart_code, #stop_in_arrival_code').on('change', syncRoutes);
+});
 </script>
 @endsection

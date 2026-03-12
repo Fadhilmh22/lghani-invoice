@@ -109,12 +109,24 @@
                                 <label style="font-weight:600; font-size:12px;">
                                     <input type="checkbox" id="has_stop_out" style="margin-right:6px;"> Tambah 1 Stops (Opsional)
                                 </label>
-                                <select name="stop_out_code" id="stop_out_code" class="form-control select2" style="margin-top:8px; margin-bottom:8px;" data-type="stop">
-                                    <option value="">-- Pilih Airport Transit --</option>
-                                    @foreach($airports as $apt)
-                                        <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
-                                    @endforeach
-                                </select>
+<div style="margin-top:8px;">
+                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pergi 1 (Leg 1 Tiba)</label>
+                                    <select name="stop_out_depart_code" id="stop_out_depart_code" class="form-control select2" style="margin-bottom:8px;" data-type="stop">
+                                        <option value="">-- Pilih Bandara Kedatangan Leg 1 --</option>
+                                        @foreach($airports as $apt)
+                                            <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div style="margin-bottom:8px;">
+                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pergi 2 (Leg 2 Berangkat)</label>
+                                    <select name="stop_out_arrival_code" id="stop_out_arrival_code" class="form-control select2" data-type="stop">
+                                        <option value="">-- Pilih Bandara Keberangkatan Leg 2 --</option>
+                                        @foreach($airports as $apt)
+                                            <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <div style="font-size:11px; font-weight:600; margin-top:6px;">Maskapai & No. Flight Leg 2</div>
                                 <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
                                     <select name="stop_airline_out" id="stop_airline_out" class="form-control select2" style="font-size:12px;">
@@ -186,12 +198,24 @@
                                 <label style="font-weight:600; font-size:12px;">
                                     <input type="checkbox" id="has_stop_in" style="margin-right:6px;"> Tambah 1 Stops (Opsional)
                                 </label>
-                                <select name="stop_in_code" id="stop_in_code" class="form-control select2" style="margin-top:8px; margin-bottom:8px;" data-type="stop">
-                                    <option value="">-- Pilih Airport Transit --</option>
-                                    @foreach($airports as $apt)
-                                        <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
-                                    @endforeach
-                                </select>
+<div style="margin-top:8px;">
+                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pulang 1 (Leg 1 Tiba)</label>
+                                    <select name="stop_in_depart_code" id="stop_in_depart_code" class="form-control select2" style="margin-bottom:8px;" data-type="stop">
+                                        <option value="">-- Pilih Bandara Kedatangan Leg 1 --</option>
+                                        @foreach($airports as $apt)
+                                            <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div style="margin-bottom:8px;">
+                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pulang 2 (Leg 2 Berangkat)</label>
+                                    <select name="stop_in_arrival_code" id="stop_in_arrival_code" class="form-control select2" data-type="stop">
+                                        <option value="">-- Pilih Bandara Keberangkatan Leg 2 --</option>
+                                        @foreach($airports as $apt)
+                                            <option value="{{ $apt->code }}">{{ $apt->name }} - {{ $apt->code }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <div style="font-size:11px; font-weight:600; margin-top:6px;">Maskapai & No. Flight Leg 2</div>
                                 <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
                                     <select name="stop_airline_in" id="stop_airline_in" class="form-control select2" style="font-size:12px;">
@@ -384,10 +408,14 @@ $(document).ready(function() {
 
     function buildRoute(prefix) {
         const dep = $(`#departure_${prefix}_code`).val() || '';
-        const stop = $(`#stop_${prefix}_code`).val() || '';
+        const stop1 = $(`#stop_${prefix}_depart_code`).val() || '';
+        const stop2 = $(`#stop_${prefix}_arrival_code`).val() || '';
         const arr = $(`#arrival_${prefix}_code`).val() || '';
         if (!dep && !arr) return '';
-        return stop ? `${dep}-${stop}-${arr}` : `${dep}-${arr}`;
+        let route = `${dep}-${arr}`;
+        if (stop1) route = `${dep}-${stop1}-${arr}`;
+        if (stop1 && stop2) route = `${dep}-${stop1}-${stop2}-${arr}`;
+        return route;
     }
 
     function syncRoutes() {
@@ -445,7 +473,7 @@ $(document).ready(function() {
         }
     });
 
-    $('#departure_out_code, #arrival_out_code, #stop_out_code, #departure_in_code, #arrival_in_code, #stop_in_code').on('change', function() { syncRoutes(); });
+    $('#departure_out_code, #arrival_out_code, #stop_out_depart_code, #stop_out_arrival_code, #departure_in_code, #arrival_in_code, #stop_in_depart_code, #stop_in_arrival_code').on('change', function() { syncRoutes(); });
 
     syncRoutes();
 });

@@ -102,8 +102,12 @@ class TicketController extends Controller
             $ticket->booking_code   = strtoupper($request->pnr);
             $ticket->flight_out     = $request->flight_out;
             $ticket->flight_in      = $request->flight_in;
-            $ticket->route_out      = $request->route_out;
-            $ticket->route_in       = $request->route_in;
+            // Build routes with 2 stops if available
+            $out_parts = array_filter([$request->departure_out_code, $request->stop_out_depart_code, $request->stop_out_arrival_code, $request->arrival_out_code]);
+            $ticket->route_out = implode('-', $out_parts);
+            
+            $in_parts = array_filter([$request->departure_in_code, $request->stop_in_depart_code, $request->stop_in_arrival_code, $request->arrival_in_code]);
+            $ticket->route_in = implode('-', $in_parts);
             $ticket->dep_time_out   = $request->dep_out;
             $ticket->dep_time_in    = $request->dep_in;
             $ticket->arr_time_out   = $request->arr_out;
@@ -113,12 +117,16 @@ class TicketController extends Controller
             $ticket->stop_time_out_arrival  = $request->stop_time_out_arrival ?? null;
             $ticket->stop_time_out_depart   = $request->stop_time_out_depart ?? null;
             $ticket->stop_flight_leg2_out = $request->stop_flight_leg2_out ?? null;
+            $ticket->stop_out_depart_code = $request->stop_out_depart_code ?? null;
+            $ticket->stop_out_arrival_code = $request->stop_out_arrival_code ?? null;
             $ticket->stop_airline_out = $request->stop_airline_out ?? null;
             $ticket->stop_flight_leg1_in  = $request->flight_in ?? null;
             $ticket->stop_time_in   = $request->stop_time_in ?? null;
             $ticket->stop_time_in_arrival  = $request->stop_time_in_arrival ?? null;
             $ticket->stop_time_in_depart   = $request->stop_time_in_depart ?? null;
             $ticket->stop_flight_leg2_in  = $request->stop_flight_leg2_in ?? null;
+            $ticket->stop_in_depart_code = $request->stop_in_depart_code ?? null;
+            $ticket->stop_in_arrival_code = $request->stop_in_arrival_code ?? null;
             $ticket->stop_airline_in = $request->stop_airline_in ?? null;
             $ticket->class          = $request->class;
             $ticket->basic_fare     = $clean($request->basic_fare);
@@ -226,9 +234,24 @@ if ($nta_total > 0) {
         }
     }
 
-    public function edit($id)
+public function edit($id)
     {
         $ticket = Ticket::with(['airline', 'invoice.customer'])->findOrFail($id);
+        
+        // Parse route_out for dropdowns
+        $partsOut = $ticket->route_out ? explode('-', $ticket->route_out) : [];
+        $ticket->depOut = $partsOut[0] ?? '';
+        $ticket->arrOut = end($partsOut) ?? '';
+        $ticket->stopOutDepart = $partsOut[1] ?? '';
+        $ticket->stopOutArrival = isset($partsOut[2]) ? $partsOut[2] : '';
+        
+        // Parse route_in for dropdowns
+        $partsIn = $ticket->route_in ? explode('-', $ticket->route_in) : [];
+        $ticket->depIn = $partsIn[0] ?? '';
+        $ticket->arrIn = end($partsIn) ?? '';
+        $ticket->stopInDepart = $partsIn[1] ?? '';
+        $ticket->stopInArrival = isset($partsIn[2]) ? $partsIn[2] : '';
+        
         $customers = Customer::orderBy('booker', 'ASC')->get();
         $airlines = Airlines::orderBy('airlines_name', 'ASC')->get();
         $airports = Airport::orderBy('name', 'ASC')->get();
@@ -280,8 +303,13 @@ if ($nta_total > 0) {
                 'booking_code'  => strtoupper($request->pnr),
                 'flight_out'    => $request->flight_out,
                 'flight_in'     => $request->flight_in,
-                'route_out'     => $request->route_out,
-                'route_in'      => $request->route_in,
+                // Build routes with 2 stops if available
+                'route_out'     => implode('-', array_filter([$request->departure_out_code, $request->stop_out_depart_code, $request->stop_out_arrival_code, $request->arrival_out_code])),
+                'route_in'      => implode('-', array_filter([$request->departure_in_code, $request->stop_in_depart_code, $request->stop_in_arrival_code, $request->arrival_in_code])),
+                'stop_out_depart_code' => $request->stop_out_depart_code ?? null,
+                'stop_out_arrival_code' => $request->stop_out_arrival_code ?? null,
+                'stop_in_depart_code' => $request->stop_in_depart_code ?? null,
+                'stop_in_arrival_code' => $request->stop_in_arrival_code ?? null,
                 'dep_time_out'  => $request->dep_out,
                 'dep_time_in'   => $request->dep_in,
                 'arr_time_out'  => $request->arr_out,
@@ -291,14 +319,18 @@ if ($nta_total > 0) {
             'stop_time_out_arrival'  => $request->stop_time_out_arrival ?? null,
             'stop_time_out_depart'   => $request->stop_time_out_depart ?? null,
             'stop_flight_leg2_out' => $request->stop_flight_leg2_out ?? null,
+                'stop_out_depart_code' => $request->stop_out_depart_code ?? null,
+            'stop_out_arrival_code' => $request->stop_out_arrival_code ?? null,
             'stop_airline_out' => $request->stop_airline_out ?? null,
             'stop_flight_leg1_in'  => $request->stop_flight_leg1_in ?? null,
             'stop_time_in'   => $request->stop_time_in ?? null,
             'stop_time_in_arrival'  => $request->stop_time_in_arrival ?? null,
             'stop_time_in_depart'   => $request->stop_time_in_depart ?? null,
             'stop_flight_leg2_in'  => $request->stop_flight_leg2_in ?? null,
+                'stop_in_depart_code' => $request->stop_in_depart_code ?? null,
+            'stop_in_arrival_code' => $request->stop_in_arrival_code ?? null,
             'stop_airline_in' => $request->stop_airline_in ?? null,
-                'class'         => $request->class,
+            'class'         => $request->class,
                 'basic_fare'    => $clean($request->basic_fare), 
                 'total_tax'     => $clean($request->total_tax),
                 'fee'           => $clean($request->fee_ticket),

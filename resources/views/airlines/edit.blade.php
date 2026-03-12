@@ -41,7 +41,7 @@
         margin-top: 35px;
         padding-top: 20px;
         border-top: 1px solid #e5e7eb;
-        text-align: right;
+        text-align: left;
     }
 
     .btn-back-elegant {
