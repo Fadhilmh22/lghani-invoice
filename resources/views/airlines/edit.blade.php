@@ -64,7 +64,8 @@
         <h4 class="page-title">Edit Data Maskapai</h4>
 
         {{-- JANGAN UBAH LOGIC --}}
-        <form action="{{ url('/airline/'.$airlines->id) }}" method="POST">
+<form action="{{ url('/airline/'.$airlines->id) }}" method="POST" enctype="multipart/form-data">
+
             @csrf
             @method('PUT')
 
@@ -102,7 +103,23 @@
 
             </div>
 
+            <div class="col-md-12 form-spacing">
+                <label class="form-label">Logo Maskapai</label>
+                @if($airlines->logo_path)
+                    <div class="current-logo mb-3">
+                        <strong>Logo Saat Ini:</strong>
+                        <img src="{{ asset($airlines->logo_path) }}" alt="Current Logo" class="img-thumbnail" style="max-width: 100px; max-height: 100px;">
+                    </div>
+                @endif
+                <input type="file" name="logo" id="logoInput" class="form-control {{ $errors->has('logo') ? 'is-invalid' : '' }}" accept="image/*">
+                @if ($errors->has('logo'))
+                    <span class="help-block text-danger">{{ $errors->first('logo') }}</span>
+                @endif
+                <img id="logoPreview" src="#" alt="Logo Preview" class="img-thumbnail mt-2 d-none" style="max-width: 100px; max-height: 100px;">
+            </div>
+
             <div class="form-action">
+
                 <a href="{{ url('/airline') }}" class="btn btn-back-elegant">
                     Kembali
                 </a>
@@ -113,7 +130,25 @@
 
         </form>
 
+<script>
+$(document).ready(function() {
+    $('#logoInput').change(function(e) {
+        var file = e.target.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $('#logoPreview').attr('src', e.target.result).removeClass('d-none');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            $('#logoPreview').addClass('d-none');
+        }
+    });
+});
+</script>
+
     </div>
 </div>
 
 @endsection
+

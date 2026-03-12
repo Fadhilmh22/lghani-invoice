@@ -41,19 +41,29 @@
             <div class="table-responsive">
                 <table class="table elegant-table">
                     <thead>
-                        <tr>
+<tr>
                             <th>Kode Maskapai</th>
+                            <th>Logo</th>
                             <th>Nama Maskapai</th>
                             <th>Saldo</th>
                             <th>Tanggal Pembuatan</th>
                             <th class="text-center">Aksi</th>
                         </tr>
+
                     </thead>
                     <tbody>
                         @forelse($additionalData as $airline)
                         <tr class="table-row-hover">
-                            <td><strong>{{ $airline->airlines_code }}</strong></td>
+<td><strong>{{ $airline->airlines_code }}</strong></td>
+                            <td>
+                                @if($airline->logo_path)
+                                    <img src="{{ asset($airline->logo_path) }}" alt="{{ $airline->airlines_name }}" class="img-thumbnail" style="width: 40px; height: 40px; object-fit: contain;">
+                                @else
+                                    <span class="text-muted">No Logo</span>
+                                @endif
+                            </td>
                             <td class="uppercase-text">{{ $airline->airlines_name }}</td>
+
                             <td class="text-right">IDR {{ number_format($airline->balance) }}</td>
                             <td>{{ $airline->created_at->format('d-m-Y') }}</td>
                             

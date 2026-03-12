@@ -144,6 +144,7 @@
                         'cathay' => 'cathaypacific.png',
                         'emirates' => 'emirates.png',
                         'etihad' => 'etihad.png',
+                        'ana' => 'AN.png',
                     ];
                     foreach ($logos as $key => $val) {
                         if (str_contains($name, $key)) return $val;
@@ -152,9 +153,12 @@
                 }
 
                 // determine logos for each potential leg
-                $logoMain = getAirlineLogo($ticket->airline->airlines_name);
-                $logoStopOut = $ticket->stop_airline_out ? getAirlineLogo($ticket->stop_airline_out) : $logoMain;
-                $logoStopIn  = $ticket->stop_airline_in ? getAirlineLogo($ticket->stop_airline_in) : $logoMain;
+$logoMain = $ticket->airline->logo_path ?? getAirlineLogo($ticket->airline->airlines_name ?? '');
+
+        $stopOutAirline = $ticket->stop_airline_out ? \App\Models\Airlines::where('airlines_name', $ticket->stop_airline_out)->first() : null;
+        $stopInAirline = $ticket->stop_airline_in ? \App\Models\Airlines::where('airlines_name', $ticket->stop_airline_in)->first() : null;
+        $logoStopOut = $stopOutAirline ? ($stopOutAirline->logo_path ?? getAirlineLogo($ticket->stop_airline_out)) : $logoMain;
+        $logoStopIn = $stopInAirline ? ($stopInAirline->logo_path ?? getAirlineLogo($ticket->stop_airline_in)) : $logoMain;
 
                 $rawClass = $passengers->first()->class ?? 'Economy';
                 // Parse "Y,A/B,V" format: Y=leg1_out, A=leg2_out, B=leg1_in, V=leg2_in
@@ -203,9 +207,10 @@
                     $leg1AirlineName = $ticket->airline->airlines_name;
                     $leg1AirlineCode = $ticket->airline->airlines_code;
                     $leg2AirlineName = ($type == 'out') ? ($ticket->stop_airline_out ?: $leg1AirlineName) : ($ticket->stop_airline_in ?: $leg1AirlineName);
-                    $leg2AirlineCode = ($type == 'out')
-                        ? ($ticket->stop_airline_out ? $ticket->stop_airline_out : $ticket->airline->airlines_code)
-                        : ($ticket->stop_airline_in ? $ticket->stop_airline_in : $ticket->airline->airlines_code);
+$stopAirlineName = ($type == 'out') ? ($ticket->stop_airline_out ?: $ticket->airline->airlines_name) : ($ticket->stop_airline_in ?: $ticket->airline->airlines_name);
+$leg2Airline = \App\Models\Airlines::where('airlines_name', $stopAirlineName)->first();
+$leg2AirlineCode = $leg2Airline ? $leg2Airline->airlines_code : $ticket->airline->airlines_code;
+$leg2AirlineName = $leg2Airline ? $leg2Airline->airlines_name : $ticket->airline->airlines_name;
                     $logoForLeg1 = $logoMain;
                     $logoForLeg2 = ($type == 'out') ? $logoStopOut : $logoStopIn;
                 @endphp
@@ -221,7 +226,7 @@
                                 <tr>
                                     @if($logoForLeg1)
                                     <td width="40px" style="border:none; padding:0;">
-                                        <img src="{{ public_path('airlines-logo/' . $logoForLeg1) }}" style="width: 35px; height: auto;">
+                                        <img src="{{ asset('airlines-logo/' . basename($logoForLeg1)) }}" style="width: 35px; height: auto;">
                                     </td>
                                     @endif
                                     <td style="border:none; padding:0; padding-left: 5px;">
@@ -258,7 +263,7 @@
                                 <tr>
                                     @if($logoForLeg2)
                                     <td width="40px" style="border:none; padding:0;">
-                                        <img src="{{ public_path('airlines-logo/' . $logoForLeg2) }}" style="width: 35px; height: auto;">
+                                        <img src="{{ asset('airlines-logo/' . basename($logoForLeg2)) }}" style="width: 35px; height: auto;">
                                     </td>
                                     @endif
                                     <td style="border:none; padding:0; padding-left: 5px;">
@@ -296,7 +301,7 @@
                                 <tr>
                                     @if($logoForLeg1)
                                     <td width="40px" style="border:none; padding:0;">
-                                        <img src="{{ public_path('airlines-logo/' . $logoForLeg1) }}" style="width: 35px; height: auto;">
+                                        <img src="{{ asset('airlines-logo/' . basename($logoForLeg1)) }}" style="width: 35px; height: auto;">
                                     </td>
                                     @endif
                                     <td style="border:none; padding:0; padding-left: 5px;">
