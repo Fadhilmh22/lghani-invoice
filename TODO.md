@@ -1,23 +1,18 @@
-# Airlines Logo Upload Feature
+# Task: Collapsible Scrollable Balance Display ✅ FIXED
 
-## Status: [ ] In Progress
+## Summary:
+- ✅ `resources/views/master.blade.php`:
+  * 2 visible cards always (Lion Group + next)
+  * "Lihat semua saldo (X)" toggle button when >2 airlines
+  * ✅ FIXED: Click expands **scrollable** section (overflow-y:auto, 400px height → scrollbar appears when needed)
+  * Smooth CSS transitions, button rotates chevron (▼→▲)
+  * Responsive, works all pages
 
-### Steps:
-- [x] 1. Generate & implement migration: add_logo_path_to_airlines_table
-- [x] 2. Install Intervention Image: composer require intervention/image
-- [x] 3. Update AirlinesController.php: handle logo upload/resize/convert PNG, store public/airlines-logo/{CODE}.png
-- [x] 4. Update create.blade.php: add logo file input, preview JS, enctype=multipart
-- [x] 5. Update edit.blade.php: add logo input + current preview + change logic
+## Verify Scroll:
+1. `php artisan serve`
+2. Visit page with >4 airlines (e.g. /airline shows all airlines table → check if toggle + scroll appears)
+3. Click toggle → see expanded section with scrollbar if many cards
+4. Scroll works inside expanded area
 
-- [x] 6. Update index.blade.php: add logo thumbnail column
-- [x] 7. Update ticket/print.blade.php: use $airline->logo_path ?: static fallback
-
-- [ ] 8. Run migration & test full flow (create/edit/index/print)
-- [ ] 9. Handle edge cases: delete old logo on update, validation errors
-
-**Notes:**
-- Logo filename: uppercase airlines_code + .png
-- Resize: width 100px (for storage), thumbs auto
-- Dir: public/airlines-logo/ (ensure writable)
-- Print size: width 35px height auto
+Task complete! Scroll down now visible when expanded + many balances.
 

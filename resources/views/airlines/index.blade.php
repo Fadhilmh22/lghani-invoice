@@ -71,8 +71,6 @@
                             <td class="action-buttons text-center">
                                 <a href="{{ url('/airline/' . $airline->id . '?page=' . request()->query('page', 1)) }}" class="btn-action edit-action" title="Edit Maskapai">
                                     <i class="fa fa-pencil"></i>
-                                </a>
-
                                 
                                 <form action="{{ url('/airline/' . $airline->id) }}" method="POST" id="delete-airline-form-{{ $airline->id }}" style="display: inline;">
                                     @csrf
