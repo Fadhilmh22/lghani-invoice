@@ -62,7 +62,8 @@ $this->validate($request, [
                 'logo_path' => $logoPath
             ]);
 
-            return redirect('/airline')->with(['success' => '<strong>' . $airlines->airlines_code . '</strong> Telah disimpan']);
+            $redirect = $request->input('redirect_url') ?? '/airline';
+            return redirect($redirect)->with(['success' => '<strong>' . $airlines->airlines_code . '</strong> Telah disimpan']);
         } catch(\Exception $e) {
             return redirect('/airline/new')->with(['error' => $e->getMessage()]);
         }
@@ -119,7 +120,8 @@ $this->validate($request, [
         ]);
 
 
-        return redirect('/airline')->with(['success' => '<strong>' . $airlines->airlines_code . '</strong> Diperbaharui']);
+        $redirect = $request->input('redirect_url') ?? '/airline';
+        return redirect($redirect)->with(['success' => '<strong>' . $airlines->airlines_code . '</strong> Diperbaharui']);
     }
 
     public function destroy($id)

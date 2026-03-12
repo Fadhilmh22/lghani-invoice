@@ -63,8 +63,11 @@
 
         <h4 class="page-title">Edit Data Maskapai</h4>
 
+        <input type="hidden" name="redirect_url" value="{{ url('/airline') . (request()->query('page') ? '?page=' . request()->query('page') : '') }}">
+
         {{-- JANGAN UBAH LOGIC --}}
 <form action="{{ url('/airline/'.$airlines->id) }}" method="POST" enctype="multipart/form-data">
+
 
             @csrf
             @method('PUT')
