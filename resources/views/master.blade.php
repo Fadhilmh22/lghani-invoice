@@ -150,26 +150,23 @@
         .toggle-btn:hover { background: #e2e8f0; }
 
         .airline-balances {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            flex: 1;
+            display: grid; /* Gunakan Grid, bukan Flex lagi */
+            grid-template-columns: repeat(3, 1fr); /* PAKSA jadi 3 kolom sama rata */
+            gap: 10px; /* Jarak antar kotak */
+            flex: 1; /* Agar mengambil ruang yang tersedia */
             margin: 0 15px;
-            max-height: 120px;
-            overflow: hidden;
         }
 
-        .balance-card {
+.balance-card {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
-            padding: 8px 12px;
-            border-radius: 12px;
+            padding: 6px 10px; /* Diperkecil dikit biar muat */
+            border-radius: 10px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             transition: all 0.3s ease;
-            flex: 1;
-            min-height: 50px;
+            width: 100%; /* Biar ngikutin lebar kolom grid */
         }
 
         .balance-card:hover {
@@ -219,55 +216,6 @@
             margin-left: 5px;
         }
         .btn-add-balance:hover { transform: scale(1.1); color: white; background: #4338ca; }
-
-        /* New balance toggle styles */
-        .visible-balances { display: flex; flex-direction: column; gap: 8px; }
-        .balance-toggle {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 10px 16px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-weight: 600;
-            color: #475569;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        .balance-toggle:hover {
-            background: #fff;
-            border-color: #4f46e5;
-            color: #4f46e5;
-            transform: translateY(-1px);
-        }
-        .toggle-icon { transition: transform 0.3s ease; font-size: 12px; }
-        .balance-toggle.expanded .toggle-icon { transform: rotate(180deg); }
-        .balance-toggle.expanded .toggle-text { font-weight: 700; }
-        
-        .collapsible-balances {
-            max-height: 0;
-            overflow-y: hidden;
-            transition: max-height 0.4s ease, opacity 0.3s ease;
-            opacity: 0;
-            border-top: 1px solid transparent;
-        }
-        .collapsible-balances.expanded {
-            max-height: 400px;
-            overflow-y: auto;
-            opacity: 1;
-            border-top-color: #e2e8f0;
-            padding-top: 12px;
-            margin-top: 12px;
-        }
-        .collapsible-balances .balance-card {
-            margin-bottom: 8px;
-        }
-        .collapsible-balances .balance-card:last-child {
-            margin-bottom: 0;
-        }
 
         /* --- MENU GROUP & SUBMENU --- */
         .menu-group-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 10px; color: #e2e8f0; cursor: pointer; margin-bottom: 4px; transition: background 0.2s; font-size: 16px; }
@@ -456,58 +404,29 @@
                     $lionGroupCodes = ['JT', 'IU', 'IW', 'ID'];
                     $lionMain = $allAirlines->where('airlines_code', 'JT')->first();
                     $lionBalance = $lionMain ? $lionMain->balance : 0;
-                    
-                    // Collect all balance cards as array of HTML strings
-                    $balanceCards = collect();
-                    
-                    // Lion Group card
-                    $lionCardClass = $lionBalance < 0 ? 'text-danger-custom' : '';
-                    $balanceCards->push('
-                        <div class="balance-card" title="Lion Group">
-                            <div class="balance-icon bg-lion">LG</div>
-                            <div class="balance-info">
-                                <span class="balance-label">Lion Group</span>
-                                <span class="balance-value ' . $lionCardClass . '">
-                                    Rp ' . number_format($lionBalance, 0, ',', '.') . '
-                                </span>
-                            </div>
-                        </div>');
-                    
-                    // Other airlines
-                    foreach($allAirlines->whereNotIn('airlines_code', $lionGroupCodes) as $ab) {
-                        $abCardClass = $ab->balance < 0 ? 'text-danger-custom' : '';
-                        $balanceCards->push('
-                        <div class="balance-card" title="' . htmlspecialchars($ab->airlines_name) . '">
-                            <div class="balance-icon bg-other">' . $ab->airlines_code . '</div>
-                            <div class="balance-info">
-                                <span class="balance-label">' . htmlspecialchars($ab->airlines_name) . '</span>
-                                <span class="balance-value ' . $abCardClass . '">
-                                    Rp ' . number_format($ab->balance, 0, ',', '.') . '
-                                </span>
-                            </div>
-                        </div>');
-                    }
-                    
-                    $visibleCount = 2;
-                    $visibleCards = $balanceCards->slice(0, $visibleCount);
-                    $hiddenCards = $balanceCards->slice($visibleCount);
-                    $hiddenCount = $hiddenCards->count();
                 @endphp
 
-                <div class="visible-balances">
-                    {!! implode('', $visibleCards->toArray()) !!}
+                <div class="balance-card" title="Lion Group">
+                    <div class="balance-icon bg-lion">LG</div>
+                    <div class="balance-info">
+                        <span class="balance-label">Lion Group</span>
+                        <span class="balance-value {{ $lionBalance < 0 ? 'text-danger-custom' : '' }}">
+                            Rp {{ number_format($lionBalance, 0, ',', '.') }}
+                        </span>
+                    </div>
                 </div>
-                
-                @if($hiddenCount > 0)
-                <button class="balance-toggle" id="balanceToggle">
-                    <span class="toggle-text">Lihat semua saldo ({{ $hiddenCount }})</span>
-                    <i class="fa fa-chevron-down toggle-icon"></i>
-                </button>
-                @endif
-                
-                <div class="collapsible-balances" id="collapsibleBalances" style="display: none;">
-                    {!! implode('', $hiddenCards->toArray()) !!}
-                </div>
+
+                @foreach($allAirlines->whereNotIn('airlines_code', $lionGroupCodes) as $ab)
+                    <div class="balance-card" title="{{ $ab->airlines_name }}">
+                        <div class="balance-icon bg-other">{{ $ab->airlines_code }}</div>
+                        <div class="balance-info">
+                            <span class="balance-label">{{ $ab->airlines_name }}</span>
+                            <span class="balance-value {{ $ab->balance < 0 ? 'text-danger-custom' : '' }}">
+                                Rp {{ number_format($ab->balance, 0, ',', '.') }}
+                            </span>
+                        </div>
+                    </div>
+                @endforeach
             </div>
 
             <div class="header-right-actions">
@@ -609,30 +528,6 @@
                     setTimeout(() => location.reload(), 1000);
                 }
             });
-        });
-
-        // Balance toggle functionality
-        $(document).ready(function() {
-            const toggleBtn = $('#balanceToggle');
-            const collapsible = $('#collapsibleBalances');
-            
-            if (toggleBtn.length) {
-                toggleBtn.on('click', function() {
-                    const isExpanded = collapsible.hasClass('expanded');
-                    
-                    if (isExpanded) {
-                        // Collapse
-                        collapsible.removeClass('expanded');
-                        toggleBtn.removeClass('expanded');
-                        toggleBtn.find('.toggle-text').text('Lihat semua saldo (' + collapsible.find('.balance-card').length + ')');
-                    } else {
-                        // Expand
-                        collapsible.addClass('expanded');
-                        toggleBtn.addClass('expanded');
-                        toggleBtn.find('.toggle-text').text('Tutup saldo lainnya');
-                    }
-                });
-            }
         });
     </script>
 
