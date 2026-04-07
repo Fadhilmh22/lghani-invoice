@@ -59,14 +59,17 @@ class TicketController extends Controller
                 return (int) preg_replace('/[^0-9]/', '', $val);
             };
     
-            $publish_total  = $clean($request->publish_price);
             $discount_total = $clean($request->discount);
             $nta_total      = $clean($request->nta_price);
             $pax_paid_total = $clean($request->pax_paid); 
             $price_total    = $clean($request->price); 
             $baggage_total  = $clean($request->baggage_price);
             $total_kg       = (int) $request->baggage_kg;
-    
+            $basic_fare_total = $clean($request->basic_fare);
+            $tax_total = $clean($request->total_tax);
+            $fee_total = $clean($request->fee_ticket);
+            $publish_total  = $basic_fare_total + $tax_total + $fee_total + $baggage_total;
+
             $pax_count = count($request->passengers);
             if ($pax_count == 0) {
                 return redirect()->back()->with('error', 'Minimal harus ada 1 penumpang!');
@@ -129,9 +132,9 @@ class TicketController extends Controller
             $ticket->stop_in_arrival_code = $request->stop_in_arrival_code ?? null;
             $ticket->stop_airline_in = $request->stop_airline_in ?? null;
             $ticket->class          = $request->class;
-            $ticket->basic_fare     = $clean($request->basic_fare);
-            $ticket->total_tax      = $clean($request->total_tax);
-            $ticket->fee            = $clean($request->fee_ticket);
+            $ticket->basic_fare     = $basic_fare_total;
+            $ticket->total_tax      = $tax_total;
+            $ticket->fee            = $fee_total;
             $ticket->baggage_kg     = $total_kg;
             $ticket->baggage_price  = $baggage_total;
             $ticket->free_baggage   = $request->free_baggage ?? 0;
@@ -280,12 +283,15 @@ public function edit($id)
             $oldAirlineId = $ticket->airline_id;
             $oldNtaTotal  = $ticket->nta_total ?? 0;
             
-            $publish_total  = $clean($request->publish_price);
             $discount_total = $clean($request->discount);
             $nta_total      = $clean($request->nta_price);
             $pax_paid_total = $clean($request->pax_paid); 
             $price_total    = $clean($request->price); 
             $baggage_total  = $clean($request->baggage_price);
+            $basic_fare_total = $clean($request->basic_fare);
+            $tax_total = $clean($request->total_tax);
+            $fee_total = $clean($request->fee_ticket);
+            $publish_total  = $basic_fare_total + $tax_total + $fee_total + $baggage_total;
 
             $pax_count = count($request->passengers);
             if ($pax_count == 0) {
@@ -331,9 +337,9 @@ public function edit($id)
             'stop_in_arrival_code' => $request->stop_in_arrival_code ?? null,
             'stop_airline_in' => $request->stop_airline_in ?? null,
             'class'         => $request->class,
-                'basic_fare'    => $clean($request->basic_fare), 
-                'total_tax'     => $clean($request->total_tax),
-                'fee'           => $clean($request->fee_ticket),
+                'basic_fare'    => $basic_fare_total, 
+                'total_tax'     => $tax_total,
+                'fee'           => $fee_total,
                 'baggage_kg'    => $request->baggage_kg,    
                 'baggage_price' => $baggage_total, 
                 'total_publish' => $publish_total,
@@ -378,6 +384,7 @@ public function edit($id)
     
             if ($baggage_total > 0 && count($pax_with_baggage) > 0) {
                 $baggage_per_pax = floor($baggage_total / count($pax_with_baggage));
+                $kg_per_pax = $request->baggage_kg ? floor($request->baggage_kg / count($pax_with_baggage)) : 0;
                 foreach ($pax_with_baggage as $pax_id) {
                     Invoice_detail::create([
                         'invoice_id'   => $invoice->id,
@@ -385,11 +392,17 @@ public function edit($id)
                         'airline_id'   => $request->airline_id,
                         'booking_code' => strtoupper($request->pnr),
                         'name'         => 'ADD ON BAGGAGE', 
+                        'genre'        => '-',
                         'ticket_no'    => $pax_id,
                         'price'        => $baggage_per_pax, 
                         'pax_paid'     => $baggage_per_pax,
                         'nta'          => $baggage_per_pax,
+                        'profit'       => 0,
                         'class'        => 'BAGASI_ONLY', 
+                        'route'        => $kg_per_pax . ' KG',
+                        'airlines_no'  => $request->flight_out,
+                        'depart_date'  => $request->dep_out,
+                        'return_date'  => $request->dep_in,
                     ]);
                 }
             }
@@ -431,6 +444,7 @@ public function edit($id)
         $free_baggage = $ticket->free_baggage;
         $ticketNoGlobal = 'TCKT' . $ticket->created_at->format('Ymd') . str_pad($ticket->id, 3, '0', STR_PAD_LEFT);
         $airports = Airport::pluck('name', 'code');
+        $airportCities = Airport::pluck('city', 'code');
         
         foreach ($passengers as $p) {
             $b = Invoice_detail::where('invoice_id', $ticket->invoice_id)->where('class', 'BAGASI_ONLY')->where('ticket_no', $p->id)->first();
@@ -445,7 +459,7 @@ public function edit($id)
             }
         }
         
-        $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'free_baggage', 'airports'));
+        $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'free_baggage', 'airports', 'airportCities'));
         return $pdf->setPaper('A4', 'portrait')->stream('E-Ticket-' . $ticket->booking_code . '.pdf');
     }
 
@@ -472,8 +486,9 @@ public function edit($id)
         $passengers = collect([$pax]);
         $ticketNoGlobal = 'TCKT' . $ticket->created_at->format('Ymd') . str_pad($ticket->id, 3, '0', STR_PAD_LEFT);
         $airports = Airport::pluck('name', 'code');
+        $airportCities = Airport::pluck('city', 'code');
     
-        $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'baggage_pax', 'free_baggage', 'airports'));
+        $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'baggage_pax', 'free_baggage', 'airports', 'airportCities'));
         return $pdf->setPaper('A4', 'portrait')->stream('Ticket_' . $pax->name . '.pdf');
     }
 
