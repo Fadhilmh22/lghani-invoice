@@ -39,8 +39,18 @@ class TicketController extends Controller
         $tickets = $query->orderBy('id', 'desc')
                          ->paginate(10)
                          ->appends(request()->all());
-    
-        return view('ticket.index', compact('tickets'));
+
+        $invoiceTicketCounts = [];
+        $invoiceIds = $tickets->pluck('invoice_id')->filter()->unique()->toArray();
+        if (!empty($invoiceIds)) {
+            $invoiceTicketCounts = Ticket::whereIn('invoice_id', $invoiceIds)
+                ->groupBy('invoice_id')
+                ->select('invoice_id', DB::raw('count(*) as count'))
+                ->pluck('count', 'invoice_id')
+                ->toArray();
+        }
+
+        return view('ticket.index', compact('tickets', 'invoiceTicketCounts'));
     }
 
     public function create()
@@ -515,6 +525,56 @@ public function edit($id)
             DB::commit();
             return redirect()->route('ticket.index')->with('success', 'Tiket digabungkan!');
         } catch (\Exception $e) { DB::rollback(); return back()->with('error', $e->getMessage()); }
+    }
+
+    public function splitInvoice($id)
+    {
+        DB::beginTransaction();
+        try {
+            $ticket = Ticket::findOrFail($id);
+            if (!$ticket->invoice_id) {
+                return back()->with('error', 'Invoice tidak ditemukan.');
+            }
+
+            $invoice = Invoice::findOrFail($ticket->invoice_id);
+            $ticketCount = Ticket::where('invoice_id', $invoice->id)->count();
+            if ($ticketCount < 2) {
+                return back()->with('info', 'Invoice hanya berisi satu tiket, tidak dapat dipisah.');
+            }
+
+            $date = \Carbon\Carbon::now()->format('Ymd');
+            $seqResult = Invoice::selectRaw("COALESCE(MAX(CAST(SUBSTRING(invoiceno, 12) AS INTEGER)), 0) AS maxseq")
+                ->where(DB::raw("SUBSTRING(invoiceno,4,8)"), $date)
+                ->get()
+                ->toArray();
+
+            $nextSeq = (int) $seqResult[0]['maxseq'] + 1;
+            $newInvoiceNo = 'LGT' . $date . str_pad($nextSeq, 3, '0', STR_PAD_LEFT);
+
+            $newInvoice = Invoice::create([
+                'invoiceno' => $newInvoiceNo,
+                'customer_id' => $invoice->customer_id,
+                'total' => Invoice_detail::where('ticket_id', $ticket->id)->sum('pax_paid'),
+                'edited' => auth()->user()->name ?? 'Admin',
+                'status_pembayaran' => $invoice->status_pembayaran ?? 'Belum Lunas',
+            ]);
+
+            $ticket->update(['invoice_id' => $newInvoice->id]);
+            Invoice_detail::where('ticket_id', $ticket->id)->update(['invoice_id' => $newInvoice->id]);
+
+            $remainingTotal = Invoice_detail::where('invoice_id', $invoice->id)->sum('pax_paid');
+            if (Ticket::where('invoice_id', $invoice->id)->count() == 0) {
+                $invoice->delete();
+            } else {
+                $invoice->update(['total' => $remainingTotal]);
+            }
+
+            DB::commit();
+            return redirect()->route('ticket.index')->with('success', 'Invoice berhasil dipisah.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Gagal pisah invoice: ' . $e->getMessage());
+        }
     }
 
     public function destroy($id)

@@ -117,6 +117,15 @@
                                     <i class="fa fa-users"></i>
                                 </button>
 
+                                @if(isset($invoiceTicketCounts[$t->invoice_id]) && $invoiceTicketCounts[$t->invoice_id] > 1)
+                                <button type="button" class="btn-action split-action btn-split-invoice" 
+                                        data-id="{{ $t->id }}" 
+                                        data-pnr="{{ $t->booking_code }}" 
+                                        title="Pisah Invoice">
+                                    <i class="fa fa-code-branch"></i>
+                                </button>
+                                @endif
+
                                 <a href="{{ route('ticket.edit', $t->id) }}" class="btn-action edit-action" title="Edit Data">
                                     <i class="fa fa-pencil"></i>
                                 </a>
@@ -201,6 +210,22 @@
         </div>
     </div>
 </div>
+
+<div id="splitConfirmationModal" class="custom-modal-overlay" style="display: none;">
+    <div class="custom-modal-content" style="max-width: 400px; text-align: center; padding: 20px;">
+        <div style="font-size: 50px; color: #4338ca; margin-bottom: 15px;"><i class="fa fa-code-branch"></i></div>
+        <h3>Yakin Pisah Invoice?</h3>
+        <p id="splitInfoPlaceholder" style="color: #64748b; margin-bottom: 25px;"></p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button type="button" id="cancelSplitBtn" class="btn-secondary-elegant" style="padding: 8px 20px; border-radius: 8px; border: 1px solid #ccc; background: #fff;">Batal</button>
+            <button type="button" id="confirmSplitBtn" class="btn-primary-elegant" style="background: #4338ca; color: #fff; border: none; padding: 8px 20px; border-radius: 8px;">Pisah</button>
+        </div>
+    </div>
+</div>
+
+<form id="splitInvoiceForm" method="POST" style="display:none;">
+    @csrf
+</form>
 
 <div id="successToast" class="success-toast" style="display: none;">
     <div class="success-toast-content">
@@ -297,7 +322,24 @@ $(document).ready(function() {
     $('#cancelDeleteBtn').on('click', function() { $('#deleteConfirmationModal').fadeOut(200); });
     $('#confirmDeleteBtn').on('click', function() { if(formTarget) { showLoading(); formTarget.submit(); } });
 
-    // 5. Loading Overlay for Print
+    // 5. Handle Split Invoice Modal
+    let splitInvoiceAction = null;
+    $('.btn-split-invoice').on('click', function() {
+        const ticketId = $(this).data('id');
+        const pnr = $(this).data('pnr');
+        splitInvoiceAction = '/ticket/' + ticketId + '/split';
+        $('#splitInfoPlaceholder').text('Invoice untuk tiket PNR ' + pnr + ' akan dipisah menjadi invoice baru.');
+        $('#splitConfirmationModal').fadeIn(200);
+    });
+    $('#cancelSplitBtn').on('click', function() { $('#splitConfirmationModal').fadeOut(200); splitInvoiceAction = null; });
+    $('#confirmSplitBtn').on('click', function() {
+        if (splitInvoiceAction) {
+            showLoading();
+            $('#splitInvoiceForm').attr('action', splitInvoiceAction).submit();
+        }
+    });
+
+    // 6. Loading Overlay for Print
     $(document).on('click', '.print-action, .btn-print-sm', function() {
         showLoading();
         setTimeout(function() { hideLoading(); }, 2500);

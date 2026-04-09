@@ -97,6 +97,7 @@ Route::post('register/action', [RegisterController::class, 'actionregister'])->n
         Route::delete('/{id}', [TicketController::class, 'destroy'])->name('ticket.destroy');
         Route::get('/{id}/passengers', [TicketController::class, 'getPassengers']); // Untuk ambil list nama di modal
         Route::get('/print-split/{ticket_id}/{passenger_id}', [TicketController::class, 'printSplit'])->name('ticket.print_split');
+        Route::post('/{id}/split', [TicketController::class, 'splitInvoice'])->name('ticket.splitInvoice');
         Route::post('/tickets/bulk-invoice', [TicketController::class, 'bulkInvoice'])->name('ticket.bulkInvoice');
         Route::post('/ticket/auto-parse', [TicketController::class, 'autoParse'])->name('ticket.autoParse');
     });
