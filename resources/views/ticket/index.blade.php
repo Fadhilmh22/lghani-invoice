@@ -71,7 +71,9 @@
                                 <input type="checkbox" value="{{ $t->id }}" class="ticket-checkbox">
                             </td>
                             <td style="font-size: 11px; color: #64748b; font-family: 'Courier New', Courier, monospace;">
+                                <Strong>
                                 TCKT{{ $t->created_at->format('Ymd') }}{{ str_pad($t->id, 3, '0', STR_PAD_LEFT) }}
+                                </Strong>
                                 <br>
                                 <span style="
                                     display: inline-block; 
@@ -85,7 +87,7 @@
                                     letter-spacing: 0.5px;
                                     box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
                                     ">
-                                    INV: {{ $t->invoice_id }}
+                                    {{ $t->invoice->invoiceno ?? $t->invoice_id }}
                                 </span>
                             </td>
                             <td><strong>{{ $t->invoice->customer->booker ?? '-' }}</strong></td>
