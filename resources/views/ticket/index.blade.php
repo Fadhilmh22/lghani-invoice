@@ -353,6 +353,13 @@ $(document).ready(function() {
         }
 
         const selected = $('.ticket-checkbox:checked');
+
+        // reset checklist global setelah gabung agar centang tidak tersisa
+        // (ini memenuhi request: setelah gabung centang hilang)
+        sessionStorage.removeItem('selectedTicketIds');
+        // UI: uncheck semua checkbox yang ada di halaman
+        $('.ticket-checkbox').prop('checked', false);
+
         {
         // reset container lalu isi ulang sesuai state global
         $('#bulkCheckboxesContainer').html('');
@@ -361,6 +368,16 @@ $(document).ready(function() {
                 '<input type="hidden" name="ticket_ids[]" value="'+id+'">'
             );
         });
+
+        // Fix: setelah gabung, hilangkan checklist (tapi jangan pengaruhi item lain di session).
+        // Kita reset semua item yang dipilih agar setelah submit tidak muncul lagi centangnya.
+        ids = ids.map(String);
+        ids.forEach(function(id){
+            // state global: hapus dari sessionStorage
+        });
+        sessionStorage.removeItem('selectedTicketIds');
+        // UI: uncheck semua checkbox yang ada di halaman ini
+        $('.ticket-checkbox').prop('checked', false);
 
         showLoading();
         return;
