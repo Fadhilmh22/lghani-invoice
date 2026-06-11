@@ -52,7 +52,17 @@
                 </div>
                 
                 <!-- Tombol "Buat Invoice" yang menonjol dan elegan -->
-                <div class="action-group">
+                <div class="action-group" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <form action="{{ url('/invoice') }}" method="GET" style="margin:0; display:flex; align-items:center; gap:10px;">
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                        <label style="font-size:13px; font-weight:600; color:#64748b;">Baris</label>
+                        <select name="per_page" class="form-control elegant-input" style="width: 120px;" onchange="this.form.submit()">
+                            @foreach([10,20,50,100] as $n)
+                                <option value="{{ $n }}" {{ (int) request('per_page', 10) === $n ? 'selected' : '' }}>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+
                     <a href="{{ route('invoice.create') }}" class="btn btn-primary-elegant">
                         <i class="fa fa-plus-circle"></i> Create Invoice
                     </a>

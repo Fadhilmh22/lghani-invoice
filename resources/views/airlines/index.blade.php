@@ -28,7 +28,20 @@
                         </div>
                     </form>
                 </div>
-                <div class="action-group">
+
+                <div class="action-group" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                    <form action="{{ url('/airline') }}" method="GET" class="search-form" style="margin:0;">
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <label style="font-size:13px; font-weight:600; color:#64748b;">Baris</label>
+                            <select name="per_page" class="form-control elegant-input" style="width: 120px;" onchange="this.form.submit()">
+                                @foreach([10,20,50,100] as $n)
+                                    <option value="{{ $n }}" {{ (int) request('per_page', 10) === $n ? 'selected' : '' }}>{{ $n }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </form>
+
                     <a href="{{ url('/airline/new') }}" class="btn btn-primary-elegant">
                         <i class="fa fa-plus-circle"></i> Tambah Maskapai
                     </a>

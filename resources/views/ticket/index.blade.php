@@ -34,7 +34,17 @@
                     </form>
                 </div>
                 
-                <div class="action-group">
+                <div class="action-group" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                    <form action="{{ route('ticket.index') }}" method="GET" style="margin:0; display:flex; align-items:center; gap:10px;">
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                        <label style="font-size:13px; font-weight:600; color:#64748b;">Baris</label>
+                        <select name="per_page" class="form-control elegant-input" style="width: 120px;" onchange="this.form.submit()">
+                            @foreach([10,20,50,100] as $n)
+                                <option value="{{ $n }}" {{ (int) request('per_page', 10) === $n ? 'selected' : '' }}>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+
                     <form id="bulkInvoiceForm" action="{{ route('ticket.bulkInvoice') }}" method="POST" style="display: inline-block;">
                         @csrf
                         <div id="bulkCheckboxesContainer"></div>
@@ -265,21 +275,118 @@ $(document).ready(function() {
     });
 
     // 2. Validasi Bulk Invoice
-    $('#bulkInvoiceForm').on('submit', function(e) {
-        let selected = $('.ticket-checkbox:checked');
+    // Fix: pastikan checkbox yang dipindah halaman (karena paginator) tetap bisa terpilih
+    // dengan cara menyimpan state ke sessionStorage agar tidak hilang saat DOM berubah.
+    function syncSelectedTicketsToState() {
+        // simpan state global agar tidak hilang walau user pindah page
+        let ids = [];
+        try {
+            const raw = sessionStorage.getItem('selectedTicketIds');
+            ids = raw ? (JSON.parse(raw) || []) : [];
+        } catch (e) {
+            ids = [];
+        }
+
+        // tambah dari halaman ini yang ter-check
+        $('.ticket-checkbox:checked').each(function(){
+            const v = String($(this).val());
+            if (!ids.includes(v)) ids.push(v);
+        });
+
+        // hapus dari halaman ini yang tidak ter-check
+        $('.ticket-checkbox').each(function(){
+            const v = String($(this).val());
+            const checked = $(this).prop('checked');
+            if (!checked) {
+                ids = ids.filter(function(x){ return String(x) !== v; });
+            }
+        });
+
+        sessionStorage.setItem('selectedTicketIds', JSON.stringify(ids));
+        return ids;
+    }
+
+    // Load state awal dari sessionStorage
+    (function restoreSelection() {
+        try {
+            const raw = sessionStorage.getItem('selectedTicketIds');
+            if (!raw) return;
+            const ids = JSON.parse(raw) || [];
+            $('.ticket-checkbox').each(function(){
+                if (ids.includes(String($(this).val()))) {
+                    $(this).prop('checked', true);
+                }
+            });
+        } catch (e) {}
+    })();
+
+    // Update state setiap checkbox diubah
+    $(document).on('change', '.ticket-checkbox', function(){
+        syncSelectedTicketsToState();
+    });
+
+    // Select all update state
+    $('#selectAll').on('click', function() {
+        $('.ticket-checkbox').prop('checked', this.checked);
+        syncSelectedTicketsToState();
+    });
+
+    $('#bulkInvoiceForm').off('submit').on('submit', function(e) {
+        // Fix: saat pindah page, checkbox yang lain tidak ada di DOM,
+        // jadi jumlah selected bisa hanya 1 (halaman ini saja).
+        // Gunakan state global dari sessionStorage sebagai sumber kebenaran.
+        let ids = [];
+        try {
+            const raw = sessionStorage.getItem('selectedTicketIds');
+            ids = raw ? (JSON.parse(raw) || []) : [];
+        } catch (err) {
+            ids = [];
+        }
+
+        if (ids.length < 2) {
+            e.preventDefault();
+            $('#warningMessageText').text('Pilih minimal 2 tiket untuk digabungkan!');
+            const wToast = $('#warningToast');
+            wToast.css('display', 'flex').hide().fadeIn(300);
+            setTimeout(function() { wToast.fadeOut(500); }, 3000);
+            return;
+        }
+
+        const selected = $('.ticket-checkbox:checked');
+        {
+        // reset container lalu isi ulang sesuai state global
+        $('#bulkCheckboxesContainer').html('');
+        ids.forEach(function(id){
+            $('#bulkCheckboxesContainer').append(
+                '<input type="hidden" name="ticket_ids[]" value="'+id+'">'
+            );
+        });
+
+        showLoading();
+        return;
+        }
+
+        // fallback (tidak perlu)
         if (selected.length < 2) {
             e.preventDefault();
             $('#warningMessageText').text('Pilih minimal 2 tiket untuk digabungkan!');
             const wToast = $('#warningToast');
             wToast.css('display', 'flex').hide().fadeIn(300);
             setTimeout(function() { wToast.fadeOut(500); }, 3000);
-        } else {
-            $('#bulkCheckboxesContainer').html('');
-            selected.each(function() {
-                $('#bulkCheckboxesContainer').append('<input type="hidden" name="ticket_ids[]" value="'+$(this).val()+'">');
-            });
-            showLoading();
+            return;
         }
+
+        // reset container lalu isi ulang sesuai checkbox yang ter-check di halaman ini
+        $('#bulkCheckboxesContainer').html('');
+        selected.each(function() {
+            $('#bulkCheckboxesContainer').append(
+                '<input type="hidden" name="ticket_ids[]" value="'+$(this).val()+'">'
+            );
+        });
+
+        // juga simpan state global
+        syncSelectedTicketsToState();
+        showLoading();
     });
 
     // 3. Split Passenger Modal

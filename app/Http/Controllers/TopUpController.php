@@ -30,7 +30,12 @@ class TopUpController extends Controller
         }
 
         // Urutkan yang terbaru dan gunakan Pagination
-        $topups = $query->orderBy('created_at', 'desc')->paginate(15);
+        $perPage = (int) $request->query('per_page', 10);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
+
+        $topups = $query->orderBy('created_at', 'desc')->paginate($perPage);
 
         // Kirim input request ke view agar form filter tetap terisi saat di-search
         return view('topup.index', compact('airlines', 'topups'))->with($request->all());

@@ -19,9 +19,14 @@ class HotelVoucherController extends Controller
     private $currencys = ["idr" => "IDR"];
     private $dayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-    public function index()
+    public function index(Request $request)
     {
-        $hotelVouchers = Hotel_voucher::orderBy('created_at', 'DESC')->paginate(10);
+        $perPage = (int) $request->query('per_page', 10);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
+
+        $hotelVouchers = Hotel_voucher::orderBy('created_at', 'DESC')->paginate($perPage)->appends($request->all());
         return view('hotelvoucher.index', compact('hotelVouchers'));
     }
 

@@ -36,8 +36,13 @@ class TicketController extends Controller
             });
         }
     
+$perPage = (int) $request->query('per_page', 10);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
+
         $tickets = $query->orderBy('id', 'desc')
-                         ->paginate(10)
+                         ->paginate($perPage)
                          ->appends(request()->all());
 
         $invoiceTicketCounts = [];

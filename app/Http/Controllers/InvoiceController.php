@@ -23,9 +23,16 @@ class InvoiceController extends Controller
               $query->where('booker', 'like', '%' . $search . '%')
               ->orWhere('company', 'like', '%' . $search . '%');
           })
-          ->orderBy('created_at', 'DESC')
-          ->paginate(10);    
-    
+          ->orderBy('created_at', 'DESC');
+
+        $perPage = (int) $request->query('per_page', 10);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
+
+        $invoice = $invoice->paginate($perPage);
+
+
         return view('invoice.index', compact('invoice'));
     }
 

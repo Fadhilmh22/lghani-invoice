@@ -20,7 +20,13 @@ class HotelController extends Controller
     }
 
     // Ambil data dengan pagination
-    $hotels = $hotels->paginate(10);
+    $perPage = (int) $request->query('per_page', 10);
+
+    if (!in_array($perPage, [10, 20, 50, 100], true)) {
+        $perPage = 10;
+    }
+
+    $hotels = $hotels->paginate($perPage);
 
     return view('hotel.index', ['hotels' => $hotels, 'search' => $search]);
 }

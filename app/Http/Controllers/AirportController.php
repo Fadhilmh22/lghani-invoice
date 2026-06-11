@@ -13,8 +13,14 @@ class AirportController extends Controller
               ->orWhere('name', 'like', "%{$request->search}%")
               ->orWhere('city', 'like', "%{$request->search}%");
     })
-    ->latest()
-    ->paginate(10);
+    ->latest();
+
+    $perPage = (int) $request->query('per_page', 10);
+    if (!in_array($perPage, [10, 20, 50, 100], true)) {
+        $perPage = 10;
+    }
+
+    $airports = $airports->paginate($perPage);
     return view('airports.index', compact('airports'));
 }
 

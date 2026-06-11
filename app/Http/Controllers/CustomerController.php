@@ -9,8 +9,11 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $customers = Customer::orderBy('created_at', 'DESC')->paginate(10);
-        
+$perPage = (int) $request->query('per_page', 10);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
+
         $search = $request->input('search');
 
         // Query untuk pencarian
@@ -20,7 +23,7 @@ class CustomerController extends Controller
                 })
                 ->orderBy('created_at', 'DESC')
                 ->latest()
-                ->paginate(10);
+                ->paginate($perPage);
                 
         return view('customer.index', ['customers' => $customers]);
     }

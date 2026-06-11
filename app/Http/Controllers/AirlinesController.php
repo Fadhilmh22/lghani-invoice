@@ -15,7 +15,7 @@ class AirlinesController extends Controller
         $additionalData = Airlines::when($request->search, function($query) use ($request) {
             $query->where('airlines_code', 'like', "%{$request->search}%")
                   ->orWhere('airlines_name', 'like', "%{$request->search}%");
-        })->orderBy('created_at', 'DESC')->paginate(10);
+})->orderBy('created_at', 'DESC')->paginate((int) in_array((int) $request->query('per_page', 10), [10,20,50,100], true) ? (int) $request->query('per_page', 10) : 10);
 
         return view('airlines.index', compact('additionalData'));
     }

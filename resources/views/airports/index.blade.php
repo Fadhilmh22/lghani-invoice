@@ -28,7 +28,7 @@
                         </div>
                     </form>
                 </div>
-                <div class="action-group">
+                <div class="action-group" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                     <a href="{{ route('airports.create') }}" class="btn btn-primary-elegant">
                         <i class="fa fa-plus-circle"></i> Tambah Bandara
                     </a>
@@ -82,12 +82,25 @@
             </div>
 
             <div class="table-footer-controls">
-            <div class="total-summary">
+            <div class="total-summary" style="flex: 1;">
                 Showing {{ $airports->firstItem() }} to {{ $airports->lastItem() }} of {{ $airports->total() }} entries
+            </div>
+
+            <div style="width: 160px; flex-shrink: 0;">
+                <form action="{{ route('airports.index') }}" method="GET" style="margin:0; display:flex; align-items:center; gap:10px; justify-content:flex-end;">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <label style="font-size:13px; font-weight:600; color:#64748b; margin:0 8px 0 0;">Baris</label>
+                    <select name="per_page" class="form-control elegant-input" style="width: 120px;" onchange="this.form.submit()">
+                        @foreach([10,20,50,100] as $n)
+                            <option value="{{ $n }}" {{ (int) request('per_page', 10) === $n ? 'selected' : '' }}>{{ $n }}</option>
+                        @endforeach
+                    </select>
+                </form>
             </div>
 
             <div class="pagination-elegant">
                 <ul class="pagination">
+
                     <li class="page-item {{ ($airports->currentPage() == 1) ? 'disabled' : '' }}">
                         <a class="page-link" href="{{ $airports->url(1) }}"><i class="fa fa-angle-double-left"></i></a>
                     </li>

@@ -10,14 +10,20 @@ class PassengerController extends Controller
 {
     public function index(Request $request)
     {
-        $passengers = Passenger::orderBy('created_at', 'DESC')->paginate(10);
+$perPage = (int) $request->query('per_page', 10);
+
+        if (!in_array($perPage, [10, 20, 50, 100], true)) {
+            $perPage = 10;
+        }
+
+        $passengers = Passenger::orderBy('created_at', 'DESC')->paginate($perPage);
 
         $search = $request->input('search');
 
         // Query untuk pencarian
         $passengers = Passenger::where('name', 'like', "%$search%")
                             ->orderBy('created_at', 'DESC')
-                            ->paginate(10);
+                            ->paginate($perPage);
         return view('passenger.index', ['passengers' => $passengers]);
     }
 

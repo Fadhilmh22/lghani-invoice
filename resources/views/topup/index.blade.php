@@ -189,6 +189,14 @@
             <form action="{{ route('topup.index') }}" method="GET">
                 <div class="row row-flex-end">
                     <div class="col-md-3">
+                        <label class="label-custom">Baris</label>
+                        <select name="per_page" class="form-control input-custom" onchange="this.form.submit()">
+                            @foreach([10,20,50,100] as $n)
+                                <option value="{{ $n }}" {{ (int) request('per_page', 10) === $n ? 'selected' : '' }}>{{ $n }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
                         <label class="label-custom">Maskapai</label>
                         <select name="airline_id" class="form-control select2-custom">
                             <option value="">-- Semua --</option>
