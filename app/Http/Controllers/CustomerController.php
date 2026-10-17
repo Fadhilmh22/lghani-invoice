@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Customer;
+use App\Services\RecycleBinService;
 
 class CustomerController extends Controller
 {
@@ -122,7 +123,7 @@ $perPage = (int) $request->query('per_page', 10);
     public function destroy($id)
     {
         $customer = Customer::find($id);
-        $customer->delete();
+        app(RecycleBinService::class)->archive($customer, 'Customer: ' . $customer->booker);
         return redirect()->back()->with(['success' => '<strong>' . $customer->booker . '</strong> telah berhasil dihapus']);
     }
 }

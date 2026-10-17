@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ticket extends Model
 {
+    use SoftDeletes;
+
     // Baris ini WAJIB ada agar data mau tersimpan
 protected $fillable = [
     'invoice_id', 'airline_id', 'booking_code', 'flight_out', 'flight_in', 'route_out', 'route_in',

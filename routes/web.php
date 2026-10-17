@@ -16,6 +16,8 @@ use App\Http\Controllers\HotelInvoiceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\TopUpController;
+use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\RecycleBinController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -183,4 +185,15 @@ Route::post('register/action', [RegisterController::class, 'actionregister'])->n
 Route::group(['middleware'=>['auth','AdminMiddleware:Admin,Staff,Owner'],'prefix'=>'topup'], function() {
     Route::get('/', [TopUpController::class, 'index'])->name('topup.index');
     Route::post('/', [TopUpController::class, 'store'])->name('topup.store');
+});
+
+Route::group(['middleware' => ['auth', 'AdminMiddleware:Owner'], 'prefix' => 'activity-logs'], function() {
+    Route::get('/', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+});
+
+Route::group(['middleware' => ['auth', 'AdminMiddleware:Owner'], 'prefix' => 'recycle-bin'], function() {
+    Route::get('/', [RecycleBinController::class, 'index'])->name('recycle-bin.index');
+    Route::post('/empty', [RecycleBinController::class, 'empty'])->name('recycle-bin.empty');
+    Route::post('/{id}/restore', [RecycleBinController::class, 'restore'])->name('recycle-bin.restore');
+    Route::delete('/{id}', [RecycleBinController::class, 'destroy'])->name('recycle-bin.destroy');
 });

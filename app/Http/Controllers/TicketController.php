@@ -12,6 +12,7 @@ use App\Models\Ticket;
 use App\Models\AirlineTopup;
 use DB;
 use PDF; 
+use App\Services\RecycleBinService;
 
 class TicketController extends Controller
 {
@@ -424,7 +425,7 @@ public function edit($id)
                 'edited'      => auth()->user()->name ?? 'Admin'
             ]);
     
-            Invoice_detail::where('ticket_id', $id)->delete();
+            Invoice_detail::where('ticket_id', $id)->forceDelete();
             
             $pax_with_baggage = []; 
             foreach ($request->passengers as $paxData) {
@@ -576,7 +577,15 @@ public function edit($id)
                     $oldId = $ticket->invoice_id;
                     $ticket->update(['invoice_id' => $mainInvoiceId]);
                     \App\Models\Invoice_detail::where('invoice_id', $oldId)->update(['invoice_id' => $mainInvoiceId]);
-                    \App\Models\Invoice::where('id', $oldId)->delete();
+                    $oldInvoice = \App\Models\Invoice::find($oldId);
+                    if ($oldInvoice) {
+                        app(RecycleBinService::class)->archive(
+                            $oldInvoice,
+                            'Invoice tiket: ' . $oldInvoice->invoiceno,
+                            'Invoice setelah tiket digabungkan',
+                            false
+                        );
+                    }
                 }
             }
             $invoiceInduk = \App\Models\Invoice::find($mainInvoiceId);
@@ -623,7 +632,7 @@ public function edit($id)
 
             $remainingTotal = Invoice_detail::where('invoice_id', $invoice->id)->sum('pax_paid');
             if (Ticket::where('invoice_id', $invoice->id)->count() == 0) {
-                $invoice->delete();
+                app(RecycleBinService::class)->archive($invoice, 'Invoice tiket: ' . $invoice->invoiceno, 'Invoice kosong setelah tiket dipisahkan');
             } else {
                 $invoice->update(['total' => $remainingTotal]);
             }
@@ -664,13 +673,10 @@ public function edit($id)
                 }
             }
 
-            Invoice_detail::where('ticket_id', $id)->delete();
             $invoiceId = $ticket->invoice_id;
-            $ticket->delete();
+            app(RecycleBinService::class)->archive($ticket, 'Tiket: ' . $ticket->booking_code, 'PNR ' . $ticket->booking_code);
 
-            if (Ticket::where('invoice_id', $invoiceId)->count() == 0) {
-                Invoice::where('id', $invoiceId)->delete();
-            } else {
+            if (Ticket::where('invoice_id', $invoiceId)->exists()) {
                 Invoice::where('id', $invoiceId)->update(['total' => Invoice_detail::where('invoice_id', $invoiceId)->sum('pax_paid')]);
             }
 

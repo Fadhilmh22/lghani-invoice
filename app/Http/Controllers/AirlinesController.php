@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Airlines;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
+use App\Services\RecycleBinService;
 
 
 
@@ -127,8 +128,7 @@ $this->validate($request, [
     public function destroy($id)
     {
         $airlines = Airlines::find($id);
-        $airlines->delete();
+        app(RecycleBinService::class)->archive($airlines, 'Maskapai: ' . $airlines->airlines_code . ' - ' . $airlines->airlines_name);
         return redirect('/airline')->with(['success' => '</strong>' . $airlines->airlines_code . '</strong> Dihapus']);
     }
 }
-

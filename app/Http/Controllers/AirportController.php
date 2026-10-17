@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Airport;
+use App\Services\RecycleBinService;
 use Illuminate\Http\Request;
 
 class AirportController extends Controller
@@ -60,7 +61,8 @@ public function update(Request $request, $id) {
 }
 
 public function destroy($id) {
-    Airport::findOrFail($id)->delete();
+    $airport = Airport::findOrFail($id);
+    app(RecycleBinService::class)->archive($airport, 'Bandara: ' . $airport->code . ' - ' . $airport->name);
     return redirect()->back()->with('success', 'Bandara dihapus');
 }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Passenger;
+use App\Services\RecycleBinService;
 
 class PassengerController extends Controller
 {
@@ -104,7 +105,7 @@ $perPage = (int) $request->query('per_page', 10);
     public function destroy($id)
     {
         $passenger = Passenger::find($id);
-        $passenger->delete();
+        app(RecycleBinService::class)->archive($passenger, 'Penumpang: ' . $passenger->name);
         return redirect()->back()->with(['success' => '<strong>' . $passenger->name . '</strong> telah berhasil dihapus']);
     }
 }

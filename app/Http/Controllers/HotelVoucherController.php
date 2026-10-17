@@ -13,6 +13,7 @@ use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use App\Models\Invoice;
 use PDF;
+use App\Services\RecycleBinService;
 
 class HotelVoucherController extends Controller
 {
@@ -207,10 +208,25 @@ class HotelVoucherController extends Controller
             ]);
             
             if( $resetRoomAndGues > 0 ) {
-                Hotel_voucher_room::where('hotel_voucher_room_id', $id)->delete();
-                Hotel_voucher_guest::where('hotel_voucher_room_id', $id)->delete();
+                $roomsToArchive = Hotel_voucher_room::where('hotel_voucher_id', $id)->get();
+                foreach ($roomsToArchive as $roomToArchive) {
+                    app(RecycleBinService::class)->archive(
+                        $roomToArchive,
+                        'Kamar voucher: ' . $roomToArchive->voucher_no,
+                        'Voucher hotel #' . $roomToArchive->hotel_voucher_id
+                    );
+                }
+
+                $guestsToArchive = Hotel_voucher_guest::where('hotel_voucher_id', $id)->get();
+                foreach ($guestsToArchive as $guestToArchive) {
+                    app(RecycleBinService::class)->archive(
+                        $guestToArchive,
+                        'Tamu voucher: ' . trim($guestToArchive->guest_first_name . ' ' . $guestToArchive->guest_last_name),
+                        'Voucher hotel #' . $guestToArchive->hotel_voucher_id
+                    );
+                }
         
-                return redirect(route('hotelvoucher.room', ['id' => $voucher->id]));
+                return redirect(route('hotelvoucher.room', ['id' => $id]));
             } else {
                 return redirect(route('hotelvoucher.index'));
             }
@@ -308,8 +324,8 @@ class HotelVoucherController extends Controller
 
     public function deleteProduct($id)
     {
-        Hotel_voucher_room::find($id)->delete();
-        Hotel_voucher_guest::where('hotel_voucher_room_id', $id)->delete();
+        $room = Hotel_voucher_room::findOrFail($id);
+        app(RecycleBinService::class)->archive($room, 'Kamar voucher: ' . $room->voucher_no, 'Voucher hotel #' . $room->hotel_voucher_id);
 
         return redirect()->back()->with(['success' => 'Data telah dihapus']);
     }
@@ -317,7 +333,7 @@ class HotelVoucherController extends Controller
     public function destroy($id)
     {
         $voucher = Hotel_voucher::find($id);
-        $voucher->delete();
+        app(RecycleBinService::class)->archive($voucher, 'Voucher hotel: ' . $voucher->voucher_no);
         return redirect()->back()->with(['success' => '<strong>' . $voucher->voucher_no . '</strong> telah berhasil dihapus']);
     }
 

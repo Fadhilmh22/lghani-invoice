@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Hotel;
 use App\Models\Hotel_rate;
+use App\Services\RecycleBinService;
 
 class RoomController extends Controller
 {
@@ -121,7 +122,7 @@ class RoomController extends Controller
     public function destroy($id)
     {
         $room = Hotel_rate::find($id);
-        $room->delete();
+        app(RecycleBinService::class)->archive($room, 'Tipe kamar: ' . $room->room_name);
         return redirect()->back()->with(['success' => '<strong>' . $room->room_name . '</strong> telah berhasil dihapus']);
     }
 

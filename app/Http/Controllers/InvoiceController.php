@@ -10,6 +10,7 @@ use App\Models\Invoice;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use PDF;
+use App\Services\RecycleBinService;
 
 class InvoiceController extends Controller
 {
@@ -209,14 +210,14 @@ public function edit($id)
         "total" => $invoice->total - $detail->pax_paid,
     ]);
     
-    $detail->delete();
+    app(RecycleBinService::class)->archive($detail, 'Detail invoice: ' . $detail->name, 'Invoice #' . $detail->invoice_id);
     return redirect()->route('invoice.edit', ['id' => $detail->invoice_id])->with(['success' => 'Data telah dihapus']);
 }
 
     public function destroy($id)
     {
         $invoice = Invoice::find($id);
-        $invoice->delete();
+        app(RecycleBinService::class)->archive($invoice, 'Invoice: ' . $invoice->invoiceno);
         return redirect()->back()->with(['success' => 'Invoice telah dihapus']);
     }
 

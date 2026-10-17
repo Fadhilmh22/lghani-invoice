@@ -384,6 +384,8 @@
             <div class="sidebar__footer">
                 @if (auth()->user()->role == "Owner")
                 <a href="{{ route('register') }}" class="menu-link"><i class="fa fa-user-plus"></i> <span>Add Account</span></a>
+                <a href="{{ route('activity-logs.index') }}" class="menu-link {{ request()->is('activity-logs*') ? 'active' : '' }}"><i class="fa fa-history"></i> <span>Activity Logs</span></a>
+                <a href="{{ route('recycle-bin.index') }}" class="menu-link {{ request()->is('recycle-bin*') ? 'active' : '' }}"><i class="fa fa-trash"></i> <span>Sampah</span></a>
                 @endif
                 @if(in_array(auth()->user()->role,['Admin','Staff','Owner']))
                 <a href="{{ route('topup.index') }}" class="menu-link"><i class="fa fa-wallet"></i> <span>Top Up Airlines</span></a>

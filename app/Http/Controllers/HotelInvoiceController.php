@@ -13,6 +13,7 @@ use App\Models\Hotel_rate;
 use App\Models\Hotel_voucher_room;
 use Illuminate\Support\Facades\DB;
 use PDF;
+use App\Services\RecycleBinService;
 
 class HotelInvoiceController extends Controller
 {
@@ -148,7 +149,7 @@ class HotelInvoiceController extends Controller
     public function destroy($id)
     {
         $invoice = Hotel_invoice::find($id);
-        $invoice->delete();
+        app(RecycleBinService::class)->archive($invoice, 'Invoice hotel: ' . $invoice->invoiceno);
         return redirect()->back()->with(['success' => '<strong>' . $invoice->invoiceno . '</strong> telah berhasil dihapus']);
     }
 
