@@ -228,8 +228,53 @@
         .header-right-actions {
             display: flex;
             align-items: center;
+            gap: 8px;
             padding-left: 10px;
         }
+
+        .balance-dropdown { position: relative; }
+        .balance-dropdown__toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 42px;
+            padding: 0 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+            color: #334155;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .balance-dropdown__toggle:hover,
+        .balance-dropdown__toggle[aria-expanded="true"] { background: #eef2ff; border-color: #c7d2fe; color: #4338ca; }
+        .balance-dropdown__toggle .fa-chevron-down { font-size: 10px; transition: transform .2s ease; }
+        .balance-dropdown__toggle[aria-expanded="true"] .fa-chevron-down { transform: rotate(180deg); }
+        .balance-dropdown__menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            z-index: 1100;
+            display: none;
+            width: 320px;
+            max-height: 360px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 16px 40px rgba(15,23,42,.16);
+        }
+        .balance-dropdown__menu.open { display: block; }
+        .balance-dropdown__heading { margin: 2px 4px 10px; color: #64748b; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; }
+        .balance-dropdown__menu .balance-card {
+            margin-bottom: 7px;
+            padding: 9px 10px;
+        }
+        .balance-dropdown__menu .balance-card:last-child { margin-bottom: 0; }
 
         .mobile-sidebar-toggle {
             display: none;
@@ -294,6 +339,8 @@
                 width: 100%;
                 margin: 0;
             }
+            .header-right-actions { margin-left: auto; }
+            .balance-dropdown__menu { right: 0; width: min(320px, calc(100vw - 32px)); }
         }
 
         /* --- MODALS STYLE --- */
@@ -385,7 +432,7 @@
                 @if (auth()->user()->role == "Owner")
                 <a href="{{ route('register') }}" class="menu-link"><i class="fa fa-user-plus"></i> <span>Add Account</span></a>
                 <a href="{{ route('activity-logs.index') }}" class="menu-link {{ request()->is('activity-logs*') ? 'active' : '' }}"><i class="fa fa-history"></i> <span>Activity Logs</span></a>
-                <a href="{{ route('recycle-bin.index') }}" class="menu-link {{ request()->is('recycle-bin*') ? 'active' : '' }}"><i class="fa fa-trash"></i> <span>Sampah</span></a>
+                <a href="{{ route('recycle-bin.index') }}" class="menu-link {{ request()->is('recycle-bin*') ? 'active' : '' }}"><i class="fa fa-trash"></i> <span>Cache</span></a>
                 @endif
                 @if(in_array(auth()->user()->role,['Admin','Staff','Owner']))
                 <a href="{{ route('topup.index') }}" class="menu-link"><i class="fa fa-wallet"></i> <span>Top Up Airlines</span></a>
@@ -406,6 +453,7 @@
                     $lionGroupCodes = ['JT', 'IU', 'IW', 'ID'];
                     $lionMain = $allAirlines->where('airlines_code', 'JT')->first();
                     $lionBalance = $lionMain ? $lionMain->balance : 0;
+                    $otherAirlines = $allAirlines->whereNotIn('airlines_code', $lionGroupCodes)->values();
                 @endphp
 
                 <div class="balance-card" title="Lion Group">
@@ -418,7 +466,7 @@
                     </div>
                 </div>
 
-                @foreach($allAirlines->whereNotIn('airlines_code', $lionGroupCodes) as $ab)
+                @foreach($otherAirlines->take(2) as $ab)
                     <div class="balance-card" title="{{ $ab->airlines_name }}">
                         <div class="balance-icon bg-other">{{ $ab->airlines_code }}</div>
                         <div class="balance-info">
@@ -432,6 +480,29 @@
             </div>
 
             <div class="header-right-actions">
+                @if($otherAirlines->count() > 2)
+                    <div class="balance-dropdown" id="airlineBalanceDropdown">
+                        <button type="button" class="balance-dropdown__toggle" id="airlineBalanceToggle" aria-expanded="false" aria-controls="airlineBalanceMenu">
+                            <i class="fa fa-list"></i>
+                            <span>Lainnya ({{ $otherAirlines->count() - 2 }})</span>
+                            <i class="fa fa-chevron-down"></i>
+                        </button>
+                        <div class="balance-dropdown__menu" id="airlineBalanceMenu">
+                            <div class="balance-dropdown__heading">Saldo maskapai lainnya</div>
+                            @foreach($otherAirlines->slice(2) as $ab)
+                                <div class="balance-card" title="{{ $ab->airlines_name }}">
+                                    <div class="balance-icon bg-other">{{ $ab->airlines_code }}</div>
+                                    <div class="balance-info">
+                                        <span class="balance-label">{{ $ab->airlines_name }}</span>
+                                        <span class="balance-value {{ $ab->balance < 0 ? 'text-danger-custom' : '' }}">
+                                            Rp {{ number_format($ab->balance, 0, ',', '.') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
                 @if(in_array(auth()->user()->role,['Admin','Staff','Owner']))
                     <a href="{{ route('topup.index') }}" class="btn-add-balance" title="Top Up Saldo">
                         <i class="fa fa-plus"></i>
@@ -507,6 +578,23 @@
                 if (!isOpen) { target.classList.add('open'); header.classList.add('open'); }
             });
         });
+
+        var balanceToggle = document.getElementById('airlineBalanceToggle');
+        var balanceMenu = document.getElementById('airlineBalanceMenu');
+        if (balanceToggle && balanceMenu) {
+            balanceToggle.addEventListener('click', function (event) {
+                event.stopPropagation();
+                var isOpen = balanceMenu.classList.toggle('open');
+                balanceToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            document.addEventListener('click', function (event) {
+                if (!document.getElementById('airlineBalanceDropdown').contains(event.target)) {
+                    balanceMenu.classList.remove('open');
+                    balanceToggle.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
 
         $('#logoutButton').on('click', function(e) { e.preventDefault(); $('#logoutConfirmModal').fadeIn(150); });
         $('#cancelLogoutBtn').on('click', function() { $('#logoutConfirmModal').fadeOut(150); });
