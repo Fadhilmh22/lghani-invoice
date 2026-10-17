@@ -29,6 +29,13 @@
     .transit-toggle { display: block; margin: 8px 0 12px; color: #4f46e5; font-weight: 600; cursor: pointer; }
     .second-transit-toggle { display: block; margin: 12px 0 8px; font-weight: 600; color: #334155; cursor: pointer; }
     .segment-fields { padding: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 7px; margin-top: 10px; }
+    @media (min-width: 992px) {
+        .journey-card .row > .col-md-6 > .transit-panel {
+            position: relative;
+            left: -100%;
+            width: calc(200% + 30px);
+        }
+    }
 
     /* CSS TAMBAHAN UNTUK SELECT2 & SEARCH ICON */
     .select2-container--default .select2-selection--single {
