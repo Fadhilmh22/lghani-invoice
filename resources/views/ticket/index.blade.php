@@ -105,10 +105,17 @@
                             <td>
                                 <div style="font-weight: 600; color: #1e293b;">{{ $t->airline->airlines_name ?? '-' }}</div>
                                 <small style="color: #64748b;">
-                                    {{ $t->airline->airlines_code ?? '' }} - {{ $t->flight_out }}
+                                    {{ $t->airline->airlines_code ?? '' }} -
+                                    {{ implode(' / ', array_filter([$t->flight_out, $t->stop_flight_leg2_out, $t->stop_flight_leg3_out])) }}
                                 </small>                            
                             </td>
-                            <td style="color: #475569;">{{ $t->route_out }}</td>
+                            <td style="color: #475569;">
+                                @php $routeParts = array_values(array_filter(explode('-', $t->route_out ?? ''))); @endphp
+                                <strong>{{ implode(' > ', $routeParts) ?: '-' }}</strong>
+                                @if(count($routeParts) > 2)
+                                    <br><small class="text-muted">{{ count($routeParts) - 2 }} transit</small>
+                                @endif
+                            </td>
                             <td class="text-center">
                                 <span class="badge" style="background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; font-weight: bold;">
                                     {{ $t->total_pax ?? $t->details->where('class', '!=', 'BAGASI_ONLY')->count() }} Pax </span>

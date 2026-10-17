@@ -174,26 +174,37 @@
                         @php
                             // build airline code string with transit if available
                             $airlineStr = $detail->airlines_code;
-                            if(!empty($detail->stop_out_code)) {
-                                $airlineStr .= '/' . $detail->stop_out_code;
+                            if(!empty($detail->stop_flight_leg2_out)) {
+                                $airlineStr .= '/' . ($detail->stop_out_code ?: $detail->airlines_code);
+                            }
+                            if(!empty($detail->stop_flight_leg3_out)) {
+                                $airlineStr .= '/' . ($detail->stop_out_leg3_code ?: $detail->airlines_code);
                             }
                             if($detail->return_date) {
                                 $inStr = $detail->airlines_code;
-                                if(!empty($detail->stop_in_code)) {
-                                    $inStr .= '/' . $detail->stop_in_code;
+                                if(!empty($detail->stop_flight_leg2_in)) {
+                                    $inStr .= '/' . ($detail->stop_in_code ?: $detail->airlines_code);
+                                }
+                                if(!empty($detail->stop_flight_leg3_in)) {
+                                    $inStr .= '/' . ($detail->stop_in_leg3_code ?: $detail->airlines_code);
                                 }
                                 $airlineStr .= ' - ' . $inStr;
                             }
 
-                            // build flight number string using leg2 (stop to arrival) values
                             $flightStr = $detail->ticket_flight_out ?: $detail->airlines_no;
                             if(!empty($detail->stop_flight_leg2_out)) {
                                 $flightStr .= '/' . $detail->stop_flight_leg2_out;
+                            }
+                            if(!empty($detail->stop_flight_leg3_out)) {
+                                $flightStr .= '/' . $detail->stop_flight_leg3_out;
                             }
                             if($detail->return_date) {
                                 $flightIn = $detail->ticket_flight_in ?: $detail->airlines_no;
                                 if(!empty($detail->stop_flight_leg2_in)) {
                                     $flightIn .= '/' . $detail->stop_flight_leg2_in;
+                                }
+                                if(!empty($detail->stop_flight_leg3_in)) {
+                                    $flightIn .= '/' . $detail->stop_flight_leg3_in;
                                 }
                                 $flightStr .= ' - ' . $flightIn;
                             }

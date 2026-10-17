@@ -68,8 +68,32 @@ $perPage = (int) $request->query('per_page', 10);
 
     public function store(Request $request)
     {
+        $this->validate($request, [
+            'stop_out_depart_code' => 'required_if:has_stop_out,1|nullable|string',
+            'stop_out_arrival_code' => 'required_if:has_second_stop_out,1|nullable|string',
+            'stop_in_depart_code' => 'required_if:has_stop_in,1|nullable|string',
+            'stop_in_arrival_code' => 'required_if:has_second_stop_in,1|nullable|string',
+        ]);
+
         DB::beginTransaction();
         try {
+            $hasStopOut = $request->boolean('has_stop_out');
+            $hasSecondStopOut = $hasStopOut && $request->boolean('has_second_stop_out');
+            $hasStopIn = $request->boolean('has_stop_in');
+            $hasSecondStopIn = $hasStopIn && $request->boolean('has_second_stop_in');
+            $routeOut = implode('-', array_filter([
+                $request->departure_out_code,
+                $hasStopOut ? $request->stop_out_depart_code : null,
+                $hasSecondStopOut ? $request->stop_out_arrival_code : null,
+                $request->arrival_out_code,
+            ]));
+            $routeIn = implode('-', array_filter([
+                $request->departure_in_code,
+                $hasStopIn ? $request->stop_in_depart_code : null,
+                $hasSecondStopIn ? $request->stop_in_arrival_code : null,
+                $request->arrival_in_code,
+            ]));
+
             $clean = function($val) {
                 return (int) preg_replace('/[^0-9]/', '', $val);
             };
@@ -120,32 +144,36 @@ $perPage = (int) $request->query('per_page', 10);
             $ticket->booking_code   = strtoupper($request->pnr);
             $ticket->flight_out     = $request->flight_out;
             $ticket->flight_in      = $request->flight_in;
-            // Build routes with 2 stops if available
-            $out_parts = array_filter([$request->departure_out_code, $request->stop_out_depart_code, $request->stop_out_arrival_code, $request->arrival_out_code]);
-            $ticket->route_out = implode('-', $out_parts);
-            
-            $in_parts = array_filter([$request->departure_in_code, $request->stop_in_depart_code, $request->stop_in_arrival_code, $request->arrival_in_code]);
-            $ticket->route_in = implode('-', $in_parts);
+            $ticket->route_out = $routeOut;
+            $ticket->route_in = $routeIn;
             $ticket->dep_time_out   = $request->dep_out;
             $ticket->dep_time_in    = $request->dep_in;
             $ticket->arr_time_out   = $request->arr_out;
             $ticket->arr_time_in    = $request->arr_in;
             $ticket->stop_flight_leg1_out = $request->flight_out ?? null;
-            $ticket->stop_time_out  = $request->stop_time_out ?? null;
-            $ticket->stop_time_out_arrival  = $request->stop_time_out_arrival ?? null;
-            $ticket->stop_time_out_depart   = $request->stop_time_out_depart ?? null;
-            $ticket->stop_flight_leg2_out = $request->stop_flight_leg2_out ?? null;
-            $ticket->stop_out_depart_code = $request->stop_out_depart_code ?? null;
-            $ticket->stop_out_arrival_code = $request->stop_out_arrival_code ?? null;
-            $ticket->stop_airline_out = $request->stop_airline_out ?? null;
+            $ticket->stop_time_out  = $hasStopOut ? ($request->stop_time_out_arrival ?? null) : null;
+            $ticket->stop_time_out_arrival  = $hasStopOut ? ($request->stop_time_out_arrival ?? null) : null;
+            $ticket->stop_time_out_depart   = $hasStopOut ? ($request->stop_time_out_depart ?? null) : null;
+            $ticket->stop_flight_leg2_out = $hasStopOut ? ($request->stop_flight_leg2_out ?? null) : null;
+            $ticket->stop_out_depart_code = $hasStopOut ? $request->stop_out_depart_code : null;
+            $ticket->stop_out_arrival_code = $hasSecondStopOut ? $request->stop_out_arrival_code : null;
+            $ticket->stop_airline_out = $hasStopOut ? ($request->stop_airline_out ?? null) : null;
+            $ticket->stop_time_out_arrival2 = $hasSecondStopOut ? ($request->stop_time_out_arrival2 ?? null) : null;
+            $ticket->stop_time_out_depart2 = $hasSecondStopOut ? ($request->stop_time_out_depart2 ?? null) : null;
+            $ticket->stop_flight_leg3_out = $hasSecondStopOut ? ($request->stop_flight_leg3_out ?? null) : null;
+            $ticket->stop_airline_leg3_out = $hasSecondStopOut ? ($request->stop_airline_leg3_out ?? null) : null;
             $ticket->stop_flight_leg1_in  = $request->flight_in ?? null;
-            $ticket->stop_time_in   = $request->stop_time_in ?? null;
-            $ticket->stop_time_in_arrival  = $request->stop_time_in_arrival ?? null;
-            $ticket->stop_time_in_depart   = $request->stop_time_in_depart ?? null;
-            $ticket->stop_flight_leg2_in  = $request->stop_flight_leg2_in ?? null;
-            $ticket->stop_in_depart_code = $request->stop_in_depart_code ?? null;
-            $ticket->stop_in_arrival_code = $request->stop_in_arrival_code ?? null;
-            $ticket->stop_airline_in = $request->stop_airline_in ?? null;
+            $ticket->stop_time_in   = $hasStopIn ? ($request->stop_time_in_arrival ?? null) : null;
+            $ticket->stop_time_in_arrival  = $hasStopIn ? ($request->stop_time_in_arrival ?? null) : null;
+            $ticket->stop_time_in_depart   = $hasStopIn ? ($request->stop_time_in_depart ?? null) : null;
+            $ticket->stop_flight_leg2_in  = $hasStopIn ? ($request->stop_flight_leg2_in ?? null) : null;
+            $ticket->stop_in_depart_code = $hasStopIn ? $request->stop_in_depart_code : null;
+            $ticket->stop_in_arrival_code = $hasSecondStopIn ? $request->stop_in_arrival_code : null;
+            $ticket->stop_airline_in = $hasStopIn ? ($request->stop_airline_in ?? null) : null;
+            $ticket->stop_time_in_arrival2 = $hasSecondStopIn ? ($request->stop_time_in_arrival2 ?? null) : null;
+            $ticket->stop_time_in_depart2 = $hasSecondStopIn ? ($request->stop_time_in_depart2 ?? null) : null;
+            $ticket->stop_flight_leg3_in = $hasSecondStopIn ? ($request->stop_flight_leg3_in ?? null) : null;
+            $ticket->stop_airline_leg3_in = $hasSecondStopIn ? ($request->stop_airline_leg3_in ?? null) : null;
             $ticket->class          = $request->class;
             $ticket->basic_fare     = $basic_fare_total;
             $ticket->total_tax      = $tax_total;
@@ -179,7 +207,7 @@ $perPage = (int) $request->query('per_page', 10);
                     'return_date'  => $request->dep_in,
                     'airlines_no'  => $request->flight_out,
                     'class'        => $request->class,
-                    'route'        => $request->route_out . ($request->route_in ? ' - ' . $request->route_in : ''),
+                    'route'        => $routeOut . ($routeIn ? ' - ' . $routeIn : ''),
                 ]);
     
                 if (isset($paxData['has_baggage']) && $paxData['has_baggage'] == "1") {
@@ -290,9 +318,32 @@ public function edit($id)
 
     public function update(Request $request, $id)
     {
+        $this->validate($request, [
+            'stop_out_depart_code' => 'required_if:has_stop_out,1|nullable|string',
+            'stop_out_arrival_code' => 'required_if:has_second_stop_out,1|nullable|string',
+            'stop_in_depart_code' => 'required_if:has_stop_in,1|nullable|string',
+            'stop_in_arrival_code' => 'required_if:has_second_stop_in,1|nullable|string',
+        ]);
+
         DB::beginTransaction();
         try {
             $ticket = Ticket::findOrFail($id);
+            $hasStopOut = $request->boolean('has_stop_out');
+            $hasSecondStopOut = $hasStopOut && $request->boolean('has_second_stop_out');
+            $hasStopIn = $request->boolean('has_stop_in');
+            $hasSecondStopIn = $hasStopIn && $request->boolean('has_second_stop_in');
+            $routeOut = implode('-', array_filter([
+                $request->departure_out_code,
+                $hasStopOut ? $request->stop_out_depart_code : null,
+                $hasSecondStopOut ? $request->stop_out_arrival_code : null,
+                $request->arrival_out_code,
+            ]));
+            $routeIn = implode('-', array_filter([
+                $request->departure_in_code,
+                $hasStopIn ? $request->stop_in_depart_code : null,
+                $hasSecondStopIn ? $request->stop_in_arrival_code : null,
+                $request->arrival_in_code,
+            ]));
             $clean = function($val) { return (int) preg_replace('/[^0-9]/', '', $val); };
     
             $oldAirlineId = $ticket->airline_id;
@@ -324,33 +375,36 @@ public function edit($id)
                 'booking_code'  => strtoupper($request->pnr),
                 'flight_out'    => $request->flight_out,
                 'flight_in'     => $request->flight_in,
-                // Build routes with 2 stops if available
-                'route_out'     => implode('-', array_filter([$request->departure_out_code, $request->stop_out_depart_code, $request->stop_out_arrival_code, $request->arrival_out_code])),
-                'route_in'      => implode('-', array_filter([$request->departure_in_code, $request->stop_in_depart_code, $request->stop_in_arrival_code, $request->arrival_in_code])),
-                'stop_out_depart_code' => $request->stop_out_depart_code ?? null,
-                'stop_out_arrival_code' => $request->stop_out_arrival_code ?? null,
-                'stop_in_depart_code' => $request->stop_in_depart_code ?? null,
-                'stop_in_arrival_code' => $request->stop_in_arrival_code ?? null,
+                'route_out'     => $routeOut,
+                'route_in'      => $routeIn,
+                'stop_out_depart_code' => $hasStopOut ? $request->stop_out_depart_code : null,
+                'stop_out_arrival_code' => $hasSecondStopOut ? $request->stop_out_arrival_code : null,
+                'stop_in_depart_code' => $hasStopIn ? $request->stop_in_depart_code : null,
+                'stop_in_arrival_code' => $hasSecondStopIn ? $request->stop_in_arrival_code : null,
                 'dep_time_out'  => $request->dep_out,
                 'dep_time_in'   => $request->dep_in,
                 'arr_time_out'  => $request->arr_out,
-'arr_time_in'    => $request->arr_in,
-            'stop_flight_leg1_out' => $request->stop_flight_leg1_out ?? null,
-            'stop_time_out'  => $request->stop_time_out ?? null,
-            'stop_time_out_arrival'  => $request->stop_time_out_arrival ?? null,
-            'stop_time_out_depart'   => $request->stop_time_out_depart ?? null,
-            'stop_flight_leg2_out' => $request->stop_flight_leg2_out ?? null,
-                'stop_out_depart_code' => $request->stop_out_depart_code ?? null,
-            'stop_out_arrival_code' => $request->stop_out_arrival_code ?? null,
-            'stop_airline_out' => $request->stop_airline_out ?? null,
-            'stop_flight_leg1_in'  => $request->stop_flight_leg1_in ?? null,
-            'stop_time_in'   => $request->stop_time_in ?? null,
-            'stop_time_in_arrival'  => $request->stop_time_in_arrival ?? null,
-            'stop_time_in_depart'   => $request->stop_time_in_depart ?? null,
-            'stop_flight_leg2_in'  => $request->stop_flight_leg2_in ?? null,
-                'stop_in_depart_code' => $request->stop_in_depart_code ?? null,
-            'stop_in_arrival_code' => $request->stop_in_arrival_code ?? null,
-            'stop_airline_in' => $request->stop_airline_in ?? null,
+                'arr_time_in'   => $request->arr_in,
+                'stop_flight_leg1_out' => $request->flight_out,
+                'stop_time_out'  => $hasStopOut ? ($request->stop_time_out_arrival ?? null) : null,
+                'stop_time_out_arrival'  => $hasStopOut ? ($request->stop_time_out_arrival ?? null) : null,
+                'stop_time_out_depart'   => $hasStopOut ? ($request->stop_time_out_depart ?? null) : null,
+                'stop_flight_leg2_out' => $hasStopOut ? ($request->stop_flight_leg2_out ?? null) : null,
+                'stop_airline_out' => $hasStopOut ? ($request->stop_airline_out ?? null) : null,
+                'stop_time_out_arrival2' => $hasSecondStopOut ? ($request->stop_time_out_arrival2 ?? null) : null,
+                'stop_time_out_depart2' => $hasSecondStopOut ? ($request->stop_time_out_depart2 ?? null) : null,
+                'stop_flight_leg3_out' => $hasSecondStopOut ? ($request->stop_flight_leg3_out ?? null) : null,
+                'stop_airline_leg3_out' => $hasSecondStopOut ? ($request->stop_airline_leg3_out ?? null) : null,
+                'stop_flight_leg1_in'  => $request->flight_in,
+                'stop_time_in'   => $hasStopIn ? ($request->stop_time_in_arrival ?? null) : null,
+                'stop_time_in_arrival'  => $hasStopIn ? ($request->stop_time_in_arrival ?? null) : null,
+                'stop_time_in_depart'   => $hasStopIn ? ($request->stop_time_in_depart ?? null) : null,
+                'stop_flight_leg2_in'  => $hasStopIn ? ($request->stop_flight_leg2_in ?? null) : null,
+                'stop_airline_in' => $hasStopIn ? ($request->stop_airline_in ?? null) : null,
+                'stop_time_in_arrival2' => $hasSecondStopIn ? ($request->stop_time_in_arrival2 ?? null) : null,
+                'stop_time_in_depart2' => $hasSecondStopIn ? ($request->stop_time_in_depart2 ?? null) : null,
+                'stop_flight_leg3_in' => $hasSecondStopIn ? ($request->stop_flight_leg3_in ?? null) : null,
+                'stop_airline_leg3_in' => $hasSecondStopIn ? ($request->stop_airline_leg3_in ?? null) : null,
             'class'         => $request->class,
                 'basic_fare'    => $basic_fare_total, 
                 'total_tax'     => $tax_total,
@@ -392,7 +446,7 @@ public function edit($id)
                     'return_date'  => $request->dep_in,
                     'airlines_no'  => $request->flight_out,
                     'class'        => $request->class,
-                    'route'        => $request->route_out . ($request->route_in ? ' - ' . $request->route_in : ''),
+                    'route'        => $routeOut . ($routeIn ? ' - ' . $routeIn : ''),
                 ]);
                 if (isset($paxData['has_baggage']) && $paxData['has_baggage'] == "1") { $pax_with_baggage[] = $new_pax->id; }
             }

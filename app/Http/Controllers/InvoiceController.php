@@ -235,13 +235,19 @@ public function edit($id)
             "airlines.airlines_name",
             "tickets.stop_airline_out",
             "tickets.stop_airline_in",
+            "tickets.stop_airline_leg3_out",
+            "tickets.stop_airline_leg3_in",
             // include flight numbers for formatting
             "tickets.flight_out as ticket_flight_out",
             "tickets.flight_in as ticket_flight_in",
             "tickets.stop_flight_leg2_out",
             "tickets.stop_flight_leg2_in",
+            "tickets.stop_flight_leg3_out",
+            "tickets.stop_flight_leg3_in",
             "out_air.airlines_code as stop_out_code",
-            "in_air.airlines_code as stop_in_code"
+            "in_air.airlines_code as stop_in_code",
+            "out_air3.airlines_code as stop_out_leg3_code",
+            "in_air3.airlines_code as stop_in_leg3_code"
         ];
 
         $details = DB::table('invoice_details')->select($field)
@@ -251,6 +257,8 @@ public function edit($id)
                     ->leftJoin('tickets', 'invoice_details.ticket_id', '=', 'tickets.id')
                     ->leftJoin('airlines as out_air', 'tickets.stop_airline_out', '=', 'out_air.airlines_name')
                     ->leftJoin('airlines as in_air', 'tickets.stop_airline_in', '=', 'in_air.airlines_name')
+                    ->leftJoin('airlines as out_air3', 'tickets.stop_airline_leg3_out', '=', 'out_air3.airlines_name')
+                    ->leftJoin('airlines as in_air3', 'tickets.stop_airline_leg3_in', '=', 'in_air3.airlines_name')
                     ->where('invoice_details.invoice_id', $id)
                     ->get();
 
@@ -274,13 +282,19 @@ public function edit($id)
             "airlines.airlines_name",
             "tickets.stop_airline_out",
             "tickets.stop_airline_in",
+            "tickets.stop_airline_leg3_out",
+            "tickets.stop_airline_leg3_in",
             // include flight numbers for formatting
             "tickets.flight_out as ticket_flight_out",
             "tickets.flight_in as ticket_flight_in",
             "tickets.stop_flight_leg2_out",
             "tickets.stop_flight_leg2_in",
+            "tickets.stop_flight_leg3_out",
+            "tickets.stop_flight_leg3_in",
             "out_air.airlines_code as stop_out_code",
-            "in_air.airlines_code as stop_in_code"
+            "in_air.airlines_code as stop_in_code",
+            "out_air3.airlines_code as stop_out_leg3_code",
+            "in_air3.airlines_code as stop_in_leg3_code"
         ];
 
         $details = DB::table('invoice_details')->select($field)
@@ -290,6 +304,8 @@ public function edit($id)
                     ->leftJoin('tickets', 'invoice_details.ticket_id', '=', 'tickets.id')
                     ->leftJoin('airlines as out_air', 'tickets.stop_airline_out', '=', 'out_air.airlines_name')
                     ->leftJoin('airlines as in_air', 'tickets.stop_airline_in', '=', 'in_air.airlines_name')
+                    ->leftJoin('airlines as out_air3', 'tickets.stop_airline_leg3_out', '=', 'out_air3.airlines_name')
+                    ->leftJoin('airlines as in_air3', 'tickets.stop_airline_leg3_in', '=', 'in_air3.airlines_name')
                     ->where('invoice_details.invoice_id', $id)
                     ->get();
 

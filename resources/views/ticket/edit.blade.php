@@ -22,6 +22,13 @@
         color: #64748b;
         white-space: nowrap;
     }
+    .journey-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 18px; margin-bottom: 14px; background: #fff; }
+    .journey-card > p { color: #1e293b; font-size: 15px; margin-bottom: 16px; }
+    .transit-panel { padding: 14px; margin-top: 10px; border: 1px solid #c7d2fe; border-radius: 8px; background: #f8faff; }
+    .transit-heading { font-size: 13px; font-weight: 700; color: #3730a3; margin-bottom: 10px; }
+    .transit-toggle { display: block; margin: 8px 0 12px; color: #4f46e5; font-weight: 600; cursor: pointer; }
+    .second-transit-toggle { display: block; margin: 12px 0 8px; font-weight: 600; color: #334155; cursor: pointer; }
+    .segment-fields { padding: 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 7px; margin-top: 10px; }
 
     /* CSS TAMBAHAN UNTUK SELECT2 & SEARCH ICON */
     .select2-container--default .select2-selection--single {
@@ -102,12 +109,13 @@
 
         <div class="invoice-section">
             <div class="section-title">Detail Penerbangan</div>
+            <p class="text-muted" style="font-size:12px; margin:-6px 0 16px;">Isi rute dari bandara asal ke tujuan. Pengaturan transit menampilkan segmen tambahan hingga maksimal dua transit.</p>
             <div class="row">
-                <div class="col-md-6" style="border-right: 1px solid #f1f5f9;">
+                <div class="col-md-6 journey-card">
                     <p><strong><i class="fa fa-plane-outbound"></i> Pergi</strong></p>
                     <div class="row">
                         <div class="col-md-6 form-group">
-                            <label>No. Flight</label>
+                            <label>No. penerbangan segmen 1</label>
                             <input type="text" name="flight_out" class="form-control" value="{{ $ticket->flight_out }}">
                         </div>
 
@@ -116,12 +124,13 @@
                             $depOut = $partsOut[0] ?? '';
                             $arrOut = count($partsOut) ? end($partsOut) : '';
                             $stopOutDepart = $ticket->stop_out_depart_code ?: (isset($partsOut[1]) ? $partsOut[1] : '');
-                            $stopOutArrival = $ticket->stop_out_arrival_code ?: (isset($partsOut[2]) ? $partsOut[2] : '');
-                            $hasStopOut = !empty($ticket->stop_out_depart_code) || !empty($ticket->stop_out_arrival_code) || count($partsOut) > 2;
+                            $stopOutArrival = $ticket->stop_out_arrival_code ?: (count($partsOut) > 3 ? ($partsOut[2] ?? '') : '');
+                            $hasSecondStopOut = !empty($ticket->stop_out_arrival_code) || count($partsOut) > 3;
+                            $hasStopOut = !empty($ticket->stop_out_depart_code) || $hasSecondStopOut;
                         @endphp
 
                         <div class="col-md-6 form-group">
-                            <label>Departure</label>
+                            <label>Bandara asal</label>
                             <select name="departure_out_code" id="departure_out_code" class="form-control select2" data-type="departure">
                                 <option value="">-- Pilih Bandara Keberangkatan --</option>
                                 @foreach($airports as $apt)
@@ -129,7 +138,7 @@
                                 @endforeach
                             </select>
 
-                            <label style="margin-top:8px;">Arrivals</label>
+                            <label style="margin-top:8px;">Bandara tujuan</label>
                             <select name="arrival_out_code" id="arrival_out_code" class="form-control select2" data-type="arrival">
                                 <option value="">-- Pilih Bandara Kedatangan --</option>
                                 @foreach($airports as $apt)
@@ -137,60 +146,89 @@
                                 @endforeach
                             </select>
 
-                            <div id="stop_out_wrapper" style="margin-top:8px; {{ $hasStopOut ? 'display:block;' : 'display:none;' }}">
-                                <label style="font-weight:600; font-size:12px;">
-                                    <input type="checkbox" id="has_stop_out" style="margin-right:6px;" {{ $hasStopOut ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
-                                </label>
-                                <div style="margin-top:8px;">
-                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pergi 1 (Leg 1 Tiba)</label>
-                                    <select name="stop_out_depart_code" id="stop_out_depart_code" class="form-control select2" style="margin-bottom:8px;" data-type="stop">
+                            <label class="transit-toggle">
+                                <input type="checkbox" name="has_stop_out" value="1" id="toggle_stop_out" style="margin-right:6px;" {{ $hasStopOut ? 'checked' : '' }}>
+                                Tambahkan transit (maksimal 2)
+                            </label>
+                            <div id="stop_out_wrapper" class="transit-panel" style="{{ $hasStopOut ? 'display:block;' : 'display:none;' }}">
+                                <div class="transit-heading">Transit 1 &mdash; segmen penerbangan kedua</div>
+                                <div class="form-group">
+                                    <label>Bandara transit pertama</label>
+                                    <select name="stop_out_depart_code" id="stop_out_depart_code" class="form-control select2" data-type="stop">
                                         <option value="">-- Pilih Bandara Kedatangan Leg 1 --</option>
                                         @foreach($airports as $apt)
                                             <option value="{{ $apt->code }}" {{ $stopOutDepart == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
                                         @endforeach
                                     </select>
                                 </div>
-                                <div>
-                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pergi 2 (Leg 2 Berangkat)</label>
-                                    <select name="stop_out_arrival_code" id="stop_out_arrival_code" class="form-control select2" data-type="stop">
-                                        <option value="">-- Pilih Bandara Keberangkatan Leg 2 --</option>
-                                        @foreach($airports as $apt)
-                                            <option value="{{ $apt->code }}" {{ $stopOutArrival == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="segment-fields">
+                                    <div class="transit-heading">Segmen 2 &mdash; Transit 1 ke tujuan berikutnya</div>
+                                    <div class="row">
+                                        <div class="col-sm-7 form-group">
+                                            <label>Maskapai segmen 2</label>
+                                            <select name="stop_airline_out" id="stop_airline_out" class="form-control select2">
+                                                <option value="">Sama dengan maskapai utama</option>
+                                                @foreach($airlines as $a)
+                                                    <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_out ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-5 form-group">
+                                            <label>No. penerbangan segmen 2</label>
+                                            <input type="text" name="stop_flight_leg2_out" id="stop_flight_leg2_out" class="form-control" placeholder="Contoh: CX-828" value="{{ $ticket->stop_flight_leg2_out ?? '' }}">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div style="font-size:11px; font-weight:600; margin-top:6px;">Maskapai & No. Flight Leg 2</div>
-                                <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
-                                    <select name="stop_airline_out" id="stop_airline_out" class="form-control select2" style="font-size:12px;">
-                                        <option value="">-- Pilih Maskapai Transit --</option>
-                                        @foreach($airlines as $a)
-                                            <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_out ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <input type="text" name="stop_flight_leg2_out" id="stop_flight_leg2_out" class="form-control" placeholder="(Stop→Arrival) e.g. 456" value="{{ $ticket->stop_flight_leg2_out ?? '' }}" style="font-size:12px;">
+
+                                <label class="second-transit-toggle">
+                                    <input type="checkbox" name="has_second_stop_out" value="1" id="toggle_second_stop_out" style="margin-right:6px;" {{ $hasSecondStopOut ? 'checked' : '' }}>
+                                    Tambahkan transit kedua
+                                </label>
+                                <div id="second_stop_out_wrapper" style="{{ $hasSecondStopOut ? 'display:block;' : 'display:none;' }}">
+                                    <div class="form-group">
+                                        <label>Bandara transit kedua</label>
+                                        <select name="stop_out_arrival_code" id="stop_out_arrival_code" class="form-control select2" data-type="stop">
+                                            <option value="">-- Pilih Bandara Transit Kedua --</option>
+                                            @foreach($airports as $apt)
+                                                <option value="{{ $apt->code }}" {{ $stopOutArrival == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="segment-fields">
+                                        <div class="transit-heading">Segmen 3 &mdash; Transit 2 ke tujuan akhir</div>
+                                        <div class="row">
+                                            <div class="col-sm-7 form-group">
+                                                <label>Maskapai segmen 3</label>
+                                                <select name="stop_airline_leg3_out" id="stop_airline_leg3_out" class="form-control select2">
+                                                    <option value="">Sama dengan maskapai utama</option>
+                                                    @foreach($airlines as $a)
+                                                        <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_leg3_out ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-5 form-group">
+                                                <label>No. penerbangan segmen 3</label>
+                                                <input type="text" name="stop_flight_leg3_out" id="stop_flight_leg3_out" class="form-control" placeholder="Contoh: CX-7080" value="{{ $ticket->stop_flight_leg3_out ?? '' }}">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <label id="add_stop_out_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $hasStopOut ? 'display:none;' : '' }}">
-                                <input type="checkbox" id="toggle_stop_out" style="margin-right:6px;" {{ $hasStopOut ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
-                            </label>
 
                             <input type="hidden" name="route_out" id="route_out" value="{{ $ticket->route_out }}" />
                         </div>
 
-                        <div class="col-md-12" style="padding-left:0; padding-right:0;">
-                            <div id="stop_out_wrapper_detail" style="margin-top:8px; {{ $hasStopOut ? 'display:block;' : 'display:none;' }}">
-                                <div class="row" style="margin: 0; margin-bottom: 8px;">
-                                    <div class="col-md-12 form-group" style="margin-bottom: 0;">
-                                        <label style="font-size:11px; margin-bottom:4px;">Waktu di Stop</label>
-                                        <div class="row" style="margin:0;">
-                                            <div class="col-md-4 form-group" style="padding-left:0; margin-bottom:0;">
-                                                <input type="text" name="stop_time_out_arrival" id="stop_time_out_arrival" class="form-control" placeholder="Arrive transit" value="{{ $ticket->stop_time_out_arrival ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out_arrival)) : ($ticket->stop_time_out ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out)) : '') }}" style="font-size:12px;">
-                                            </div>
-                                            <div class="col-md-8 form-group" style="padding-right:0; margin-bottom:0;">
-                                                <input type="text" name="stop_time_out_depart" id="stop_time_out_depart" class="form-control" placeholder="Depart transit" value="{{ $ticket->stop_time_out_depart ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out_depart)) : ($ticket->stop_time_out ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out)) : '') }}" style="font-size:12px;">
-                                            </div>
-                                        </div>
+                        <div class="col-md-12" style="padding:0;">
+                            <div id="stop_out_wrapper_detail" class="transit-panel" style="{{ $hasStopOut ? 'display:block;' : 'display:none;' }}">
+                                <div class="transit-heading">Jadwal transit</div>
+                                <div class="row">
+                                    <div class="col-sm-6 form-group"><label>Tiba di transit 1</label><input type="text" name="stop_time_out_arrival" id="stop_time_out_arrival" class="form-control" value="{{ $ticket->stop_time_out_arrival ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out_arrival)) : ($ticket->stop_time_out ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out)) : '') }}"></div>
+                                    <div class="col-sm-6 form-group"><label>Berangkat dari transit 1</label><input type="text" name="stop_time_out_depart" id="stop_time_out_depart" class="form-control" value="{{ $ticket->stop_time_out_depart ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out_depart)) : ($ticket->stop_time_out ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out)) : '') }}"></div>
+                                </div>
+                                <div id="second_stop_out_times" style="{{ $hasSecondStopOut ? 'display:block;' : 'display:none;' }}">
+                                    <div class="row">
+                                        <div class="col-sm-6 form-group"><label>Tiba di transit 2</label><input type="text" name="stop_time_out_arrival2" id="stop_time_out_arrival2" class="form-control" value="{{ $ticket->stop_time_out_arrival2 ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out_arrival2)) : '' }}"></div>
+                                        <div class="col-sm-6 form-group"><label>Berangkat dari transit 2</label><input type="text" name="stop_time_out_depart2" id="stop_time_out_depart2" class="form-control" value="{{ $ticket->stop_time_out_depart2 ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_out_depart2)) : '' }}"></div>
                                     </div>
                                 </div>
                             </div>
@@ -206,11 +244,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6 journey-card">
                     <p><strong><i class="fa fa-plane-arrival"></i> Pulang (Opsional)</strong></p>
                     <div class="row">
                         <div class="col-md-6 form-group">
-                            <label>No. Flight</label>
+                            <label>No. penerbangan segmen 1</label>
                             <input type="text" name="flight_in" class="form-control" value="{{ $ticket->flight_in }}">
                         </div>
 
@@ -219,11 +257,12 @@
                             $depIn = $partsIn[0] ?? '';
                             $arrIn = count($partsIn) ? end($partsIn) : '';
                             $stopInDepart = $ticket->stop_in_depart_code ?: (isset($partsIn[1]) ? $partsIn[1] : '');
-                            $stopInArrival = $ticket->stop_in_arrival_code ?: (isset($partsIn[2]) ? $partsIn[2] : '');
-                            $hasStopIn = !empty($ticket->stop_in_depart_code) || !empty($ticket->stop_in_arrival_code) || count($partsIn) > 2;
+                            $stopInArrival = $ticket->stop_in_arrival_code ?: (count($partsIn) > 3 ? ($partsIn[2] ?? '') : '');
+                            $hasSecondStopIn = !empty($ticket->stop_in_arrival_code) || count($partsIn) > 3;
+                            $hasStopIn = !empty($ticket->stop_in_depart_code) || $hasSecondStopIn;
                         @endphp
                         <div class="col-md-6 form-group">
-                            <label>Departure</label>
+                            <label>Bandara asal</label>
                             <select name="departure_in_code" id="departure_in_code" class="form-control select2" data-type="departure">
                                 <option value="">-- Pilih Bandara Keberangkatan --</option>
                                 @foreach($airports as $apt)
@@ -231,7 +270,7 @@
                                 @endforeach
                             </select>
 
-                            <label style="margin-top:8px;">Arrivals</label>
+                            <label style="margin-top:8px;">Bandara tujuan</label>
                             <select name="arrival_in_code" id="arrival_in_code" class="form-control select2" data-type="arrival">
                                 <option value="">-- Pilih Bandara Kedatangan --</option>
                                 @foreach($airports as $apt)
@@ -239,60 +278,89 @@
                                 @endforeach
                             </select>
 
-                            <div id="stop_in_wrapper" style="margin-top:8px; {{ $hasStopIn ? 'display:block;' : 'display:none;' }}">
-                                <label style="font-weight:600; font-size:12px;">
-                                    <input type="checkbox" id="has_stop_in" style="margin-right:6px;" {{ $hasStopIn ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
-                                </label>
-                                <div style="margin-top:8px;">
-                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pulang 1 (Leg 1 Tiba)</label>
-                                    <select name="stop_in_depart_code" id="stop_in_depart_code" class="form-control select2" style="margin-bottom:8px;" data-type="stop">
+                            <label class="transit-toggle">
+                                <input type="checkbox" name="has_stop_in" value="1" id="toggle_stop_in" style="margin-right:6px;" {{ $hasStopIn ? 'checked' : '' }}>
+                                Tambahkan transit (maksimal 2)
+                            </label>
+                            <div id="stop_in_wrapper" class="transit-panel" style="{{ $hasStopIn ? 'display:block;' : 'display:none;' }}">
+                                <div class="transit-heading">Transit 1 &mdash; segmen penerbangan kedua</div>
+                                <div class="form-group">
+                                    <label>Bandara transit pertama</label>
+                                    <select name="stop_in_depart_code" id="stop_in_depart_code" class="form-control select2" data-type="stop">
                                         <option value="">-- Pilih Bandara Kedatangan Leg 1 --</option>
                                         @foreach($airports as $apt)
                                             <option value="{{ $apt->code }}" {{ $stopInDepart == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
                                         @endforeach
                                     </select>
                                 </div>
-                                <div>
-                                    <label style="font-size:12px; font-weight:600; margin-bottom:4px;">Bandara Transit Pulang 2 (Leg 2 Berangkat)</label>
-                                    <select name="stop_in_arrival_code" id="stop_in_arrival_code" class="form-control select2" data-type="stop">
-                                        <option value="">-- Pilih Bandara Keberangkatan Leg 2 --</option>
-                                        @foreach($airports as $apt)
-                                            <option value="{{ $apt->code }}" {{ $stopInArrival == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="segment-fields">
+                                    <div class="transit-heading">Segmen 2 &mdash; Transit 1 ke tujuan berikutnya</div>
+                                    <div class="row">
+                                        <div class="col-sm-7 form-group">
+                                            <label>Maskapai segmen 2</label>
+                                            <select name="stop_airline_in" id="stop_airline_in" class="form-control select2">
+                                                <option value="">Sama dengan maskapai utama</option>
+                                                @foreach($airlines as $a)
+                                                    <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_in ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-5 form-group">
+                                            <label>No. penerbangan segmen 2</label>
+                                            <input type="text" name="stop_flight_leg2_in" id="stop_flight_leg2_in" class="form-control" placeholder="Contoh: CX-828" value="{{ $ticket->stop_flight_leg2_in ?? '' }}">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div style="font-size:11px; font-weight:600; margin-top:6px;">Maskapai & No. Flight Leg 2</div>
-                                <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
-                                    <select name="stop_airline_in" id="stop_airline_in" class="form-control select2" style="font-size:12px;">
-                                        <option value="">-- Pilih Maskapai Transit --</option>
-                                        @foreach($airlines as $a)
-                                            <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_in ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <input type="text" name="stop_flight_leg2_in" id="stop_flight_leg2_in" class="form-control" placeholder="(Stop→Arrival) e.g. 456" value="{{ $ticket->stop_flight_leg2_in ?? '' }}" style="font-size:12px;">
+
+                                <label class="second-transit-toggle">
+                                    <input type="checkbox" name="has_second_stop_in" value="1" id="toggle_second_stop_in" style="margin-right:6px;" {{ $hasSecondStopIn ? 'checked' : '' }}>
+                                    Tambahkan transit kedua
+                                </label>
+                                <div id="second_stop_in_wrapper" style="{{ $hasSecondStopIn ? 'display:block;' : 'display:none;' }}">
+                                    <div class="form-group">
+                                        <label>Bandara transit kedua</label>
+                                        <select name="stop_in_arrival_code" id="stop_in_arrival_code" class="form-control select2" data-type="stop">
+                                            <option value="">-- Pilih Bandara Transit Kedua --</option>
+                                            @foreach($airports as $apt)
+                                                <option value="{{ $apt->code }}" {{ $stopInArrival == $apt->code ? 'selected' : '' }}>{{ $apt->name }} - {{ $apt->code }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="segment-fields">
+                                        <div class="transit-heading">Segmen 3 &mdash; Transit 2 ke tujuan akhir</div>
+                                        <div class="row">
+                                            <div class="col-sm-7 form-group">
+                                                <label>Maskapai segmen 3</label>
+                                                <select name="stop_airline_leg3_in" id="stop_airline_leg3_in" class="form-control select2">
+                                                    <option value="">Sama dengan maskapai utama</option>
+                                                    @foreach($airlines as $a)
+                                                        <option value="{{ $a->airlines_name }}" {{ ($ticket->stop_airline_leg3_in ?? '') == $a->airlines_name ? 'selected' : '' }}>{{ $a->airlines_name }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="col-sm-5 form-group">
+                                                <label>No. penerbangan segmen 3</label>
+                                                <input type="text" name="stop_flight_leg3_in" id="stop_flight_leg3_in" class="form-control" placeholder="Contoh: CX-7080" value="{{ $ticket->stop_flight_leg3_in ?? '' }}">
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <label id="add_stop_in_label" style="margin-top:8px; font-weight:600; font-size:12px; cursor: pointer; color: #6366f1; {{ $hasStopIn ? 'display:none;' : '' }}">
-                                <input type="checkbox" id="toggle_stop_in" style="margin-right:6px;" {{ $hasStopIn ? 'checked' : '' }}> Tambah 1 Stops (Opsional)
-                            </label>
 
                             <input type="hidden" name="route_in" id="route_in" value="{{ $ticket->route_in }}" />
                         </div>
 
-                        <div class="col-md-12" style="padding-left:0; padding-right:0;">
-                            <div id="stop_in_wrapper_detail" style="margin-top:8px; {{ $hasStopIn ? 'display:block;' : 'display:none;' }}">
-                                <div class="row" style="margin: 0;">
-                                    <div class="col-md-12 form-group" style="margin-bottom: 0;">
-                                        <label style="font-size:11px; margin-bottom:4px;">Waktu di Stop</label>
-                                        <div class="row" style="margin:0;">
-                                            <div class="col-md-4 form-group" style="padding-left:0; margin-bottom:0;">
-                                                <input type="text" name="stop_time_in_arrival" id="stop_time_in_arrival" class="form-control" placeholder="Arrive transit" value="{{ $ticket->stop_time_in_arrival ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in_arrival)) : ($ticket->stop_time_in ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in)) : '') }}" style="font-size:12px;">
-                                            </div>
-                                            <div class="col-md-8 form-group" style="padding-right:0; margin-bottom:0;">
-                                                <input type="text" name="stop_time_in_depart" id="stop_time_in_depart" class="form-control" placeholder="Depart transit" value="{{ $ticket->stop_time_in_depart ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in_depart)) : ($ticket->stop_time_in ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in)) : '') }}" style="font-size:12px;">
-                                            </div>
-                                        </div>
+                        <div class="col-md-12" style="padding:0;">
+                            <div id="stop_in_wrapper_detail" class="transit-panel" style="{{ $hasStopIn ? 'display:block;' : 'display:none;' }}">
+                                <div class="transit-heading">Jadwal transit</div>
+                                <div class="row">
+                                    <div class="col-sm-6 form-group"><label>Tiba di transit 1</label><input type="text" name="stop_time_in_arrival" id="stop_time_in_arrival" class="form-control" value="{{ $ticket->stop_time_in_arrival ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in_arrival)) : ($ticket->stop_time_in ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in)) : '') }}"></div>
+                                    <div class="col-sm-6 form-group"><label>Berangkat dari transit 1</label><input type="text" name="stop_time_in_depart" id="stop_time_in_depart" class="form-control" value="{{ $ticket->stop_time_in_depart ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in_depart)) : ($ticket->stop_time_in ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in)) : '') }}"></div>
+                                </div>
+                                <div id="second_stop_in_times" style="{{ $hasSecondStopIn ? 'display:block;' : 'display:none;' }}">
+                                    <div class="row">
+                                        <div class="col-sm-6 form-group"><label>Tiba di transit 2</label><input type="text" name="stop_time_in_arrival2" id="stop_time_in_arrival2" class="form-control" value="{{ $ticket->stop_time_in_arrival2 ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in_arrival2)) : '' }}"></div>
+                                        <div class="col-sm-6 form-group"><label>Berangkat dari transit 2</label><input type="text" name="stop_time_in_depart2" id="stop_time_in_depart2" class="form-control" value="{{ $ticket->stop_time_in_depart2 ? date('Y-m-d\\TH:i', strtotime($ticket->stop_time_in_depart2)) : '' }}"></div>
                                     </div>
                                 </div>
                             </div>
@@ -501,7 +569,7 @@ $(document).ready(function() {
             altFormat: 'd-m-Y H:i',
             time_24hr: true
         };
-        flatpickr('input[name="dep_out"], input[name="arr_out"], input[name="dep_in"], input[name="arr_in"], input[name="stop_time_out_arrival"], input[name="stop_time_out_depart"], input[name="stop_time_in_arrival"], input[name="stop_time_in_depart"]', dateTimeConfig);
+        flatpickr('input[name="dep_out"], input[name="arr_out"], input[name="dep_in"], input[name="arr_in"], input[name^="stop_time_"]', dateTimeConfig);
     }
 
     let rowIdx = {{ count($passengers) }};
@@ -525,14 +593,17 @@ $(document).ready(function() {
 
     function buildRoute(prefix) {
         const dep = $(`#departure_${prefix}_code`).val() || '';
-        const stop1 = $(`#stop_${prefix}_depart_code`).val() || '';
-        const stop2 = $(`#stop_${prefix}_arrival_code`).val() || '';
         const arr = $(`#arrival_${prefix}_code`).val() || '';
-        if (!dep && !arr) return '';
-        let route = `${dep}-${arr}`;
-        if (stop1) route = `${dep}-${stop1}-${arr}`;
-        if (stop1 && stop2) route = `${dep}-${stop1}-${stop2}-${arr}`;
-        return route;
+        const stops = [];
+        if ($(`#toggle_stop_${prefix}`).is(':checked')) {
+            const firstStop = $(`#stop_${prefix}_depart_code`).val();
+            if (firstStop) stops.push(firstStop);
+            if ($(`#toggle_second_stop_${prefix}`).is(':checked')) {
+                const secondStop = $(`#stop_${prefix}_arrival_code`).val();
+                if (secondStop) stops.push(secondStop);
+            }
+        }
+        return [dep, ...stops, arr].filter(Boolean).join('-');
     }
 
     function syncRoutes() {
@@ -540,71 +611,35 @@ $(document).ready(function() {
         $('#route_in').val(buildRoute('in'));
     }
 
-    // Toggle stop inputs dengan toggle checkbox
-    $('#toggle_stop_out').on('change', function() { 
-        if (this.checked) { 
-            $('#add_stop_out_label').hide();
-            $('#stop_out_wrapper').show();
-            $('#stop_out_wrapper_detail').show();
-            $('#has_stop_out').prop('checked', true);
-        } else { 
-            $('#add_stop_out_label').show();
-            $('#stop_out_wrapper').hide();
-            $('#stop_out_wrapper_detail').hide();
-            $('#has_stop_out').prop('checked', false);
-            $('#stop_out_depart_code, #stop_out_arrival_code').val('').trigger('change');
-            $('#stop_time_out_arrival, #stop_time_out_depart').val('');
-            $('#stop_airline_out').val('').trigger('change');
-            $('#stop_flight_leg2_out').val('');
-            syncRoutes();
-        } 
-    });
+    ['out', 'in'].forEach(function(prefix) {
+        const $firstToggle = $(`#toggle_stop_${prefix}`);
+        const $secondToggle = $(`#toggle_second_stop_${prefix}`);
 
-    $('#toggle_stop_in').on('change', function() { 
-        if (this.checked) { 
-            $('#add_stop_in_label').hide();
-            $('#stop_in_wrapper').show();
-            $('#stop_in_wrapper_detail').show();
-            $('#has_stop_in').prop('checked', true);
-        } else { 
-            $('#add_stop_in_label').show();
-            $('#stop_in_wrapper').hide();
-            $('#stop_in_wrapper_detail').hide();
-            $('#has_stop_in').prop('checked', false);
-            $('#stop_in_depart_code, #stop_in_arrival_code').val('').trigger('change');
-            $('#stop_time_in_arrival, #stop_time_in_depart').val('');
-            $('#stop_airline_in').val('').trigger('change');
-            $('#stop_flight_leg2_in').val('');
-            syncRoutes();
-        } 
-    });
-
-    $('#has_stop_out').on('change', function() {
-        if (!this.checked) {
-            $('#toggle_stop_out').prop('checked', false);
-            $('#add_stop_out_label').show();
-            $('#stop_out_wrapper').hide();
-            $('#stop_out_wrapper_detail').hide();
-            $('#stop_out_depart_code, #stop_out_arrival_code').val('').trigger('change');
-            $('#stop_time_out_arrival, #stop_time_out_depart').val('');
-            $('#stop_airline_out').val('').trigger('change');
-            $('#stop_flight_leg2_out').val('');
-            syncRoutes();
+        function clearFields(selector) {
+            $(selector).each(function() {
+                $(this).is('select') ? $(this).val('').trigger('change') : $(this).val('');
+            });
         }
-    });
 
-    $('#has_stop_in').on('change', function() {
-        if (!this.checked) {
-            $('#toggle_stop_in').prop('checked', false);
-            $('#add_stop_in_label').show();
-            $('#stop_in_wrapper').hide();
-            $('#stop_in_wrapper_detail').hide();
-            $('#stop_in_depart_code, #stop_in_arrival_code').val('').trigger('change');
-            $('#stop_time_in_arrival, #stop_time_in_depart').val('');
-            $('#stop_airline_in').val('').trigger('change');
-            $('#stop_flight_leg2_in').val('');
+        $firstToggle.on('change', function() {
+            const enabled = this.checked;
+            $(`#stop_${prefix}_wrapper, #stop_${prefix}_wrapper_detail`).toggle(enabled);
+            if (!enabled) {
+                $secondToggle.prop('checked', false);
+                $(`#second_stop_${prefix}_wrapper, #second_stop_${prefix}_times`).hide();
+                clearFields(`#stop_${prefix}_depart_code, #stop_${prefix}_arrival_code, #stop_airline_${prefix}, #stop_airline_leg3_${prefix}, #stop_flight_leg2_${prefix}, #stop_flight_leg3_${prefix}, input[name="stop_time_${prefix}_arrival"], input[name="stop_time_${prefix}_depart"], input[name="stop_time_${prefix}_arrival2"], input[name="stop_time_${prefix}_depart2"]`);
+            }
             syncRoutes();
-        }
+        });
+
+        $secondToggle.on('change', function() {
+            const enabled = this.checked;
+            $(`#second_stop_${prefix}_wrapper, #second_stop_${prefix}_times`).toggle(enabled);
+            if (!enabled) {
+                clearFields(`#stop_${prefix}_arrival_code, #stop_airline_leg3_${prefix}, #stop_flight_leg3_${prefix}, input[name="stop_time_${prefix}_arrival2"], input[name="stop_time_${prefix}_depart2"]`);
+            }
+            syncRoutes();
+        });
     });
 
     $('#departure_out_code, #arrival_out_code, #stop_out_depart_code, #stop_out_arrival_code, #departure_in_code, #arrival_in_code, #stop_in_depart_code, #stop_in_arrival_code').on('change', syncRoutes);
