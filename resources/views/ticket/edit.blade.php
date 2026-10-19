@@ -417,6 +417,7 @@
                                 <option value="MS" {{ $currentTitle == 'MS' ? 'selected' : '' }}>MS</option>
                                 <option value="MSTR" {{ $currentTitle == 'MSTR' ? 'selected' : '' }}>MSTR</option>
                                 <option value="MISS" {{ $currentTitle == 'MISS' ? 'selected' : '' }}>MISS</option>
+                                <option value="INF" {{ $currentTitle == 'INF' ? 'selected' : '' }}>INF (Infant)</option>
                             </select>
                         </td>
                         <td>
@@ -582,7 +583,7 @@ $(document).ready(function() {
     let rowIdx = {{ count($passengers) }};
     $('#add-passenger').click(function() {
         let html = `<tr>
-        <td><select name="passengers[${rowIdx}][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option></select></td>
+        <td><select name="passengers[${rowIdx}][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option><option value="INF">INF (Infant)</option></select></td>
         <td><input type="text" name="passengers[${rowIdx}][name]" class="form-control" required></td>
         <td><select name="passengers[${rowIdx}][type]" class="form-control"><option>Adult</option><option>Child</option><option>Infant</option></select></td>
         <td><input type="text" name="passengers[${rowIdx}][ticket_num]" class="form-control"></td>

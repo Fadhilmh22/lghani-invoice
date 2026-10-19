@@ -169,7 +169,7 @@
                 @endphp
                 <tr class="tr-no-border">
                     <td style="width: 2%">{{ $no++ }}</td>
-                    <td style="width: 25%">{{ $detail->name }}, {{ $detail->genre }}</td>
+                    <td style="width: 25%">{{ $detail->name }}, {{ $detail->genre }}@if(($detail->type ?? null) === 'Infant') (Infant)@endif</td>
                     <td style="width: 65%">
                         @php
                             $airlineStr = $detail->airlines_code;

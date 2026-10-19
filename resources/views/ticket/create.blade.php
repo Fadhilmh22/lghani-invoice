@@ -348,7 +348,7 @@
                 </thead>
                 <tbody id="passenger-container">
                     <tr>
-                        <td><select name="passengers[0][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option></select></td>
+                        <td><select name="passengers[0][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option><option value="INF">INF (Infant)</option></select></td>
                         <td><input type="text" name="passengers[0][name]" class="form-control" required></td>
                         <td><select name="passengers[0][type]" class="form-control"><option>Adult</option><option>Child</option><option>Infant</option></select></td>
                         <td><input type="text" name="passengers[0][ticket_num]" class="form-control"></td>
@@ -467,7 +467,7 @@ $(document).ready(function() {
     let rowIdx = 1;
     $('#add-passenger').click(function() {
         let html = `<tr>
-            <td><select name="passengers[${rowIdx}][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option></select></td>
+            <td><select name="passengers[${rowIdx}][title]" class="form-control"><option>MR</option><option>MRS</option><option>MS</option><option>MSTR</option><option>MISS</option><option value="INF">INF (Infant)</option></select></td>
             <td><input type="text" name="passengers[${rowIdx}][name]" class="form-control" required></td>
             <td><select name="passengers[${rowIdx}][type]" class="form-control"><option>Adult</option><option>Child</option><option>Infant</option></select></td>
             <td><input type="text" name="passengers[${rowIdx}][ticket_num]" class="form-control"></td>
