@@ -115,12 +115,12 @@ $perPage = (int) $request->query('per_page', 10);
     
             $discount_total = $clean($request->discount);
             $nta_total      = $clean($request->nta_price);
-            $price_total    = $clean($request->price); 
             $baggage_total  = $clean($request->baggage_price);
             $total_kg       = (int) $request->baggage_kg;
             $basic_fare_total = $clean($request->basic_fare);
             $tax_total = $clean($request->total_tax);
             $fee_total = $clean($request->fee_ticket);
+            $price_total = $basic_fare_total + $tax_total + $baggage_total;
             $publish_total  = $basic_fare_total + $tax_total + $fee_total + $baggage_total;
             $pax_paid_total = $publish_total;
 
@@ -368,11 +368,11 @@ public function edit($id)
             
             $discount_total = $clean($request->discount);
             $nta_total      = $clean($request->nta_price);
-            $price_total    = $clean($request->price); 
             $baggage_total  = $clean($request->baggage_price);
             $basic_fare_total = $clean($request->basic_fare);
             $tax_total = $clean($request->total_tax);
             $fee_total = $clean($request->fee_ticket);
+            $price_total = $basic_fare_total + $tax_total + $baggage_total;
             $publish_total  = $basic_fare_total + $tax_total + $fee_total + $baggage_total;
             $pax_paid_total = $publish_total;
 

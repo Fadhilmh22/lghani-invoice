@@ -457,8 +457,8 @@
                             <input type="number" name="pax_paid" id="pax_paid" class="form-control" value="{{ (int)$passengers->sum('pax_paid') }}" required readonly>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>Price (Harga Dasar Invoice; Add On terpisah)</label>
-                            <input type="number" name="price" id="price" class="form-control" value="{{ (int)$passengers->sum('price') }}">
+                            <label>Price (Basic Fare + Tax + Add On, tanpa Fee)</label>
+                            <input type="number" name="price" id="price" class="form-control" value="{{ (int)$passengers->sum('price') }}" readonly>
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Discount</label>
@@ -568,6 +568,7 @@ $(document).ready(function() {
         $('#total_ticket_display').text('Rp ' + totalPDF.toLocaleString('id-ID'));
         $('#publish_price').val(totalPDF);
         $('#pax_paid').val(totalPDF);
+        $('#price').val(basic + tax + baggage);
     }
 
     $('#basic_fare, #total_tax, #fee_ticket, #baggage_price').on('input', syncTicketTotals);

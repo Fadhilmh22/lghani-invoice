@@ -375,8 +375,8 @@
                             <input type="number" name="pax_paid" id="pax_paid" class="form-control" required placeholder="0" readonly>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>Price (Harga Dasar Invoice; Add On terpisah)</label>
-                            <input type="number" name="price" id="price" class="form-control" placeholder="0">
+                            <label>Price (Basic Fare + Tax + Add On, tanpa Fee)</label>
+                            <input type="number" name="price" id="price" class="form-control" placeholder="0" readonly>
                         </div>
                         <div class="col-md-6 form-group">
                             <label>Discount</label>
@@ -454,10 +454,15 @@ $(document).ready(function() {
     function cleanNumber(val) { return parseFloat(val) || 0; }
 
     function syncTicketTotals() {
-        let totalPDF = cleanNumber($('#basic_fare').val()) + cleanNumber($('#total_tax').val()) + cleanNumber($('#fee_ticket').val()) + cleanNumber($('#baggage_price').val());
+        let basic = cleanNumber($('#basic_fare').val());
+        let tax = cleanNumber($('#total_tax').val());
+        let fee = cleanNumber($('#fee_ticket').val());
+        let baggage = cleanNumber($('#baggage_price').val());
+        let totalPDF = basic + tax + fee + baggage;
         $('#total_ticket_display').text('Rp ' + totalPDF.toLocaleString('id-ID'));
         $('#publish_price').val(totalPDF);
         $('#pax_paid').val(totalPDF);
+        $('#price').val(basic + tax + baggage);
     }
 
     $('#basic_fare, #total_tax, #fee_ticket, #baggage_price').on('input', syncTicketTotals);
