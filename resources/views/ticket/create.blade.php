@@ -371,11 +371,11 @@
                     <div class="section-title" style="border-left-color: #6366f1;">Detail Keuangan (Invoice)</div>
                     <div class="row">
                         <div class="col-md-6 form-group">
-                            <label>Pax Paid (Harga Jual Akhir)</label>
-                            <input type="number" name="pax_paid" id="pax_paid" class="form-control" required placeholder="0">
+                            <label>Pax Paid (Otomatis dari rincian PDF)</label>
+                            <input type="number" name="pax_paid" id="pax_paid" class="form-control" required placeholder="0" readonly>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>Price (Harga Dasar Invoice)</label>
+                            <label>Price (Harga Dasar Invoice; Add On terpisah)</label>
                             <input type="number" name="price" id="price" class="form-control" placeholder="0">
                         </div>
                         <div class="col-md-6 form-group">
@@ -453,11 +453,15 @@ $(document).ready(function() {
 
     function cleanNumber(val) { return parseFloat(val) || 0; }
 
-    $('#basic_fare, #total_tax, #fee_ticket, #baggage_price').on('input', function() {
+    function syncTicketTotals() {
         let totalPDF = cleanNumber($('#basic_fare').val()) + cleanNumber($('#total_tax').val()) + cleanNumber($('#fee_ticket').val()) + cleanNumber($('#baggage_price').val());
         $('#total_ticket_display').text('Rp ' + totalPDF.toLocaleString('id-ID'));
         $('#publish_price').val(totalPDF);
-    });
+        $('#pax_paid').val(totalPDF);
+    }
+
+    $('#basic_fare, #total_tax, #fee_ticket, #baggage_price').on('input', syncTicketTotals);
+    syncTicketTotals();
 
     if (window.flatpickr) {
         const dateTimeConfig = { enableTime: true, dateFormat: 'Y-m-d\\TH:i', altInput: true, altFormat: 'd-m-Y H:i', time_24hr: true };

@@ -453,11 +453,11 @@
                     <div class="section-title" style="border-left-color: #6366f1;">Detail Keuangan (Invoice)</div>
                     <div class="row">
                         <div class="col-md-6 form-group">
-                            <label>Pax Paid (Harga Jual Akhir)</label>
-                            <input type="number" name="pax_paid" id="pax_paid" class="form-control" value="{{ (int)$passengers->sum('pax_paid') }}" required>
+                            <label>Pax Paid (Otomatis dari rincian PDF)</label>
+                            <input type="number" name="pax_paid" id="pax_paid" class="form-control" value="{{ (int)$passengers->sum('pax_paid') }}" required readonly>
                         </div>
                         <div class="col-md-6 form-group">
-                            <label>Price (Harga Dasar di Invoice)</label>
+                            <label>Price (Harga Dasar Invoice; Add On terpisah)</label>
                             <input type="number" name="price" id="price" class="form-control" value="{{ (int)$passengers->sum('price') }}">
                         </div>
                         <div class="col-md-6 form-group">
@@ -559,7 +559,7 @@ $(document).ready(function() {
         return parseFloat(val.toString().replace(/[^0-9.-]+/g, "")) || 0;
     }
 
-    $('#basic_fare, #total_tax, #fee_ticket, #baggage_price').on('input', function() {
+    function syncTicketTotals() {
         let basic   = cleanNumber($('#basic_fare').val());
         let tax     = cleanNumber($('#total_tax').val());
         let fee     = cleanNumber($('#fee_ticket').val());
@@ -567,7 +567,11 @@ $(document).ready(function() {
         let totalPDF = basic + tax + fee + baggage;
         $('#total_ticket_display').text('Rp ' + totalPDF.toLocaleString('id-ID'));
         $('#publish_price').val(totalPDF);
-    });
+        $('#pax_paid').val(totalPDF);
+    }
+
+    $('#basic_fare, #total_tax, #fee_ticket, #baggage_price').on('input', syncTicketTotals);
+    syncTicketTotals();
 
     if (window.flatpickr) {
         const dateTimeConfig = {

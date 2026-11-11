@@ -81,6 +81,10 @@ class ReportController extends Controller
                     $query->where('airlines.id', $filterAirlineId);
                 }
 
+                $query->where(function ($query) {
+                    $query->whereNull('invoice_details.class')
+                        ->orWhere('invoice_details.class', '!=', 'BAGASI_ONLY');
+                });
                 $invoices = $query->get();
             } else {
                 $query = DB::table('invoice_details')->select($field)
@@ -99,6 +103,10 @@ class ReportController extends Controller
                     $query->where('airlines.id', $filterAirlineId);
                 }
 
+                $query->where(function ($query) {
+                    $query->whereNull('invoice_details.class')
+                        ->orWhere('invoice_details.class', '!=', 'BAGASI_ONLY');
+                });
                 $invoices = $query->get();
             }
 

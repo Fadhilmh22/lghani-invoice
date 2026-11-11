@@ -16,6 +16,20 @@ use App\Services\RecycleBinService;
 
 class TicketController extends Controller
 {
+    private function splitAmount(int $amount, int $count): array
+    {
+        $base = intdiv($amount, $count);
+        $remainder = $amount % $count;
+        $shares = array_fill(0, $count, $base);
+        $adjustment = $remainder < 0 ? -1 : 1;
+
+        for ($i = 0; $i < abs($remainder); $i++) {
+            $shares[$i] += $adjustment;
+        }
+
+        return $shares;
+    }
+
     public function index(Request $request)
     {
         // 1. Mulai Query dengan Eager Loading (airline, customer) 
@@ -101,7 +115,6 @@ $perPage = (int) $request->query('per_page', 10);
     
             $discount_total = $clean($request->discount);
             $nta_total      = $clean($request->nta_price);
-            $pax_paid_total = $clean($request->pax_paid); 
             $price_total    = $clean($request->price); 
             $baggage_total  = $clean($request->baggage_price);
             $total_kg       = (int) $request->baggage_kg;
@@ -109,17 +122,17 @@ $perPage = (int) $request->query('per_page', 10);
             $tax_total = $clean($request->total_tax);
             $fee_total = $clean($request->fee_ticket);
             $publish_total  = $basic_fare_total + $tax_total + $fee_total + $baggage_total;
+            $pax_paid_total = $publish_total;
 
             $pax_count = count($request->passengers);
             if ($pax_count == 0) {
                 return redirect()->back()->with('error', 'Minimal harus ada 1 penumpang!');
             }
     
-            $pax_paid_per_pax = floor($pax_paid_total / $pax_count);
-            $price_per_pax    = floor($price_total / $pax_count); 
-            $nta_per_pax      = floor($nta_total / $pax_count);
-            $discount_per_pax = floor($discount_total / $pax_count);
-            $profit_per_pax   = floor(($price_total - $nta_total) / $pax_count);
+            $paxPaidShares = $this->splitAmount($pax_paid_total, $pax_count);
+            $priceShares = $this->splitAmount($price_total, $pax_count);
+            $ntaShares = $this->splitAmount($nta_total, $pax_count);
+            $discountShares = $this->splitAmount($discount_total, $pax_count);
     
             // Simpan ke tabel Invoices
             $invoice = new Invoice();
@@ -183,13 +196,15 @@ $perPage = (int) $request->query('per_page', 10);
             $ticket->baggage_price  = $baggage_total;
             $ticket->free_baggage   = $request->free_baggage ?? 0;
             $ticket->total_publish  = $publish_total;
-            $ticket->total_profit   = $price_total - $nta_total;
+            $ticket->total_profit   = $pax_paid_total - $discount_total - $nta_total;
             $ticket->nta_total      = $nta_total;
             $ticket->save();
     
             // Simpan Data Penumpang
             $pax_with_baggage = []; 
+            $paxIndex = 0;
             foreach ($request->passengers as $paxData) {
+                $profit = $priceShares[$paxIndex] - $discountShares[$paxIndex] - $ntaShares[$paxIndex];
                 $new_pax = Invoice_detail::create([
                     'invoice_id'   => $invoice->id,
                     'ticket_id'    => $ticket->id,
@@ -199,11 +214,11 @@ $perPage = (int) $request->query('per_page', 10);
                     'type'         => $paxData['type'] ?? 'Adult',
                     'genre'        => $paxData['title'],
                     'ticket_no'    => $paxData['ticket_num'] ?? '-',
-                    'price'        => $price_per_pax,    
-                    'pax_paid'     => $pax_paid_per_pax, 
-                    'nta'          => $nta_per_pax,      
-                    'profit'       => $profit_per_pax,   
-                    'discount'     => $discount_per_pax,
+                    'price'        => $priceShares[$paxIndex],
+                    'pax_paid'     => $paxPaidShares[$paxIndex],
+                    'nta'          => $ntaShares[$paxIndex],
+                    'profit'       => $profit,
+                    'discount'     => $discountShares[$paxIndex],
                     'depart_date'  => $request->dep_out,
                     'return_date'  => $request->dep_in,
                     'airlines_no'  => $request->flight_out,
@@ -214,6 +229,7 @@ $perPage = (int) $request->query('per_page', 10);
                 if (isset($paxData['has_baggage']) && $paxData['has_baggage'] == "1") {
                     $pax_with_baggage[] = $new_pax->id;
                 }
+                $paxIndex++;
             }
     
             if ($baggage_total > 0 && count($pax_with_baggage) > 0) {
@@ -352,24 +368,23 @@ public function edit($id)
             
             $discount_total = $clean($request->discount);
             $nta_total      = $clean($request->nta_price);
-            $pax_paid_total = $clean($request->pax_paid); 
             $price_total    = $clean($request->price); 
             $baggage_total  = $clean($request->baggage_price);
             $basic_fare_total = $clean($request->basic_fare);
             $tax_total = $clean($request->total_tax);
             $fee_total = $clean($request->fee_ticket);
             $publish_total  = $basic_fare_total + $tax_total + $fee_total + $baggage_total;
+            $pax_paid_total = $publish_total;
 
             $pax_count = count($request->passengers);
             if ($pax_count == 0) {
                 return redirect()->back()->with('error', 'Minimal harus ada 1 penumpang!');
             }
     
-            $pax_paid_per_pax = floor($pax_paid_total / $pax_count);
-            $price_per_pax    = floor($price_total / $pax_count); 
-            $nta_per_pax      = floor($nta_total / $pax_count);
-            $discount_per_pax = floor($discount_total / $pax_count);
-            $profit_per_pax   = floor(($price_total - $nta_total) / $pax_count);
+            $paxPaidShares = $this->splitAmount($pax_paid_total, $pax_count);
+            $priceShares = $this->splitAmount($price_total, $pax_count);
+            $ntaShares = $this->splitAmount($nta_total, $pax_count);
+            $discountShares = $this->splitAmount($discount_total, $pax_count);
     
             $ticket->update([
                 'airline_id'    => $request->airline_id,
@@ -413,22 +428,22 @@ public function edit($id)
                 'baggage_kg'    => $request->baggage_kg,    
                 'baggage_price' => $baggage_total, 
                 'total_publish' => $publish_total,
-                'total_profit'  => $price_total - $nta_total,
+                'total_profit'  => $pax_paid_total - $discount_total - $nta_total,
                 'nta_total'     => $nta_total,
             ]);
     
             $invoice = Invoice::findOrFail($ticket->invoice_id);
-            $totalInvoiceBaru = Ticket::where('invoice_id', $invoice->id)->sum('total_publish');
             $invoice->update([
                 'customer_id' => $request->customer_id,
-                'total'       => $totalInvoiceBaru,
                 'edited'      => auth()->user()->name ?? 'Admin'
             ]);
     
             Invoice_detail::where('ticket_id', $id)->forceDelete();
             
             $pax_with_baggage = []; 
+            $paxIndex = 0;
             foreach ($request->passengers as $paxData) {
+                $profit = $priceShares[$paxIndex] - $discountShares[$paxIndex] - $ntaShares[$paxIndex];
                 $new_pax = Invoice_detail::create([
                     'invoice_id'   => $invoice->id,
                     'ticket_id'    => $ticket->id,
@@ -438,11 +453,11 @@ public function edit($id)
                     'type'         => $paxData['type'] ?? 'Adult',
                     'genre'        => $paxData['title'],
                     'ticket_no'    => $paxData['ticket_num'] ?? '-',
-                    'price'        => $price_per_pax,    
-                    'pax_paid'     => $pax_paid_per_pax, 
-                    'nta'          => $nta_per_pax,      
-                    'profit'       => $profit_per_pax,   
-                    'discount'     => $discount_per_pax,
+                    'price'        => $priceShares[$paxIndex],
+                    'pax_paid'     => $paxPaidShares[$paxIndex],
+                    'nta'          => $ntaShares[$paxIndex],
+                    'profit'       => $profit,
+                    'discount'     => $discountShares[$paxIndex],
                     'depart_date'  => $request->dep_out,
                     'return_date'  => $request->dep_in,
                     'airlines_no'  => $request->flight_out,
@@ -450,6 +465,7 @@ public function edit($id)
                     'route'        => $routeOut . ($routeIn ? ' - ' . $routeIn : ''),
                 ]);
                 if (isset($paxData['has_baggage']) && $paxData['has_baggage'] == "1") { $pax_with_baggage[] = $new_pax->id; }
+                $paxIndex++;
             }
     
             if ($baggage_total > 0 && count($pax_with_baggage) > 0) {
@@ -476,6 +492,10 @@ public function edit($id)
                     ]);
                 }
             }
+
+            $totalInvoiceBaru = Ticket::where('invoice_id', $invoice->id)->sum('total_publish')
+                - Invoice_detail::where('invoice_id', $invoice->id)->sum('discount');
+            $invoice->update(['total' => $totalInvoiceBaru]);
     
             // LOGIKA ADJUST SALDO LION GROUP SAAT UPDATE
             $lionGroupCodes = ['JT', 'IU', 'IW', 'ID'];
