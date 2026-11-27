@@ -550,7 +550,8 @@ public function edit($id)
         }
         
         $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'free_baggage', 'airports', 'airportCities'));
-        return $pdf->setPaper('A4', 'portrait')->stream('E-Ticket-' . $ticket->booking_code . '.pdf');
+        $safeBookingCode = str_replace(['/', '\\'], '-', $ticket->booking_code);
+        return $pdf->setPaper('A4', 'portrait')->stream('E-Ticket-' . $safeBookingCode . '.pdf');
     }
 
     public function getPassengers($id)
@@ -579,7 +580,8 @@ public function edit($id)
         $airportCities = Airport::pluck('city', 'code');
     
         $pdf = PDF::loadView('ticket.print', compact('ticket', 'passengers', 'ticketNoGlobal', 'baggage_pax', 'free_baggage', 'airports', 'airportCities'));
-        return $pdf->setPaper('A4', 'portrait')->stream('Ticket_' . $pax->name . '.pdf');
+        $safePaxName = str_replace(['/', '\\'], '-', $pax->name);
+        return $pdf->setPaper('A4', 'portrait')->stream('Ticket_' . $safePaxName . '.pdf');
     }
 
     public function bulkInvoice(Request $request)
